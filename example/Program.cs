@@ -7,7 +7,7 @@ using Lpdf;
 using Lpdf.Engine;
 
 var root    = Path.Combine(AppContext.BaseDirectory, "../../../../../../../example/");
-var docsExamples = Path.Combine(AppContext.BaseDirectory, "../../../../../../../docs/examples/");
+var fixtures = Path.Combine(AppContext.BaseDirectory, "../../../../../../../test/fixtures/");
 
 // ── example1 / example2 ─────────────────────────────────────────────────────
 
@@ -32,7 +32,7 @@ foreach (var example in examples)
 // ── encrypt-permissions-only ─────────────────────────────────────────────────
 // No open password; cooperative viewers enforce Print = false, Copy = false.
 {
-    var encXml = await File.ReadAllTextAsync(Path.Combine(docsExamples, "showcase-encryption.xml"));
+    var encXml = await File.ReadAllTextAsync(Path.Combine(fixtures, "showcase-encryption.xml"));
     const string outputFile = "encrypt-permissions-only-dotnet.pdf";
 
     var encEngine = new LpdfEngine(licenseKey: "", options: new EngineOptions { SrcFallback = File.ReadAllBytes });
@@ -51,7 +51,7 @@ foreach (var example in examples)
 // ── encrypt-open-password ────────────────────────────────────────────────────
 // Viewers prompt for "password" before displaying content.
 {
-    var encXml = await File.ReadAllTextAsync(Path.Combine(docsExamples, "showcase-encryption.xml"));
+    var encXml = await File.ReadAllTextAsync(Path.Combine(fixtures, "showcase-encryption.xml"));
     const string outputFile = "encrypt-open-password-dotnet.pdf";
 
     var encEngine = new LpdfEngine(licenseKey: "", options: new EngineOptions { SrcFallback = File.ReadAllBytes });
