@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lpdf.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fd542ba2e3500a8c73399028eab7b8e1b888e226")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+58b15d522ca3d72a287f1a44c6c9c09588b7ee3d")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lpdf.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lpdf.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -32,10 +32,19 @@ jobs:
             gh release download "$CORE_TAG" \
               --repo lpdfio/lpdf \
               --pattern "lpdf-wasi.wasm" \
-              --dir wasm && break
+              --dir wasm \
+              --clobber && break
             echo "Attempt $attempt failed — retrying in 10s..."
             sleep 10
           done
+          # Fallback to latest release when the derived tag doesn't exist yet
+          if [ ! -f wasm/lpdf-wasi.wasm ]; then
+            gh release download \
+              --repo lpdfio/lpdf \
+              --pattern "lpdf-wasi.wasm" \
+              --dir wasm \
+              --clobber
+          fi
           mv wasm/lpdf-wasi.wasm wasm/lpdf.wasm   # csproj embeds as lpdf.wasm
 
       # ── Build and test ───────────────────────────────────────────────────────

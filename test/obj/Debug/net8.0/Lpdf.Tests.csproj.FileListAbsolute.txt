@@ -106,3 +106,4 @@ C:\workspace\projects\lpdf\src\adapters\dotnet\test\obj\Debug\net8.0\refint\Lpdf
 C:\workspace\projects\lpdf\src\adapters\dotnet\test\obj\Debug\net8.0\Lpdf.Tests.pdb
 C:\workspace\projects\lpdf\src\adapters\dotnet\test\obj\Debug\net8.0\Lpdf.Tests.genruntimeconfig.cache
 C:\workspace\projects\lpdf\src\adapters\dotnet\test\obj\Debug\net8.0\ref\Lpdf.Tests.dll
+C:\workspace\projects\lpdf\src\adapters\dotnet\test\obj\Debug\net8.0\Lpdf.Tests.sourcelink.json
