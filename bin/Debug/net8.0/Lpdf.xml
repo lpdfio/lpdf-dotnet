@@ -1,0 +1,885 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Lpdf</name>
+    </assembly>
+    <members>
+        <member name="T:Lpdf.Canvas.CanvasNode">
+            <summary>
+            Abstract base for all canvas node types.
+            Use <see cref="T:Lpdf.LpdfCanvas"/> to construct instances.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Canvas.CanvasNode.Type">
+            <summary>The canvas element name (e.g. <c>canvas-rect</c>, <c>canvas-text</c>).</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.CircleNode">
+            <summary>A <c>canvas-circle</c> node (uniform radii convenience form).</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.CircleNode.#ctor(System.Double,System.Double,System.Double,Lpdf.Canvas.EllipseStyle)">
+            <summary>A <c>canvas-circle</c> node (uniform radii convenience form).</summary>
+        </member>
+        <member name="P:Lpdf.Canvas.CircleNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Canvas.Clip">
+            <summary>Rectangular clip region applied to a canvas layer.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.Clip.#ctor(System.Double,System.Double,System.Double,System.Double,System.Nullable{System.Double})">
+            <summary>Rectangular clip region applied to a canvas layer.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.EllipseNode">
+            <summary>A <c>canvas-ellipse</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.EllipseNode.#ctor(System.Double,System.Double,System.Double,System.Double,Lpdf.Canvas.EllipseStyle)">
+            <summary>A <c>canvas-ellipse</c> node.</summary>
+        </member>
+        <member name="P:Lpdf.Canvas.EllipseNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Canvas.EllipseStyle">
+            <summary>Style for <c>canvas-ellipse</c> and <c>canvas-circle</c> nodes.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.EllipseStyle.#ctor(System.String,System.String,System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>Style for <c>canvas-ellipse</c> and <c>canvas-circle</c> nodes.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.ImageNode">
+            <summary>A <c>canvas-image</c> node — a raster image at an absolute position.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.ImageNode.#ctor(System.Double,System.Double,System.String,System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>A <c>canvas-image</c> node — a raster image at an absolute position.</summary>
+        </member>
+        <member name="P:Lpdf.Canvas.ImageNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Canvas.LayerNode">
+            <summary>A <c>canvas-layer</c> node — a rendering layer containing canvas primitives.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.LayerNode.#ctor(System.Collections.Generic.List{Lpdf.Canvas.CanvasNode},Lpdf.Canvas.LayerOptions)">
+            <summary>A <c>canvas-layer</c> node — a rendering layer containing canvas primitives.</summary>
+        </member>
+        <member name="P:Lpdf.Canvas.LayerNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Canvas.LayerOptions">
+            <summary>Style attributes for <c>canvas-layer</c> nodes.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.LayerOptions.#ctor(System.String,System.Nullable{System.Double},Lpdf.Canvas.Transform,Lpdf.Canvas.Clip)">
+            <summary>Style attributes for <c>canvas-layer</c> nodes.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.LineCap">
+            <summary>Line cap style for stroked paths.</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.LineCap.Butt">
+            <summary>Flat cap at the end point.</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.LineCap.Round">
+            <summary>Rounded cap beyond the end point.</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.LineCap.Square">
+            <summary>Square cap beyond the end point.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.LineJoin">
+            <summary>Line join style for stroked paths.</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.LineJoin.Miter">
+            <summary>Pointed join (default).</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.LineJoin.Round">
+            <summary>Rounded join.</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.LineJoin.Bevel">
+            <summary>Bevelled join.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.LineNode">
+            <summary>A <c>canvas-line</c> node — a straight line segment.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.LineNode.#ctor(System.Double,System.Double,System.Double,System.Double,Lpdf.Canvas.LineStyle)">
+            <summary>A <c>canvas-line</c> node — a straight line segment.</summary>
+        </member>
+        <member name="P:Lpdf.Canvas.LineNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Canvas.LineStyle">
+            <summary>Style for <c>canvas-line</c> nodes.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.LineStyle.#ctor(System.String,System.Nullable{System.Double},System.Nullable{System.Double},System.Nullable{Lpdf.Canvas.LineCap},System.Nullable{Lpdf.Canvas.LineJoin})">
+            <summary>Style for <c>canvas-line</c> nodes.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.PathNode">
+            <summary>A <c>canvas-path</c> node — an SVG-syntax path.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.PathNode.#ctor(System.String,Lpdf.Canvas.PathStyle)">
+            <summary>A <c>canvas-path</c> node — an SVG-syntax path.</summary>
+        </member>
+        <member name="P:Lpdf.Canvas.PathNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Canvas.PathStyle">
+            <summary>Style for <c>canvas-path</c> nodes.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.PathStyle.#ctor(System.String,System.String,System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>Style for <c>canvas-path</c> nodes.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.RectNode">
+            <summary>A <c>canvas-rect</c> node — an axis-aligned rectangle.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.RectNode.#ctor(System.Double,System.Double,System.Double,System.Double,Lpdf.Canvas.RectStyle)">
+            <summary>A <c>canvas-rect</c> node — an axis-aligned rectangle.</summary>
+        </member>
+        <member name="P:Lpdf.Canvas.RectNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Canvas.RectStyle">
+            <summary>Style for <c>canvas-rect</c> nodes.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.RectStyle.#ctor(System.String,System.String,System.Nullable{System.Double},System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>Style for <c>canvas-rect</c> nodes.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.Run">
+            <summary>A rich-text run inside a <c>canvas-text</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.Run.#ctor(System.String,System.String,System.Nullable{System.Double},System.String)">
+            <summary>A rich-text run inside a <c>canvas-text</c> node.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.TextAlign">
+            <summary>Text alignment for canvas text nodes.</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.TextAlign.Left">
+            <summary>Left-align text.</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.TextAlign.Center">
+            <summary>Center-align text.</summary>
+        </member>
+        <member name="F:Lpdf.Canvas.TextAlign.Right">
+            <summary>Right-align text.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.TextNode">
+            <summary>A <c>canvas-text</c> node — positioned text with optional rich-text runs.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.TextNode.#ctor(System.Double,System.Double,System.String,Lpdf.Canvas.TextStyle,Lpdf.Canvas.Run[])">
+            <summary>A <c>canvas-text</c> node — positioned text with optional rich-text runs.</summary>
+        </member>
+        <member name="P:Lpdf.Canvas.TextNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Canvas.TextStyle">
+            <summary>Style for <c>canvas-text</c> nodes.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.TextStyle.#ctor(System.String,System.Nullable{System.Double},System.String,System.Nullable{Lpdf.Canvas.TextAlign},System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>Style for <c>canvas-text</c> nodes.</summary>
+        </member>
+        <member name="T:Lpdf.Canvas.Transform">
+            <summary>A 6-element affine transform matrix <c>[a, b, c, d, e, f]</c>.</summary>
+        </member>
+        <member name="M:Lpdf.Canvas.Transform.#ctor(System.Double,System.Double,System.Double,System.Double,System.Double,System.Double)">
+            <summary>A 6-element affine transform matrix <c>[a, b, c, d, e, f]</c>.</summary>
+        </member>
+        <member name="T:Lpdf.Engine.EncryptOptions">
+            <summary>
+            RC4-128 encryption options passed to <see cref="M:Lpdf.LpdfEngine.SetEncryption(Lpdf.Engine.EncryptOptions)"/>.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptOptions.UserPassword">
+            <summary>Open password shown to readers. Empty string = no open password required.</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptOptions.OwnerPassword">
+            <summary>Owner (permissions) password. Required; must be non-empty.</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptOptions.Permissions">
+            <summary>Permission flags applied to the document.</summary>
+        </member>
+        <member name="T:Lpdf.Engine.EncryptPermissions">
+            <summary>
+            PDF permission flags for RC4-128 encryption.
+            All flags default to <c>true</c> (allowed); set to <c>false</c> to restrict.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptPermissions.Print">
+            <summary>Allow printing.</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptPermissions.Modify">
+            <summary>Allow content modification.</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptPermissions.Copy">
+            <summary>Allow text and graphic extraction.</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptPermissions.Annotate">
+            <summary>Allow adding or modifying annotations.</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptPermissions.FillForms">
+            <summary>Allow form field filling.</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptPermissions.Accessibility">
+            <summary>Allow accessibility tools (screen readers).</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptPermissions.Assemble">
+            <summary>Allow page insertion, deletion, and rotation.</summary>
+        </member>
+        <member name="P:Lpdf.Engine.EncryptPermissions.PrintHq">
+            <summary>Allow high-quality printing.</summary>
+        </member>
+        <member name="T:Lpdf.Engine.EngineException">
+            <summary>Thrown when the lpdf engine returns a layout or parse error.</summary>
+        </member>
+        <member name="M:Lpdf.Engine.EngineException.#ctor(System.String)">
+            <summary>Thrown when the lpdf engine returns a layout or parse error.</summary>
+        </member>
+        <member name="T:Lpdf.Engine.EngineOptions">
+            <summary>
+            Construction-time configuration for <see cref="T:Lpdf.LpdfEngine"/>.
+            Passed once at construction; applies to every subsequent render call.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Engine.EngineOptions.SrcFallback">
+            <summary>
+            File-read callback for resolving font <c>src</c> paths at render time.
+            On the server this can be set to <c>System.IO.File.ReadAllBytes</c>.
+            In sandboxed environments supply all bytes via
+            <see cref="P:Lpdf.Engine.RenderOptions.FontBytes"/> instead.
+            </summary>
+        </member>
+        <member name="T:Lpdf.Engine.RenderOptions">
+            <summary>
+            Per-call options passed to <see cref="M:Lpdf.LpdfEngine.RenderPdf(System.String,Lpdf.Engine.RenderOptions)"/>
+            or <see cref="M:Lpdf.LpdfEngine.RenderPdf(Lpdf.Kit.Document,Lpdf.Engine.RenderOptions)"/>.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Engine.RenderOptions.FontBytes">
+            <summary>
+            Pre-loaded font bytes for custom fonts referenced via <c>fonts src="…"</c>.
+            Keys are the font token names used in the document; values are raw TTF/OTF bytes.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Engine.RenderOptions.ImageBytes">
+            <summary>
+            Pre-loaded image bytes for images referenced via <c>&lt;img name="…"&gt;</c>.
+            Keys are the image names declared in <c>&lt;assets&gt;</c>; values are raw PNG/JPEG bytes.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Engine.RenderOptions.CreatedOn">
+            <summary>
+            Optional ISO 8601 creation timestamp (e.g. <c>"2024-06-01T12:00:00"</c>).
+            When provided, written as <c>/CreationDate</c> in the PDF info dictionary.
+            Omitting this keeps builds reproducible (no embedded timestamp).
+            </summary>
+        </member>
+        <member name="P:Lpdf.Engine.RenderOptions.Data">
+            <summary>
+            Optional data object for resolving <c>data-*</c> binding attributes in the
+            XML template. Pass <see langword="null"/> or omit to render with inline
+            fallback content. Only applies when rendering an XML string.
+            </summary>
+        </member>
+        <member name="T:Lpdf.Engine.WasmRunner">
+            <summary>
+            Thin wrapper around the Wasmtime.NET engine that loads the embedded
+            <c>lpdf.wasm</c> WASI binary and exposes <c>render</c>/<c>render_tree</c>
+            as synchronous string-in / string-out calls, and <c>render_pdf</c> /
+            <c>render_tree_pdf</c> as calls that return raw PDF bytes.
+            </summary>
+        </member>
+        <member name="M:Lpdf.Engine.WasmRunner.Render(System.String,System.String)">
+            <summary>Render an lpdf XML document and return the RenderTree JSON string.</summary>
+        </member>
+        <member name="M:Lpdf.Engine.WasmRunner.RenderTree(System.String,System.String)">
+            <summary>Render an lpdf JSON tree and return the RenderTree JSON string.</summary>
+        </member>
+        <member name="M:Lpdf.Engine.WasmRunner.RenderPdf(System.String,System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.Byte[]},System.Collections.Generic.IReadOnlyDictionary{System.String,System.Byte[]},System.Func{System.String,System.Byte[]},System.String,System.String,System.String)">
+            <summary>
+            Render an lpdf XML document to raw PDF bytes.
+            Custom fonts are base64-encoded into the request envelope.
+            If <paramref name="srcFallback"/> is provided, a preliminary <c>render</c>
+            call is made to discover font <c>src</c> paths so they can be resolved
+            before the PDF render call.
+            </summary>
+        </member>
+        <member name="M:Lpdf.Engine.WasmRunner.RenderTreePdf(System.String,System.String,System.Collections.Generic.IReadOnlyDictionary{System.String,System.Byte[]},System.Collections.Generic.IReadOnlyDictionary{System.String,System.Byte[]},System.Func{System.String,System.Byte[]},System.String,System.String)">
+            <summary>
+            Render an lpdf JSON document tree to raw PDF bytes.
+            </summary>
+        </member>
+        <member name="M:Lpdf.Engine.WasmRunner.KitToXml(System.String)">
+            <summary>
+            Convert a JSON kit-tree (produced by <c>LpdfKit</c>) to an lpdf XML string.
+            </summary>
+        </member>
+        <member name="T:Lpdf.Kit.Document">
+            <summary>Root document node — passed to <see cref="M:Lpdf.LpdfEngine.RenderPdf(Lpdf.Kit.Document,Lpdf.Engine.RenderOptions)"/>.</summary>
+        </member>
+        <member name="M:Lpdf.Kit.Document.#ctor(System.Collections.Generic.Dictionary{System.String,System.Object},System.Collections.Generic.List{Lpdf.Kit.SectionNode})">
+            <summary>Root document node — passed to <see cref="M:Lpdf.LpdfEngine.RenderPdf(Lpdf.Kit.Document,Lpdf.Engine.RenderOptions)"/>.</summary>
+        </member>
+        <member name="P:Lpdf.Kit.Document.Version">
+            <summary>Schema version; always <c>1</c>.</summary>
+        </member>
+        <member name="P:Lpdf.Kit.Document.Type">
+            <summary>Node type discriminator; always <c>"document"</c>.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.DocumentMeta">
+            <summary>PDF document metadata written into the output file.</summary>
+        </member>
+        <member name="M:Lpdf.Kit.DocumentMeta.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>PDF document metadata written into the output file.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.DocumentOptions">
+            <summary>Document-level attributes applied as defaults to every section.</summary>
+        </member>
+        <member name="M:Lpdf.Kit.DocumentOptions.#ctor(System.String,System.String,System.String,System.String,Lpdf.Kit.DocumentTokens,Lpdf.Kit.DocumentMeta)">
+            <summary>Document-level attributes applied as defaults to every section.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.DocumentTokens">
+            <summary>Design-token overrides applied to the whole document.</summary>
+        </member>
+        <member name="M:Lpdf.Kit.DocumentTokens.#ctor(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.Dictionary{System.String,Lpdf.Kit.Font})">
+            <summary>Design-token overrides applied to the whole document.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.Font">
+            <summary>Abstract base for a font definition used in <see cref="T:Lpdf.Kit.DocumentTokens"/>.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.FontBuiltin">
+            <summary>One of the lpdf built-in fonts, referenced by name.</summary>
+        </member>
+        <member name="M:Lpdf.Kit.FontBuiltin.#ctor(System.String)">
+            <summary>One of the lpdf built-in fonts, referenced by name.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.FontSrc">
+            <summary>Font loaded from a file path or URL supplied via <see cref="P:Lpdf.Engine.EngineOptions.SrcFallback"/>.</summary>
+        </member>
+        <member name="M:Lpdf.Kit.FontSrc.#ctor(System.String)">
+            <summary>Font loaded from a file path or URL supplied via <see cref="P:Lpdf.Engine.EngineOptions.SrcFallback"/>.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.Orientation">
+            <summary>Page orientation applied to a section or document.</summary>
+        </member>
+        <member name="F:Lpdf.Kit.Orientation.Portrait">
+            <summary>Portrait (taller than wide).</summary>
+        </member>
+        <member name="F:Lpdf.Kit.Orientation.Landscape">
+            <summary>Landscape (wider than tall).</summary>
+        </member>
+        <member name="T:Lpdf.Kit.SectionCanvas">
+            <summary>
+            A canvas block inside a <see cref="T:Lpdf.Kit.SectionNode"/>, containing canvas layer nodes.
+            Produced by <see cref="M:Lpdf.LpdfKit.Canvas(Lpdf.Canvas.LayerNode[])"/>.
+            </summary>
+        </member>
+        <member name="M:Lpdf.Kit.SectionCanvas.#ctor(System.Collections.Generic.List{Lpdf.Canvas.LayerNode},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            A canvas block inside a <see cref="T:Lpdf.Kit.SectionNode"/>, containing canvas layer nodes.
+            Produced by <see cref="M:Lpdf.LpdfKit.Canvas(Lpdf.Canvas.LayerNode[])"/>.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Kit.SectionCanvas.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Kit.SectionContent">
+            <summary>
+            Abstract base for content that can appear directly inside a <see cref="T:Lpdf.Kit.SectionNode"/>.
+            Use <see cref="M:Lpdf.LpdfKit.Layout(Lpdf.Layout.Node[])"/> or <see cref="M:Lpdf.LpdfKit.Canvas(Lpdf.Canvas.LayerNode[])"/>
+            to create instances.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Kit.SectionContent.Type">
+            <summary>The element type name emitted to the wire format.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.SectionLayout">
+            <summary>
+            A layout block inside a <see cref="T:Lpdf.Kit.SectionNode"/>, containing layout nodes.
+            Produced by <see cref="M:Lpdf.LpdfKit.Layout(Lpdf.Layout.Node[])"/>.
+            </summary>
+        </member>
+        <member name="M:Lpdf.Kit.SectionLayout.#ctor(System.Collections.Generic.List{Lpdf.Layout.Node},System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>
+            A layout block inside a <see cref="T:Lpdf.Kit.SectionNode"/>, containing layout nodes.
+            Produced by <see cref="M:Lpdf.LpdfKit.Layout(Lpdf.Layout.Node[])"/>.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Kit.SectionLayout.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Kit.SectionNode">
+            <summary>A serialised <c>section</c> (page) node.</summary>
+        </member>
+        <member name="M:Lpdf.Kit.SectionNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{Lpdf.Kit.SectionContent})">
+            <summary>A serialised <c>section</c> (page) node.</summary>
+        </member>
+        <member name="P:Lpdf.Kit.SectionNode.Type">
+            <summary>The element type; always <c>"section"</c>.</summary>
+        </member>
+        <member name="T:Lpdf.Kit.SectionOptions">
+            <summary>Attributes for the <c>section</c> (page) element.</summary>
+        </member>
+        <member name="M:Lpdf.Kit.SectionOptions.#ctor(System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>section</c> (page) element.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.BarcodeNode">
+            <summary>A serialised <c>barcode</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.BarcodeNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>A serialised <c>barcode</c> node.</summary>
+        </member>
+        <member name="P:Lpdf.Layout.BarcodeNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Layout.BarcodeOptions">
+            <summary>Attributes for the <c>barcode</c> primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.BarcodeOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>barcode</c> primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.ClusterOptions">
+            <summary>Attributes for the <c>cluster</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.ClusterOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>cluster</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.ContainerNode">
+            <summary>A serialised layout container node (stack, flank, grid, table, etc.).</summary>
+        </member>
+        <member name="M:Lpdf.Layout.ContainerNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{Lpdf.Layout.Node},System.String)">
+            <summary>A serialised layout container node (stack, flank, grid, table, etc.).</summary>
+        </member>
+        <member name="P:Lpdf.Layout.ContainerNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Layout.Content">
+            <summary>A text content item — either a raw string or a <see cref="T:Lpdf.Layout.SpanNode"/>.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.RawText">
+            <summary>A plain-text run inside a <c>text</c> node. Implicitly convertible from <see cref="T:System.String"/>.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.RawText.#ctor(System.String)">
+            <summary>A plain-text run inside a <c>text</c> node. Implicitly convertible from <see cref="T:System.String"/>.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.DividerNode">
+            <summary>A serialised <c>divider</c> horizontal rule node.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.DividerNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>A serialised <c>divider</c> horizontal rule node.</summary>
+        </member>
+        <member name="P:Lpdf.Layout.DividerNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Layout.DividerOptions">
+            <summary>Attributes for the <c>divider</c> primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.DividerOptions.#ctor(System.String,System.String,System.String)">
+            <summary>Attributes for the <c>divider</c> primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.FieldNode">
+            <summary>A serialised form <c>field</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.FieldNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>A serialised form <c>field</c> node.</summary>
+        </member>
+        <member name="P:Lpdf.Layout.FieldNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Layout.FieldOptions">
+            <summary>Attributes for the <c>field</c> form primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.FieldOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>field</c> form primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.FieldType">
+            <summary>Form field type discriminator.</summary>
+        </member>
+        <member name="F:Lpdf.Layout.FieldType.Text">
+            <summary>Single-line text input.</summary>
+        </member>
+        <member name="F:Lpdf.Layout.FieldType.Multiline">
+            <summary>Multi-line text area.</summary>
+        </member>
+        <member name="F:Lpdf.Layout.FieldType.Checkbox">
+            <summary>Checkbox.</summary>
+        </member>
+        <member name="F:Lpdf.Layout.FieldType.Radio">
+            <summary>Radio button.</summary>
+        </member>
+        <member name="F:Lpdf.Layout.FieldType.Signature">
+            <summary>Signature field.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.FlankOptions">
+            <summary>Attributes for the <c>flank</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.FlankOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>flank</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.FrameOptions">
+            <summary>Attributes for the <c>frame</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.FrameOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>frame</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.GridOptions">
+            <summary>Attributes for the <c>grid</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.GridOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>grid</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.ImgNode">
+            <summary>A serialised <c>img</c> image node.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.ImgNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String})">
+            <summary>A serialised <c>img</c> image node.</summary>
+        </member>
+        <member name="P:Lpdf.Layout.ImgNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Layout.ImgOptions">
+            <summary>Attributes for the <c>img</c> primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.ImgOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>img</c> primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.LinkOptions">
+            <summary>Attributes for the <c>link</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.LinkOptions.#ctor(System.String,System.String,System.String)">
+            <summary>Attributes for the <c>link</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.Node">
+            <summary>
+            Discriminated union of all layout nodes. Use <see cref="T:Lpdf.LpdfLayout"/> to construct.
+            </summary>
+        </member>
+        <member name="P:Lpdf.Layout.Node.Type">
+            <summary>The lpdf element name (e.g. <c>stack</c>, <c>text</c>, <c>img</c>).</summary>
+        </member>
+        <member name="T:Lpdf.Layout.Pin">
+            <summary>
+            Pin positioning helper — an absolute-position anchor for a node within its container.
+            Pass as the <c>pin</c> attribute value using <see cref="M:Lpdf.Layout.Pin.ToString"/>.
+            </summary>
+        </member>
+        <member name="M:Lpdf.Layout.Pin.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            Pin positioning helper — an absolute-position anchor for a node within its container.
+            Pass as the <c>pin</c> attribute value using <see cref="M:Lpdf.Layout.Pin.ToString"/>.
+            </summary>
+        </member>
+        <member name="M:Lpdf.Layout.Pin.ToString">
+            <summary>Renders the pin as a CSS shorthand string, e.g. <c>"top:10pt right:20pt"</c>.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.RegionNode">
+            <summary>A serialised <c>region</c> node — an absolutely positioned overlay/underlay block.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.RegionNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{Lpdf.Layout.Node})">
+            <summary>A serialised <c>region</c> node — an absolutely positioned overlay/underlay block.</summary>
+        </member>
+        <member name="P:Lpdf.Layout.RegionNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Layout.RegionOptions">
+            <summary>Attributes for the <c>region</c> primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.RegionOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>region</c> primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.SpanNode">
+            <summary>A serialised <c>span</c> inline node.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.SpanNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{System.String})">
+            <summary>A serialised <c>span</c> inline node.</summary>
+        </member>
+        <member name="P:Lpdf.Layout.SpanNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Layout.SpanOptions">
+            <summary>Attributes for the <c>span</c> inline primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.SpanOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>span</c> inline primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.SplitOptions">
+            <summary>Attributes for the <c>split</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.SplitOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>split</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.StackOptions">
+            <summary>Attributes for the <c>stack</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.StackOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>stack</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.TableOptions">
+            <summary>Attributes for the <c>table</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.TableOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>table</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.TheadOptions">
+            <summary>Attributes for the <c>thead</c> table header row group.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.TheadOptions.#ctor(System.String)">
+            <summary>Attributes for the <c>thead</c> table header row group.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.TrOptions">
+            <summary>Attributes for the <c>tr</c> table row.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.TrOptions.#ctor(System.String)">
+            <summary>Attributes for the <c>tr</c> table row.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.TdOptions">
+            <summary>Attributes for the <c>td</c> table cell.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.TdOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>td</c> table cell.</summary>
+        </member>
+        <member name="T:Lpdf.Layout.TextNode">
+            <summary>A serialised <c>text</c> paragraph node.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.TextNode.#ctor(System.Collections.Generic.Dictionary{System.String,System.String},System.Collections.Generic.List{Lpdf.Layout.Content})">
+            <summary>A serialised <c>text</c> paragraph node.</summary>
+        </member>
+        <member name="P:Lpdf.Layout.TextNode.Type">
+            <inheritdoc/>
+        </member>
+        <member name="T:Lpdf.Layout.TextOptions">
+            <summary>Attributes for the <c>text</c> layout primitive.</summary>
+        </member>
+        <member name="M:Lpdf.Layout.TextOptions.#ctor(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String)">
+            <summary>Attributes for the <c>text</c> layout primitive.</summary>
+        </member>
+        <member name="T:Lpdf.LpdfCanvas">
+             <summary>
+             Static canvas node builder helpers.
+             All methods return <see cref="T:Lpdf.Canvas.CanvasNode"/> instances.
+            
+             <example>
+             <code>
+             using Lpdf;
+             using Lpdf.Canvas;
+            
+             var layer = LpdfCanvas.Layer([
+                 LpdfCanvas.Rect(0, 0, 595, 842, new RectStyle(Fill: "lightgray")),
+                 LpdfCanvas.Text(100, 100, "Hello"),
+             ]);
+             </code>
+             </example>
+             </summary>
+        </member>
+        <member name="M:Lpdf.LpdfCanvas.Layer(Lpdf.Canvas.CanvasNode[],Lpdf.Canvas.LayerOptions)">
+            <summary>Build a <c>canvas-layer</c> node containing canvas primitives.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfCanvas.Rect(System.Double,System.Double,System.Double,System.Double,Lpdf.Canvas.RectStyle)">
+            <summary>Build a <c>canvas-rect</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfCanvas.Line(System.Double,System.Double,System.Double,System.Double,Lpdf.Canvas.LineStyle)">
+            <summary>Build a <c>canvas-line</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfCanvas.Ellipse(System.Double,System.Double,System.Double,System.Double,Lpdf.Canvas.EllipseStyle)">
+            <summary>Build a <c>canvas-ellipse</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfCanvas.Circle(System.Double,System.Double,System.Double,Lpdf.Canvas.EllipseStyle)">
+            <summary>Build a <c>canvas-circle</c> node (uniform radii convenience form).</summary>
+        </member>
+        <member name="M:Lpdf.LpdfCanvas.Path(System.String,Lpdf.Canvas.PathStyle)">
+            <summary>Build a <c>canvas-path</c> node from an SVG path string.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfCanvas.Text(System.Double,System.Double,System.String,Lpdf.Canvas.TextStyle,Lpdf.Canvas.Run[])">
+            <summary>Build a <c>canvas-text</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfCanvas.Image(System.Double,System.Double,System.String,System.Nullable{System.Double},System.Nullable{System.Double})">
+            <summary>Build a <c>canvas-image</c> node.</summary>
+        </member>
+        <member name="T:Lpdf.LpdfEngine">
+            <summary>
+            Stateful lpdf renderer.
+            Construct once with a license key; call <see cref="M:Lpdf.LpdfEngine.RenderPdf(System.String,Lpdf.Engine.RenderOptions)"/>
+            or <see cref="M:Lpdf.LpdfEngine.RenderPdf(Lpdf.Kit.Document,Lpdf.Engine.RenderOptions)"/> as many times as needed.
+            </summary>
+        </member>
+        <member name="M:Lpdf.LpdfEngine.#ctor(System.String,Lpdf.Engine.EngineOptions)">
+            <param name="licenseKey">
+              Your lpdf license key. Pass an empty string to render in evaluation
+              mode (produces a visible watermark).
+            </param>
+            <param name="options">Engine-level options applied to every call (e.g. <c>SrcFallback</c>).</param>
+        </member>
+        <member name="M:Lpdf.LpdfEngine.SetEncryption(Lpdf.Engine.EncryptOptions)">
+            <summary>
+            Configure RC4-128 encryption for all subsequent <see cref="M:Lpdf.LpdfEngine.RenderPdf(System.String,Lpdf.Engine.RenderOptions)"/> calls.
+            Pass <see langword="null"/> to clear previously set encryption.
+            </summary>
+        </member>
+        <member name="M:Lpdf.LpdfEngine.LoadFont(System.String,System.Byte[])">
+            <summary>
+            Register raw TTF/OTF bytes for a font name referenced via <c>fonts src="…"</c>.
+            Call before <see cref="M:Lpdf.LpdfEngine.RenderPdf(System.String,Lpdf.Engine.RenderOptions)"/>. Returns <c>this</c>.
+            </summary>
+        </member>
+        <member name="M:Lpdf.LpdfEngine.LoadImage(System.String,System.Byte[])">
+            <summary>
+            Register raw PNG or JPEG bytes for an image name referenced via <c>&lt;img name="…"&gt;</c>.
+            Call before <see cref="M:Lpdf.LpdfEngine.RenderPdf(System.String,Lpdf.Engine.RenderOptions)"/>. Returns <c>this</c>.
+            </summary>
+        </member>
+        <member name="M:Lpdf.LpdfEngine.RenderPdf(System.String,Lpdf.Engine.RenderOptions)">
+            <summary>Render an lpdf XML string to PDF bytes.</summary>
+            <param name="xml">Full lpdf XML document string.</param>
+            <param name="callOptions">Per-call options (data, fonts, images, timestamp).</param>
+        </member>
+        <member name="M:Lpdf.LpdfEngine.RenderPdf(Lpdf.Kit.Document,Lpdf.Engine.RenderOptions)">
+            <summary>Render a <see cref="T:Lpdf.Kit.Document"/> tree (built with <see cref="T:Lpdf.LpdfKit"/>) to PDF bytes.</summary>
+            <param name="document">Document tree produced by <c>LpdfKit.Document(…)</c>.</param>
+            <param name="callOptions">Per-call options (fonts, images, timestamp).</param>
+        </member>
+        <member name="M:Lpdf.LpdfEngine.KitToXml(Lpdf.Kit.Document)">
+            <summary>
+            Convert a <see cref="T:Lpdf.Kit.Document"/> tree (built with <see cref="T:Lpdf.LpdfKit"/>) to an lpdf XML string.
+            </summary>
+            <param name="document">Document tree produced by <c>LpdfKit.Document(…)</c>.</param>
+            <returns>A well-formed XML string with an <c>&lt;?xml ...?&gt;</c> declaration.</returns>
+        </member>
+        <member name="M:Lpdf.LpdfEngine.Dispose">
+            <summary>Releases the WASM runtime resources held by this engine.</summary>
+        </member>
+        <member name="T:Lpdf.LpdfKit">
+             <summary>
+             Static document skeleton builder.
+             Produces <see cref="M:Lpdf.LpdfKit.Document(Lpdf.Kit.SectionNode[],Lpdf.Kit.DocumentOptions)"/>, <see cref="T:Lpdf.Kit.SectionNode"/>,
+             <see cref="T:Lpdf.Kit.SectionLayout"/>, and <see cref="T:Lpdf.Kit.SectionCanvas"/> instances
+             for use with <see cref="T:Lpdf.LpdfEngine"/>.
+            
+             <example>
+             <code>
+             using Lpdf;
+             using Lpdf.Kit;
+             using Lpdf.Layout;
+            
+             var doc = LpdfKit.Document(
+                 nodes: [
+                     LpdfKit.Section(
+                         nodes: [ LpdfKit.Layout([ LpdfLayout.Text(["Hello"]) ]) ],
+                         options: new SectionOptions(Size: "a4"))
+                 ]);
+             </code>
+             </example>
+             </summary>
+        </member>
+        <member name="M:Lpdf.LpdfKit.Section(Lpdf.Kit.SectionContent[],Lpdf.Kit.SectionOptions)">
+            <summary>Build a <c>section</c> (page) node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfKit.Layout(Lpdf.Layout.Node[])">
+            <summary>
+            Wrap layout nodes into a <c>layout</c> block for use inside a <see cref="M:Lpdf.LpdfKit.Section(Lpdf.Kit.SectionContent[],Lpdf.Kit.SectionOptions)"/>.
+            </summary>
+        </member>
+        <member name="M:Lpdf.LpdfKit.Canvas(Lpdf.Canvas.LayerNode[])">
+            <summary>
+            Wrap canvas layer nodes into a <c>canvas</c> block for use inside a <see cref="M:Lpdf.LpdfKit.Section(Lpdf.Kit.SectionContent[],Lpdf.Kit.SectionOptions)"/>.
+            </summary>
+        </member>
+        <member name="M:Lpdf.LpdfKit.Document(Lpdf.Kit.SectionNode[],Lpdf.Kit.DocumentOptions)">
+            <summary>Build the root <c>document</c> node, ready for <see cref="M:Lpdf.LpdfEngine.RenderPdf(Lpdf.Kit.Document,Lpdf.Engine.RenderOptions)"/>.</summary>
+        </member>
+        <member name="T:Lpdf.LpdfLayout">
+             <summary>
+             Static layout node builder helpers.
+             All methods return <see cref="T:Lpdf.Layout.Node"/> instances.
+            
+             <example>
+             <code>
+             using Lpdf;
+             using Lpdf.Layout;
+            
+             var text = LpdfLayout.Text(["Hello"], new TextOptions(Font: "heading"));
+             var stack = LpdfLayout.Stack([text], new StackOptions(Gap: "m"));
+             </code>
+             </example>
+             </summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Stack(Lpdf.Layout.Node[],Lpdf.Layout.StackOptions)">
+            <summary>Build a <c>stack</c> layout node (vertical column).</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Flank(Lpdf.Layout.Node[],Lpdf.Layout.FlankOptions)">
+            <summary>Build a <c>flank</c> layout node (horizontal row).</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Split(Lpdf.Layout.Node[],Lpdf.Layout.SplitOptions)">
+            <summary>Build a <c>split</c> layout node (two-column split).</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Cluster(Lpdf.Layout.Node[],Lpdf.Layout.ClusterOptions)">
+            <summary>Build a <c>cluster</c> layout node (wrapping flex row).</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Grid(Lpdf.Layout.Node[],Lpdf.Layout.GridOptions)">
+            <summary>Build a <c>grid</c> layout node (multi-column grid).</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Frame(Lpdf.Layout.Node[],Lpdf.Layout.FrameOptions)">
+            <summary>Build a <c>frame</c> layout node (fixed-size container).</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Link(Lpdf.Layout.Node[],Lpdf.Layout.LinkOptions)">
+            <summary>Build a <c>link</c> layout node (hyperlink wrapper).</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Table(Lpdf.Layout.Node[],Lpdf.Layout.TableOptions)">
+            <summary>Build a <c>table</c> layout node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Thead(Lpdf.Layout.Node[],Lpdf.Layout.TheadOptions)">
+            <summary>Build a <c>thead</c> table header row group.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Tr(Lpdf.Layout.Node[],Lpdf.Layout.TrOptions)">
+            <summary>Build a <c>tr</c> table row.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Td(Lpdf.Layout.Node[],Lpdf.Layout.TdOptions)">
+            <summary>Build a <c>td</c> table cell.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Divider(Lpdf.Layout.DividerOptions)">
+            <summary>Build a <c>divider</c> horizontal rule node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Img(Lpdf.Layout.ImgOptions)">
+            <summary>Build an <c>img</c> image node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Barcode(Lpdf.Layout.BarcodeOptions)">
+            <summary>Build a <c>barcode</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Text(Lpdf.Layout.Content[],Lpdf.Layout.TextOptions)">
+            <summary>Build a <c>text</c> paragraph node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Text(System.String)">
+            <summary>Wrap a plain string as inline <see cref="T:Lpdf.Layout.Content"/> for use in <see cref="M:Lpdf.LpdfLayout.Text(Lpdf.Layout.Content[],Lpdf.Layout.TextOptions)"/>.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Span(System.String[],Lpdf.Layout.SpanOptions)">
+            <summary>Build a <c>span</c> inline node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Region(Lpdf.Layout.Node[],Lpdf.Layout.RegionOptions)">
+            <summary>Build a <c>region</c> node.</summary>
+        </member>
+        <member name="M:Lpdf.LpdfLayout.Field(Lpdf.Layout.FieldOptions)">
+            <summary>Build a <c>field</c> form node.</summary>
+        </member>
+        <member name="M:Lpdf.Shared.AttrsHelper.Attrs(System.Object)">
+            <summary>
+            Reflect over any options record and convert its non-null string properties to
+            a kebab-case attribute dictionary.
+            </summary>
+        </member>
+        <member name="M:Lpdf.Shared.AttrsHelper.PascalToKebab(System.String)">
+            <summary>PascalCase → kebab-case (e.g. <c>FontSize</c> → <c>font-size</c>).</summary>
+        </member>
+        <member name="T:Lpdf.Shared.PageScope">
+            <summary>
+            Well-known <c>page</c> scope values for <see cref="P:Lpdf.Canvas.LayerOptions.Page"/>
+            and <see cref="P:Lpdf.Layout.RegionOptions.Page"/>.
+            Raw range strings such as <c>"2-4"</c>, <c>"1,3-5"</c>, or <c>"2-last"</c>
+            may be passed directly without using these constants.
+            </summary>
+        </member>
+        <member name="F:Lpdf.Shared.PageScope.Each">
+            <summary>Apply to every page.</summary>
+        </member>
+        <member name="F:Lpdf.Shared.PageScope.First">
+            <summary>Apply to the first page only.</summary>
+        </member>
+        <member name="F:Lpdf.Shared.PageScope.Last">
+            <summary>Apply to the last page only.</summary>
+        </member>
+        <member name="F:Lpdf.Shared.PageScope.Odd">
+            <summary>Apply to odd-numbered pages.</summary>
+        </member>
+        <member name="F:Lpdf.Shared.PageScope.Even">
+            <summary>Apply to even-numbered pages.</summary>
+        </member>
+    </members>
+</doc>

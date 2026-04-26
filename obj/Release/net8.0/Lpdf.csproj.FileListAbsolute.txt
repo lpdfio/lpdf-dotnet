@@ -1,0 +1,14 @@
+C:\workspace\projects\lpdf\src\adapters\dotnet\bin\Release\net8.0\Lpdf.deps.json
+C:\workspace\projects\lpdf\src\adapters\dotnet\bin\Release\net8.0\Lpdf.dll
+C:\workspace\projects\lpdf\src\adapters\dotnet\bin\Release\net8.0\Lpdf.pdb
+C:\workspace\projects\lpdf\src\adapters\dotnet\bin\Release\net8.0\Lpdf.xml
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\Lpdf.csproj.AssemblyReference.cache
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\Lpdf.GeneratedMSBuildEditorConfig.editorconfig
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\Lpdf.AssemblyInfoInputs.cache
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\Lpdf.AssemblyInfo.cs
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\Lpdf.csproj.CoreCompileInputs.cache
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\Lpdf.dll
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\refint\Lpdf.dll
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\Lpdf.xml
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\Lpdf.pdb
+C:\workspace\projects\lpdf\src\adapters\dotnet\obj\Release\net8.0\ref\Lpdf.dll
