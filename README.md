@@ -1,6 +1,6 @@
 # Lpdfio.Lpdf
 
-.NET adapter for [lpdf](https://lpdf.io) — pixel-perfect, lightweight, and consistent PDF rendering.
+.NET adapter for [lpdf](https://lpdf.io) — an accurate, efficient, and cross-platform PDF engine.
 
 ## Installation
 
@@ -15,7 +15,7 @@ using Lpdf;
 using Lpdf.Engine;
 
 var engine = new LpdfEngine(
-    licenseKey: "",                                       // empty → free tier (watermark)
+    licenseKey: "",
     options: new EngineOptions { SrcFallback = File.ReadAllBytes });
 
 engine.LoadFont("montserrat", await File.ReadAllBytesAsync("fonts/Montserrat-Regular.ttf"));
