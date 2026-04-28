@@ -11,7 +11,7 @@
     <PackageId>Lpdfio.Lpdf</PackageId>
     <Version>0.0.0</Version>
     <Authors>lpdf.io</Authors>
-    <Description>.NET adapter for lpdf — pixel-perfect, lightweight, and consistent PDF rendering</Description>
+    <Description>.NET adapter for Lpdf — an accurate, efficient, and cross-platform PDF engine</Description>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://lpdf.io</PackageProjectUrl>
