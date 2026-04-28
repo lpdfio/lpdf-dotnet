@@ -6,7 +6,7 @@ This package includes the following third-party open-source components.
 
 ## Wasmtime
 
-Used for: WASI runtime host — executes the lpdf WebAssembly binary.
+Used for: WASI runtime host — executes the Lpdf WebAssembly binary.
 License: Apache-2.0
 Homepage: https://wasmtime.dev
 Source: https://github.com/bytecodealliance/wasmtime
