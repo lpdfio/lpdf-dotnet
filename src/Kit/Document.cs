@@ -2,8 +2,8 @@ using System.Text.Json.Serialization;
 
 namespace Lpdf.Kit;
 
-/// <summary>Root document node — passed to <see cref="LpdfEngine.RenderPdf(Document, Lpdf.Engine.RenderOptions?)"/>.</summary>
-public sealed record Document(
+/// <summary>Root document node — passed to <see cref="PdfEngine.Render(PdfDocument, Lpdf.Engine.RenderOptions?)"/>.</summary>
+public sealed record PdfDocument(
     [property: JsonPropertyName("attrs")] Dictionary<string, object?> Attrs,
     [property: JsonPropertyName("nodes")] List<SectionNode>           Nodes)
 {

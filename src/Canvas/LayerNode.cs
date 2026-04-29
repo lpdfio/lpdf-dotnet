@@ -5,7 +5,7 @@ namespace Lpdf.Canvas;
 /// <summary>A <c>canvas-layer</c> node — a rendering layer containing canvas primitives.</summary>
 public sealed record LayerNode(
     List<CanvasNode> Nodes,
-    LayerOptions?    Options = null) : CanvasNode
+    LayerAttr?       Options = null) : CanvasNode
 {
     /// <inheritdoc/>
     public override string Type => "canvas-layer";

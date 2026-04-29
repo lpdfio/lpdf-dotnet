@@ -4,7 +4,7 @@ namespace Lpdf.Kit;
 
 /// <summary>
 /// A layout block inside a <see cref="SectionNode"/>, containing layout nodes.
-/// Produced by <see cref="LpdfKit.Layout"/>.
+/// Produced by <see cref="Pdf.Layout"/>.
 /// </summary>
 public sealed record SectionLayout(
     List<Node>                 Nodes,

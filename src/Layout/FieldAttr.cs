@@ -2,7 +2,7 @@ namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
 /// <summary>Attributes for the <c>field</c> form primitive.</summary>
-public sealed record FieldOptions(
+public sealed record FieldAttr(
     string  Type,
     string  Name,
     string? Value      = null, string? Width   = null, string? Height = null,

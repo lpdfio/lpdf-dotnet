@@ -1,8 +1,8 @@
 namespace Lpdf.Shared;
 
 /// <summary>
-/// Well-known <c>page</c> scope values for <see cref="Lpdf.Canvas.LayerOptions.Page"/>
-/// and <see cref="Lpdf.Layout.RegionOptions.Page"/>.
+/// Well-known <c>page</c> scope values for <see cref="Lpdf.Canvas.LayerAttr.Page"/>
+/// and <see cref="Lpdf.Layout.RegionAttr.Page"/>.
 /// Raw range strings such as <c>"2-4"</c>, <c>"1,3-5"</c>, or <c>"2-last"</c>
 /// may be passed directly without using these constants.
 /// </summary>

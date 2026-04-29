@@ -1,7 +1,7 @@
 namespace Lpdf.Engine;
 
 /// <summary>
-/// Construction-time configuration for <see cref="LpdfEngine"/>.
+/// Construction-time configuration for <see cref="PdfEngine"/>.
 /// Passed once at construction; applies to every subsequent render call.
 /// </summary>
 public sealed class EngineOptions
@@ -10,7 +10,7 @@ public sealed class EngineOptions
     /// File-read callback for resolving font <c>src</c> paths at render time.
     /// On the server this can be set to <c>System.IO.File.ReadAllBytes</c>.
     /// In sandboxed environments supply all bytes via
-    /// <see cref="RenderOptions.FontBytes"/> instead.
+    /// <see cref="RenderOptions"/> instead.
     /// </summary>
     public Func<string, byte[]>? SrcFallback { get; init; }
 }

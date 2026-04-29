@@ -2,7 +2,7 @@ namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
 /// <summary>Attributes for the <c>img</c> primitive.</summary>
-public sealed record ImgOptions(
+public sealed record ImgAttr(
     string  Name,
     string? Height     = null, string? Width      = null,
     string? Font       = null, string? FontSize   = null,

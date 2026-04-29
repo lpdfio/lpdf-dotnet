@@ -1,7 +1,7 @@
 namespace Lpdf.Engine;
 
 /// <summary>
-/// RC4-128 encryption options passed to <see cref="LpdfEngine.SetEncryption"/>.
+/// RC4-128 encryption options passed to <see cref="PdfEngine.SetEncryption"/>.
 /// </summary>
 public sealed class EncryptOptions
 {

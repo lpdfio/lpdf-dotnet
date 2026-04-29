@@ -1,23 +1,11 @@
 namespace Lpdf.Engine;
 
 /// <summary>
-/// Per-call options passed to <see cref="LpdfEngine.RenderPdf(string, RenderOptions?)"/>
-/// or <see cref="LpdfEngine.RenderPdf(Lpdf.Kit.Document, RenderOptions?)"/>.
+/// Per-call options passed to <see cref="PdfEngine.Render(string, RenderOptions?)"/>
+/// or <see cref="PdfEngine.Render(Lpdf.Kit.PdfDocument, RenderOptions?)"/>.
 /// </summary>
 public sealed class RenderOptions
 {
-    /// <summary>
-    /// Pre-loaded font bytes for custom fonts referenced via <c>fonts src="…"</c>.
-    /// Keys are the font token names used in the document; values are raw TTF/OTF bytes.
-    /// </summary>
-    public IReadOnlyDictionary<string, byte[]>? FontBytes { get; init; }
-
-    /// <summary>
-    /// Pre-loaded image bytes for images referenced via <c>&lt;img name="…"&gt;</c>.
-    /// Keys are the image names declared in <c>&lt;assets&gt;</c>; values are raw PNG/JPEG bytes.
-    /// </summary>
-    public IReadOnlyDictionary<string, byte[]>? ImageBytes { get; init; }
-
     /// <summary>
     /// Optional ISO 8601 creation timestamp (e.g. <c>"2024-06-01T12:00:00"</c>).
     /// When provided, written as <c>/CreationDate</c> in the PDF info dictionary.

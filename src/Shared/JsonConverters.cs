@@ -165,7 +165,7 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
         writer.WriteEndObject();
     }
 
-    private static void WriteLayerOptions(Utf8JsonWriter writer, LayerOptions? opts)
+    private static void WriteLayerOptions(Utf8JsonWriter writer, LayerAttr? opts)
     {
         if (opts is null) return;
         if (opts.Page    is not null) writer.WriteString("page",    opts.Page);
