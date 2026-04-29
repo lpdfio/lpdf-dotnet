@@ -1,4 +1,4 @@
-/// Minimal end-to-end example: render examples from the project root using LpdfEngine.
+/// Minimal end-to-end example: render examples from the project root using PdfEngine.
 ///
 /// Run (after 'make wasi' and 'dotnet build'):
 ///   dotnet run --project src/adapters/dotnet/example/LpdfExample.csproj
@@ -13,17 +13,15 @@ var fixtures = Path.Combine(AppContext.BaseDirectory, "../../../../../../../test
 
 var examples = new[] { "example1", "example2" };
 
-var engine = new LpdfEngine(
-    licenseKey: "",
-    options: new EngineOptions { SrcFallback = File.ReadAllBytes });
+var engine = Pdf.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
 
 engine.LoadFont("montserrat", await File.ReadAllBytesAsync(Path.Combine(root, "assets/fonts/Montserrat-Regular.ttf")));
-engine.LoadImage("logo", await File.ReadAllBytesAsync(Path.Combine(root, "assets/images/logo-lpdf.png")));
+engine.LoadImage("logo", await File.ReadAllBytesAsync(Path.Combine(AppContext.BaseDirectory, "../../../../lpdf-light.png")));
 
 foreach (var example in examples)
 {
     var xml   = await File.ReadAllTextAsync(Path.Combine(root, $"xml/{example}.xml"));
-    var bytes = await engine.RenderPdf(xml);
+    var bytes = await engine.Render(xml);
     var outputFile = $"{example}-dotnet.pdf";
     await File.WriteAllBytesAsync(Path.Combine(root, $"result/{outputFile}"), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
@@ -35,7 +33,7 @@ foreach (var example in examples)
     var encXml = await File.ReadAllTextAsync(Path.Combine(fixtures, "showcase-encryption.xml"));
     const string outputFile = "encrypt-permissions-only-dotnet.pdf";
 
-    var encEngine = new LpdfEngine(licenseKey: "", options: new EngineOptions { SrcFallback = File.ReadAllBytes });
+    var encEngine = Pdf.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
     encEngine.SetEncryption(new EncryptOptions
     {
         UserPassword  = "",
@@ -43,7 +41,7 @@ foreach (var example in examples)
         Permissions   = new EncryptPermissions { Print = false, Copy = false },
     });
 
-    var bytes = await encEngine.RenderPdf(encXml);
+    var bytes = await encEngine.Render(encXml);
     await File.WriteAllBytesAsync(Path.Combine(root, $"result/{outputFile}"), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
 }
@@ -54,7 +52,7 @@ foreach (var example in examples)
     var encXml = await File.ReadAllTextAsync(Path.Combine(fixtures, "showcase-encryption.xml"));
     const string outputFile = "encrypt-open-password-dotnet.pdf";
 
-    var encEngine = new LpdfEngine(licenseKey: "", options: new EngineOptions { SrcFallback = File.ReadAllBytes });
+    var encEngine = Pdf.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
     encEngine.SetEncryption(new EncryptOptions
     {
         UserPassword  = "password",
@@ -62,7 +60,7 @@ foreach (var example in examples)
         Permissions   = new EncryptPermissions { Copy = false },
     });
 
-    var bytes = await encEngine.RenderPdf(encXml);
+    var bytes = await encEngine.Render(encXml);
     await File.WriteAllBytesAsync(Path.Combine(root, $"result/{outputFile}"), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
 }
@@ -75,8 +73,8 @@ foreach (var example in examples)
     var data     = System.Text.Json.JsonSerializer.Deserialize<object>(dataJson);
     const string outputFile = "example-data-dotnet.pdf";
 
-    var dataEngine = new LpdfEngine(licenseKey: "", options: new EngineOptions { SrcFallback = File.ReadAllBytes });
-    var bytes = await dataEngine.RenderPdf(xml, new RenderOptions { Data = data });
+    var dataEngine = Pdf.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
+    var bytes = await dataEngine.Render(xml, new RenderOptions { Data = data });
     await File.WriteAllBytesAsync(Path.Combine(root, $"result/{outputFile}"), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
 }
