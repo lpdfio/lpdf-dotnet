@@ -18,7 +18,7 @@ namespace Lpdf;
 /// var doc = Pdf.Document(new DocumentAttr(Size: "a4"), [
 ///     Pdf.Section(null, [
 ///         Pdf.Layout(null, [
-///             Pdf.Text([Pdf.Raw("Hello")], new TextAttr(Font: "heading")),
+///             Pdf.Text(new TextAttr(Font: "heading"), [Pdf.Raw("Hello")]),
 ///         ])
 ///     ])
 /// ]);
@@ -167,7 +167,7 @@ public static class Pdf
     // ── Layout leaves ─────────────────────────────────────────────────────────
 
     /// <summary>Build a <c>text</c> paragraph node.</summary>
-    public static Layout.TextNode Text(Content[]? nodes = null, TextAttr? attrs = null) => new(
+    public static Layout.TextNode Text(TextAttr? attrs = null, Content[]? nodes = null) => new(
         AttrsHelper.Attrs(attrs),
         (nodes ?? []).ToList());
 
@@ -175,7 +175,7 @@ public static class Pdf
     public static Content Raw(string raw) => new RawText(raw);
 
     /// <summary>Build a <c>span</c> inline node.</summary>
-    public static SpanNode Span(string[]? nodes = null, SpanAttr? attrs = null) => new(
+    public static SpanNode Span(SpanAttr? attrs = null, string[]? nodes = null) => new(
         AttrsHelper.Attrs(attrs),
         (nodes ?? []).ToList());
 
