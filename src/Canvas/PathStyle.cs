@@ -4,7 +4,11 @@ namespace Lpdf.Canvas;
 
 /// <summary>Style for <c>canvas-path</c> nodes.</summary>
 public sealed record PathStyle(
-    string?  Fill        = null,
-    string?  Stroke      = null,
-    double?  StrokeWidth = null,
-    double?  StrokeDash  = null);
+    string?   Fill             = null,
+    string?   Stroke           = null,
+    double?   StrokeWidth      = null,
+    double?   StrokeDash       = null,
+    bool?     FillRuleEvenodd  = null,
+    LineCap?  LineCap          = null,
+    LineJoin? LineJoin         = null,
+    double?   Opacity          = null);

@@ -9,4 +9,6 @@ public sealed record TextStyle(
     string?    Color      = null,
     TextAlign? Align      = null,
     double?    LineHeight = null,
-    double?    Width      = null);
+    double?    Width      = null,
+    double?    Opacity    = null,
+    string?    Anchor     = null);

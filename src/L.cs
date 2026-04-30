@@ -116,6 +116,10 @@ public static class L
     public static SectionCanvas Canvas(object? _attrs, LayerNode[]? layers = null)
         => new((layers ?? []).ToList(), new Dictionary<string, string>(StringComparer.Ordinal));
 
+    /// <summary>Create a <see cref="DocumentTokens"/> instance (convenience factory).</summary>
+    public static DocumentTokens Tokens(DocumentTokens attrs)
+        => attrs;
+
     // ── Layout containers ─────────────────────────────────────────────────────
 
     /// <summary>Build a <c>stack</c> layout node (vertical column).</summary>
@@ -192,7 +196,7 @@ public static class L
         => new(AttrsHelper.Attrs(attrs));
 
     /// <summary>Build a <c>region</c> node.</summary>
-    public static RegionNode Region(RegionAttr? attrs = null, Node[]? nodes = null)
+    public static RegionNode Region(RegionAttr attrs, Node[]? nodes = null)
         => new(AttrsHelper.Attrs(attrs), (nodes ?? []).ToList());
 
     /// <summary>Build a <c>field</c> form node.</summary>
@@ -230,8 +234,8 @@ public static class L
         => new(x, y, content, style, runs);
 
     /// <summary>Build a <c>canvas-image</c> node.</summary>
-    public static ImageNode ImgAt(double x, double y, string name, double? w = null, double? h = null)
-        => new(x, y, name, w, h);
+    public static ImageNode ImgAt(double x, double y, string name, double? w = null, double? h = null, string? anchor = null)
+        => new(x, y, name, w, h, anchor);
 
     // ── Private ───────────────────────────────────────────────────────────────
 

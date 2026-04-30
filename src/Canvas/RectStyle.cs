@@ -8,4 +8,6 @@ public sealed record RectStyle(
     string?  Stroke       = null,
     double?  StrokeWidth  = null,
     double?  StrokeDash   = null,
-    double?  BorderRadius = null);
+    double?  BorderRadius = null,
+    double?  Opacity      = null,
+    string?  Anchor       = null);

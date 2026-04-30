@@ -7,4 +7,6 @@ public sealed record EllipseStyle(
     string?  Fill        = null,
     string?  Stroke      = null,
     double?  StrokeWidth = null,
-    double?  StrokeDash  = null);
+    double?  StrokeDash  = null,
+    double?  Opacity     = null,
+    string?  Anchor      = null);

@@ -157,8 +157,9 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
                 writer.WriteNumber("x", img.X);
                 writer.WriteNumber("y", img.Y);
                 writer.WriteString("name", img.Name);
-                if (img.W.HasValue) writer.WriteNumber("w", img.W.Value);
-                if (img.H.HasValue) writer.WriteNumber("h", img.H.Value);
+                if (img.W.HasValue)        writer.WriteNumber("w",      img.W.Value);
+                if (img.H.HasValue)        writer.WriteNumber("h",      img.H.Value);
+                if (img.Anchor is not null) writer.WriteString("anchor", img.Anchor);
                 break;
         }
 
@@ -196,6 +197,8 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
         if (s.StrokeWidth.HasValue)     writer.WriteNumber("strokeWidth",  s.StrokeWidth.Value);
         if (s.StrokeDash.HasValue)      writer.WriteNumber("strokeDash",   s.StrokeDash.Value);
         if (s.BorderRadius.HasValue)    writer.WriteNumber("borderRadius", s.BorderRadius.Value);
+        if (s.Opacity.HasValue)         writer.WriteNumber("opacity",      s.Opacity.Value);
+        if (s.Anchor       is not null) writer.WriteString("anchor",       s.Anchor);
     }
 
     private static void WriteLineStyle(Utf8JsonWriter writer, LineStyle? s)
@@ -215,6 +218,8 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
         if (s.Stroke      is not null) writer.WriteString("stroke",      s.Stroke);
         if (s.StrokeWidth.HasValue)    writer.WriteNumber("strokeWidth", s.StrokeWidth.Value);
         if (s.StrokeDash.HasValue)     writer.WriteNumber("strokeDash",  s.StrokeDash.Value);
+        if (s.Opacity.HasValue)        writer.WriteNumber("opacity",     s.Opacity.Value);
+        if (s.Anchor      is not null) writer.WriteString("anchor",      s.Anchor);
     }
 
     private static void WritePathStyle(Utf8JsonWriter writer, PathStyle? s)
@@ -224,6 +229,10 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
         if (s.Stroke      is not null) writer.WriteString("stroke",      s.Stroke);
         if (s.StrokeWidth.HasValue)    writer.WriteNumber("strokeWidth", s.StrokeWidth.Value);
         if (s.StrokeDash.HasValue)     writer.WriteNumber("strokeDash",  s.StrokeDash.Value);
+        if (s.FillRuleEvenodd.HasValue) writer.WriteString("fillRule",   s.FillRuleEvenodd.Value ? "evenodd" : "nonzero");
+        if (s.LineCap.HasValue)        writer.WriteString("lineCap",     s.LineCap.Value.ToString().ToLowerInvariant());
+        if (s.LineJoin.HasValue)       writer.WriteString("lineJoin",    s.LineJoin.Value.ToString().ToLowerInvariant());
+        if (s.Opacity.HasValue)        writer.WriteNumber("opacity",     s.Opacity.Value);
     }
 
     private static void WriteTextStyle(Utf8JsonWriter writer, Canvas.TextStyle? s)
@@ -235,6 +244,8 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
         if (s.Align.HasValue)         writer.WriteString("align",      s.Align.Value.ToString().ToLowerInvariant());
         if (s.LineHeight.HasValue)    writer.WriteNumber("lineHeight", s.LineHeight.Value);
         if (s.Width.HasValue)         writer.WriteNumber("width",      s.Width.Value);
+        if (s.Opacity.HasValue)       writer.WriteNumber("opacity",    s.Opacity.Value);
+        if (s.Anchor     is not null) writer.WriteString("anchor",     s.Anchor);
     }
 
     private static void WriteRuns(Utf8JsonWriter writer, Run[]? runs, JsonSerializerOptions options)

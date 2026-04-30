@@ -6,7 +6,8 @@ namespace Lpdf.Canvas;
 public sealed record ImageNode(
     double  X, double Y,
     string  Name,
-    double? W = null, double? H = null) : CanvasNode
+    double? W = null, double? H = null,
+    string? Anchor = null) : CanvasNode
 {
     /// <inheritdoc/>
     public override string Type => "canvas-image";
