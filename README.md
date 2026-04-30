@@ -2,9 +2,9 @@
 
 # Lpdfio.Lpdf
 
-.NET adapter for [Lpdf](https://lpdf.io) — PDF as Code, on every platform. 
+**.NET SDK for [Lpdf](https://lpdf.io) — PDF as Code on every platform**
 
-Describe your document structure in code using the programming Kit or XML. Every PDF is compact, pixel-perfect, and identical across platforms.
+You describe a document as code or XML. Lpdf renders a compact, pixel-perfect PDF — identical across platforms.
 
 ## Installation
 
@@ -16,37 +16,40 @@ dotnet add package Lpdfio.Lpdf
 
 ```csharp
 using Lpdf;
-using Lpdf.Engine;
 
-var engine = new LpdfEngine(
-    licenseKey: "",
-    options: new EngineOptions { SrcFallback = File.ReadAllBytes });
+var engine = L.Engine();
 
-engine.LoadFont("montserrat", await File.ReadAllBytesAsync("fonts/Montserrat-Regular.ttf"));
-engine.LoadImage("logo", await File.ReadAllBytesAsync("images/logo.png"));
+var doc = L.Document(new() { Size = "letter", Margin = "48pt" }, [
+    L.Section(NoAttr, [
+        L.Layout(NoAttr, [
+            L.Stack(new() { Gap = "24pt" }, [
+                L.Split(NoAttr, [
+                    L.Text(new() { FontSize = "8pt", Color = "#888888" }, ["ACME CORP"]),
+                    L.Text(new() { FontSize = "22pt", Bold = "true" }, ["Project Proposal"]),
+                ]),
+                L.Divider(new() { Thickness = "xs" }),
+                L.Text(new() { FontSize = "13pt", Bold = "true" }, ["Scope of Work"]),
+                L.Flank(new() { Gap = "12pt", Align = "start" }, [
+                    L.Text(new() { Color = "#888888", Width = "24pt" }, ["01"]),
+                    L.Text(NoAttr, ["Discovery & Research"]),
+                ]),
+            ]),
+        ]),
+    ]),
+]);
 
-var xml   = await File.ReadAllTextAsync("document.xml");
-var bytes = await engine.RenderPdf(xml);
-
-await File.WriteAllBytesAsync("output.pdf", bytes);
+var pdf = await engine.Render(doc);
 ```
 
-## XML format
+## Requirements
 
-Documents are defined in a layout XML format. See the [Lpdf documentation](https://lpdf.io/docs) and [examples](https://github.com/lpdfio/lpdf/tree/main/docs/examples) for the full schema.
+- .NET 8+
+- No external runtime dependencies — the Wasmtime runtime and WASI binary are bundled in the package.
 
-```xml
-<stack spacing="m" padding="l">
-  <text font-size="xl" font="Montserrat-Bold">Invoice #1001</text>
-  <grid columns="2">
-    <text>Date</text>      <text>2026-04-25</text>
-    <text>Due</text>       <text>2026-05-25</text>
-  </grid>
-</stack>
-```
+## Docs
 
-## License
+[lpdf.io/docs/dotnet](https://lpdf.io/docs/dotnet)
+
+--
 
 Dual-licensed: Community License (free) and Commercial License (paid). See [LICENSE](LICENSE) for full terms.
-
-Third-party component licenses are listed in `THIRD_PARTY_LICENSES`.
