@@ -4,7 +4,7 @@ namespace Lpdf.Kit;
 
 /// <summary>
 /// A canvas block inside a <see cref="SectionNode"/>, containing canvas layer nodes.
-/// Produced by <see cref="Pdf.Canvas"/>.
+/// Produced by <see cref="L.Canvas"/>.
 /// </summary>
 public sealed record SectionCanvas(
     List<LayerNode>            Layers,

@@ -51,7 +51,7 @@ public class SnapshotTests
             return; // Fixture files not available outside the monorepo.
 
         var xml   = File.ReadAllText(Path.Combine(SnapshotHelper.Fixtures, $"{name}.xml"));
-        using var engine = Pdf.Engine().SetLicenseKey("test-key");
+        using var engine = L.Engine().SetLicenseKey("test-key");
         var bytes = await engine.Render(xml);
         SnapshotHelper.CompareOrUpdate(name, bytes);
     }
@@ -68,7 +68,7 @@ public class EngineFeatureTests
     [Fact]
     public async Task SetEncryption_ProducesEncryptedPdf()
     {
-        using var engine = Pdf.Engine().SetLicenseKey("test-key");
+        using var engine = L.Engine().SetLicenseKey("test-key");
         engine.SetEncryption(new EncryptOptions
         {
             UserPassword  = "",
@@ -93,7 +93,7 @@ public class EngineFeatureTests
             "89504e470d0a1a0a0000000d49484452000000010000000108000000003a7e9b55" +
             "0000000a49444154789c6260000000020001e221bc330000000049454e44ae426082");
 
-        using var engine = Pdf.Engine().SetLicenseKey("test-key");
+        using var engine = L.Engine().SetLicenseKey("test-key");
         engine.LoadImage("testimg", png1x1);
         var bytes = await engine.Render(_minimalXml);
 

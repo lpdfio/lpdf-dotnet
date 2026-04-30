@@ -15,18 +15,18 @@ namespace Lpdf;
 /// using Lpdf;
 /// using Lpdf.Layout;
 ///
-/// var doc = Pdf.Document(new DocumentAttr(Size: "a4"), [
-///     Pdf.Section(null, [
-///         Pdf.Layout(null, [
-///             Pdf.Text(new TextAttr(Font: "heading"), [Pdf.Raw("Hello")]),
+/// var doc = L.Document(new DocumentAttr(Size: "a4"), [
+///     L.Section(null, [
+///         L.Layout(null, [
+///             L.Text([L.Raw("Hello")], new TextAttr(Font: "heading")),
 ///         ])
 ///     ])
 /// ]);
-/// var bytes = await Pdf.Engine().SetLicenseKey("…").Render(doc);
+/// var bytes = await L.Engine().SetLicenseKey("…").Render(doc);
 /// </code>
 /// </example>
 /// </summary>
-public static class Pdf
+public static class L
 {
     /// <summary>No attributes — pass as the <c>attrs</c> argument for container nodes that need none.</summary>
     public const object? NoAttr = null;
@@ -167,7 +167,7 @@ public static class Pdf
     // ── Layout leaves ─────────────────────────────────────────────────────────
 
     /// <summary>Build a <c>text</c> paragraph node.</summary>
-    public static Layout.TextNode Text(TextAttr? attrs = null, Content[]? nodes = null) => new(
+    public static Layout.TextNode Text(Content[]? nodes = null, TextAttr? attrs = null) => new(
         AttrsHelper.Attrs(attrs),
         (nodes ?? []).ToList());
 
@@ -175,7 +175,7 @@ public static class Pdf
     public static Content Raw(string raw) => new RawText(raw);
 
     /// <summary>Build a <c>span</c> inline node.</summary>
-    public static SpanNode Span(SpanAttr? attrs = null, string[]? nodes = null) => new(
+    public static SpanNode Span(string[]? nodes = null, SpanAttr? attrs = null) => new(
         AttrsHelper.Attrs(attrs),
         (nodes ?? []).ToList());
 

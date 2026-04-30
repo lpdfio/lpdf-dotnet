@@ -4,7 +4,7 @@ namespace Lpdf.Kit;
 
 /// <summary>
 /// Abstract base for content that can appear directly inside a <see cref="SectionNode"/>.
-/// Use <see cref="Pdf.Layout"/> or <see cref="Pdf.Canvas"/>
+/// Use <see cref="L.Layout"/> or <see cref="L.Canvas"/>
 /// to create instances.
 /// </summary>
 public abstract record SectionContent

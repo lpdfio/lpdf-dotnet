@@ -7,7 +7,7 @@ namespace Lpdf;
 
 /// <summary>
 /// Stateful lpdf renderer.
-/// Create via <see cref="Pdf.Engine"/>; call <see cref="Render(string, RenderOptions?)"/>
+/// Create via <see cref="L.Engine"/>; call <see cref="Render(string, RenderOptions?)"/>
 /// or <see cref="Render(PdfDocument, RenderOptions?)"/> as many times as needed.
 /// </summary>
 public sealed class PdfEngine : IDisposable

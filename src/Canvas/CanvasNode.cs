@@ -6,7 +6,7 @@ namespace Lpdf.Canvas;
 
 /// <summary>
 /// Abstract base for all canvas node types.
-/// Use <see cref="Pdf"/> to construct instances.
+/// Use <see cref="L"/> to construct instances.
 /// </summary>
 [JsonConverter(typeof(Lpdf.Shared.CanvasNodeConverter))]
 public abstract record CanvasNode

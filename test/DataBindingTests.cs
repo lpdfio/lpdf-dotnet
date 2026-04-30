@@ -18,7 +18,7 @@ public class DataBindingTests
     public async Task DataValue_SubstitutesScalar()
     {
         var xml = Doc("""<text data-value="name">Fallback</text>""");
-        using var engine = Pdf.Engine().SetLicenseKey("test-key");
+        using var engine = L.Engine().SetLicenseKey("test-key");
         var bytes = await engine.Render(xml, new RenderOptions
         {
             Data = new { name = "Acme Inc" },
@@ -34,7 +34,7 @@ public class DataBindingTests
               <text data-value="label">Fallback item</text>
             </stack>
             """);
-        using var engine = Pdf.Engine().SetLicenseKey("test-key");
+        using var engine = L.Engine().SetLicenseKey("test-key");
         var bytes = await engine.Render(xml, new RenderOptions
         {
             Data = new
@@ -57,7 +57,7 @@ public class DataBindingTests
             <text data-if="isPremium">Premium only</text>
             <text>Always visible</text>
             """);
-        using var engine = Pdf.Engine().SetLicenseKey("test-key");
+        using var engine = L.Engine().SetLicenseKey("test-key");
         var bytes = await engine.Render(xml, new RenderOptions
         {
             Data = new { isPremium = false },
@@ -69,7 +69,7 @@ public class DataBindingTests
     public async Task NoDataOption_RendersWithFallbackContent()
     {
         var xml = Doc("""<text data-value="name">Inline fallback</text>""");
-        using var engine = Pdf.Engine().SetLicenseKey("test-key");
+        using var engine = L.Engine().SetLicenseKey("test-key");
         var bytes = await engine.Render(xml);
         Assert.StartsWith("%PDF-", System.Text.Encoding.Latin1.GetString(bytes[..5]));
     }

@@ -5,7 +5,7 @@ namespace Lpdf.Layout;
 #pragma warning disable CS1591
 
 /// <summary>
-/// Discriminated union of all layout nodes. Use <see cref="Pdf"/> to construct.
+/// Discriminated union of all layout nodes. Use <see cref="L"/> to construct.
 /// </summary>
 [JsonConverter(typeof(Lpdf.Shared.NodeConverter))]
 public abstract record Node
