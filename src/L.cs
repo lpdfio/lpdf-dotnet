@@ -72,7 +72,7 @@ public static class L
             if (t.Border is not null) td["border"] = t.Border;
             if (t.Radius is not null) td["radius"] = t.Radius;
             if (t.Width  is not null) td["width"]  = t.Width;
-            if (t.Text   is not null) td["text"]   = t.Text;
+            if (t.TextSize is not null) td["text-size"] = t.TextSize;
             if (t.Fonts  is not null)
             {
                 var fonts = new Dictionary<string, object?>(StringComparer.Ordinal);
