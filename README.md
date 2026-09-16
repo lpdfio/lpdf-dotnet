@@ -1,4 +1,4 @@
-<img src="lpdf-mark.svg" height="48" alt="Lpdf - PDF as Code" />
+![Lpdf - PDF as Code](https://raw.githubusercontent.com/lpdfio/lpdf-dotnet/main/lpdf-mark.svg)
 
 # Lpdfio.Lpdf
 
