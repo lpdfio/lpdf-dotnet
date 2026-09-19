@@ -122,6 +122,8 @@ internal sealed class WasmRunner : IDisposable
             ["key"]     = licenseKey,
             ["input"]   = input,
             ["fonts"]   = fontsNode,
+            // See NowUnix: without it the engine cannot check the key's expiry at all.
+            ["now"]     = NowUnix(),
         };
 
         if (images is { Count: > 0 })
@@ -284,9 +286,27 @@ internal sealed class WasmRunner : IDisposable
 
     private static string Invoke(string method, string input, string key)
     {
-        var request = JsonSerializer.Serialize(new { method, key, input });
+        var request = JsonSerializer.Serialize(new { method, key, input, now = NowUnix() });
         return RunWasm(Encoding.UTF8.GetBytes(request));
     }
+
+    /// <summary>What this build of the engine makes of <paramref name="licenseKey"/>, as JSON.</summary>
+    public static string CheckLicense(string licenseKey)
+    {
+        var request = JsonSerializer.Serialize(new { method = "check_license", key = licenseKey, now = NowUnix() });
+        return RunWasm(Encoding.UTF8.GetBytes(request));
+    }
+
+    /// <summary>
+    /// The clock the engine checks a key's expiry against.
+    /// </summary>
+    /// <remarks>
+    /// The engine is WebAssembly and has no clock of its own, so a request that omits this has
+    /// its expiry check skipped entirely — which is how an expired key used to render without
+    /// the attribution line. Sent on every call rather than only when a key is present: the
+    /// engine ignores it in free mode.
+    /// </remarks>
+    private static long NowUnix() => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
     private static string RunWasm(byte[] requestBytes)
     {

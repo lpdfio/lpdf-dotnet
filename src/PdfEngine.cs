@@ -41,6 +41,27 @@ public sealed class PdfEngine : IDisposable
     }
 
     /// <summary>
+    /// Ask the engine what a license key is: valid, expired, for another product, and which
+    /// license and key it is.
+    /// </summary>
+    /// <param name="key">
+    /// The key to check, or <see langword="null"/> to check the one set on this engine.
+    /// </param>
+    /// <remarks>
+    /// This is the engine's own verdict, reached by the same code a render runs — so
+    /// <see cref="LicenseCheck.IsLicensed"/> means PDFs will come out without the attribution
+    /// line here. A key the portal considers perfectly good still reads <c>unknown_key</c> in a
+    /// build that does not trust the key it was signed with, which is the answer worth having.
+    /// </remarks>
+    public LicenseCheck CheckLicenseKey(string? key = null)
+    {
+        ThrowIfDisposed();
+        var json = WasmRunner.CheckLicense(key ?? _licenseKey);
+        return JsonSerializer.Deserialize<LicenseCheck>(json)
+            ?? throw new InvalidOperationException("The engine returned no license report.");
+    }
+
+    /// <summary>
     /// Configure RC4-128 encryption for all subsequent <see cref="Render(string, RenderOptions?)"/> calls.
     /// Pass <see langword="null"/> to clear previously set encryption.
     /// </summary>
