@@ -56,6 +56,10 @@ To stay on one engine and still get this package's fixes, use a version range: `
 
 [lpdf.io/docs/dotnet](https://lpdf.io/docs/dotnet)
 
+## Issues
+
+Report bugs and request features at [github.com/lpdfio/lpdf/issues](https://github.com/lpdfio/lpdf/issues), the one tracker for the engine, the SDKs and the VS Code extension. Pull requests are not accepted.
+
 --
 
 Dual-licensed: Community License (free) and Commercial License (paid). See [LICENSE](LICENSE) for full terms.
