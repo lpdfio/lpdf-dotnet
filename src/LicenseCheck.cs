@@ -14,7 +14,7 @@ namespace Lpdf;
 public sealed record LicenseCheck
 {
     /// <summary>
-    /// One of <c>licensed</c>, <c>free</c>, <c>expired</c>, <c>version_mismatch</c>,
+    /// One of <c>licensed</c>, <c>no_key</c>, <c>expired</c>, <c>version_mismatch</c>,
     /// <c>wrong_product</c>, <c>unknown_key</c>, <c>bad_signature</c> or <c>malformed</c>.
     /// </summary>
     [JsonPropertyName("status")]
