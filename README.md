@@ -2,7 +2,7 @@
 
 # Lpdfio.Lpdf
 
-**.NET SDK for [Lpdf](https://lpdf.io) — PDF as Code on every platform**
+**.NET SDK for [Lpdf](https://lpdf.io?utm_source=readme&utm_medium=referral&utm_campaign=sdk-dotnet) — PDF as Code on every platform**
 
 You describe a document as code or XML. Lpdf renders a compact, pixel-perfect PDF — identical across platforms.
 
@@ -48,7 +48,7 @@ var pdf = await engine.Render(doc);
 
 ## Docs
 
-[lpdf.io/docs/dotnet](https://lpdf.io/docs/dotnet?utm_source=readme&utm_medium=referral&utm_campaign=sdk-dotnet)
+[lpdf.io/docs](https://lpdf.io/docs/?sdk=dotnet&p=install&utm_source=readme&utm_medium=referral&utm_campaign=sdk-dotnet)
 
 ## Issues
 
