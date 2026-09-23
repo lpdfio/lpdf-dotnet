@@ -46,15 +46,9 @@ var pdf = await engine.Render(doc);
 - .NET 8+
 - No external runtime dependencies — the Wasmtime runtime and WASI binary are bundled in the package.
 
-## Versioning
-
-The first two numbers are the Lpdf engine, and the last number counts changes to this package only. `0.22.3` runs engine `0.22`, with three .NET-only changes since that engine shipped. Every engine release publishes all SDKs at `X.Y.0`, so the same `X.Y` means the same engine in every language.
-
-To stay on one engine and still get this package's fixes, use a version range: `<PackageReference Include="Lpdfio.Lpdf" Version="[0.22.0,0.23.0)" />`.
-
 ## Docs
 
-[lpdf.io/docs/dotnet](https://lpdf.io/docs/dotnet)
+[lpdf.io/docs/dotnet](https://lpdf.io/docs/dotnet?utm_source=readme&utm_medium=referral&utm_campaign=sdk-dotnet)
 
 ## Issues
 
