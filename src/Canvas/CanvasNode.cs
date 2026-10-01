@@ -11,6 +11,6 @@ namespace Lpdf.Canvas;
 [JsonConverter(typeof(Lpdf.Shared.CanvasNodeConverter))]
 public abstract record CanvasNode
 {
-    /// <summary>The canvas element name (e.g. <c>canvas-rect</c>, <c>canvas-text</c>).</summary>
+    /// <summary>The canvas element name, as the schema spells it (<c>rect</c>, <c>text</c>, <c>layer</c>).</summary>
     public abstract string Type { get; }
 }

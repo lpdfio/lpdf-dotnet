@@ -2,11 +2,11 @@ namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
 
-/// <summary>A <c>canvas-layer</c> node — a rendering layer containing canvas primitives.</summary>
+/// <summary>A <c>layer</c> on the canvas, holding canvas primitives.</summary>
 public sealed record LayerNode(
-    List<CanvasNode> Nodes,
-    LayerAttr?       Options = null) : CanvasNode
+    Dictionary<string, string> Attrs,
+    List<CanvasNode>           Nodes) : CanvasNode
 {
     /// <inheritdoc/>
-    public override string Type => "canvas-layer";
+    public override string Type => "layer";
 }

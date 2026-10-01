@@ -31,8 +31,6 @@ public sealed class NoAttributes
     public static implicit operator ClusterAttr?(NoAttributes _) => null;
     public static implicit operator GridAttr?(NoAttributes _) => null;
     public static implicit operator FrameAttr?(NoAttributes _) => null;
-    public static implicit operator LinkAttr?(NoAttributes _) => null;
-    public static implicit operator TableAttr?(NoAttributes _) => null;
     public static implicit operator TheadAttr?(NoAttributes _) => null;
     public static implicit operator TrAttr?(NoAttributes _) => null;
     public static implicit operator TdAttr?(NoAttributes _) => null;

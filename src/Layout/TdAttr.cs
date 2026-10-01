@@ -3,8 +3,8 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>Fills a fixed number of equal columns from left to right, then starts a new row. A row never splits across pages. For data with a header row, use table.</summary>
-public sealed record GridAttr
+/// <summary>Attributes of the <c>td</c> element.</summary>
+public sealed record TdAttr
 {
     public string? Font { get; init; }
     public string? FontSize { get; init; }
@@ -19,7 +19,6 @@ public sealed record GridAttr
     public string? Border { get; init; }
     public string? Radius { get; init; }
     public string? Debug { get; init; }
-    public string? Width { get; init; }
-    public string? ColWidth { get; init; }
-    public string? Cols { get; init; }
+    public string? Align { get; init; }
+    public string? Valign { get; init; }
 }

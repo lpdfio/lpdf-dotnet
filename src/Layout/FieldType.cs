@@ -1,16 +1,14 @@
+// Generated from lpdf.xsd by scripts/gen-sdk-api.mjs.
+// Do not edit: change the schema and run `make gen-sdk-api`.
 namespace Lpdf.Layout;
 
-/// <summary>Form field type discriminator.</summary>
-public enum FieldType
+#pragma warning disable CS1591
+/// <summary>The values of the <c>type</c> attribute of a field.</summary>
+public static class FieldType
 {
-    /// <summary>Single-line text input.</summary>
-    Text,
-    /// <summary>Multi-line text area.</summary>
-    Multiline,
-    /// <summary>Checkbox.</summary>
-    Checkbox,
-    /// <summary>Radio button.</summary>
-    Radio,
-    /// <summary>Signature field.</summary>
-    Signature,
+    public const string Text = "text";
+    public const string Checkbox = "checkbox";
+    public const string Dropdown = "dropdown";
+    public const string Radio = "radio";
+    public const string Button = "button";
 }

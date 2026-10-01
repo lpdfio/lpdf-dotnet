@@ -1,24 +1,19 @@
+// Generated from lpdf.xsd by scripts/gen-sdk-api.mjs.
+// Do not edit: change the schema and run `make gen-sdk-api`.
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>Attributes for the <c>table</c> layout primitive.</summary>
-public sealed record TableAttr(
-    string? Cols       = null, string? Border    = null, string? Stripe     = null,
-    string? Gap        = null, string? Padding   = null, string? Background = null,
-    string? Width      = null, string? Height    = null, string? Repeat     = null,
-    string? Debug      = null);
-
-/// <summary>Attributes for the <c>thead</c> table header row group.</summary>
-public sealed record TheadAttr(
-    string? Background = null);
-
-/// <summary>Attributes for the <c>tr</c> table row.</summary>
-public sealed record TrAttr(
-    string? Background = null);
-
-/// <summary>Attributes for the <c>td</c> table cell.</summary>
-public sealed record TdAttr(
-    string? Padding    = null, string? Background = null,
-    string? Align      = null, string? Valign     = null,
-    string? Border     = null, string? Radius     = null,
-    string? Gap        = null, string? Debug      = null);
+/// <summary>Rows and cells in columns whose widths are set by cols. The thead row repeats at the top of every page, and rows move between pages whole.</summary>
+public sealed record TableAttr
+{
+    /// <summary>Column widths, separated by spaces, in fr, pt or % units: for example 2fr 1fr 120pt 20%.</summary>
+    public required string Cols { get; init; }
+    public string? Border { get; init; }
+    public string? Stripe { get; init; }
+    public string? Gap { get; init; }
+    public string? Padding { get; init; }
+    public string? Background { get; init; }
+    public string? Width { get; init; }
+    public string? Height { get; init; }
+    public string? Debug { get; init; }
+}

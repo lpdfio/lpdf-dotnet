@@ -1,14 +1,14 @@
+using Lpdf.Layout;
+
 namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
 
-/// <summary>A <c>canvas-text</c> node — positioned text with optional rich-text runs.</summary>
+/// <summary>Text on the canvas. Its content is strings and <c>span</c> nodes, as in a layout <c>text</c>.</summary>
 public sealed record TextNode(
-    double      X, double Y,
-    string      Content,
-    TextStyle?  Style = null,
-    Run[]?      Runs  = null) : CanvasNode
+    Dictionary<string, string> Attrs,
+    List<Content>              Children) : CanvasNode
 {
     /// <inheritdoc/>
-    public override string Type => "canvas-text";
+    public override string Type => "text";
 }

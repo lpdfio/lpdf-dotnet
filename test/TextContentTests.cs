@@ -10,7 +10,7 @@ public class TextContentTests
     [Fact]
     public void Text_takes_attributes_first_and_content_second()
     {
-        var node = L.Text(new TextAttr(Bold: "true"), ["Hello"]);
+        var node = L.Text(new TextAttr { Bold = "true" }, ["Hello"]);
 
         Assert.Equal("true", node.Attrs["bold"]);
         Assert.Single(node.Children);
@@ -30,7 +30,7 @@ public class TextContentTests
     {
         var node = L.Text(L.NoAttr, [
             "Total: ",
-            L.Span(new SpanAttr(Bold: "true"), ["$100"]),
+            L.Span(new SpanAttr { Bold = "true" }, ["$100"]),
             " due",
         ]);
 
@@ -72,7 +72,7 @@ public class TextContentTests
     [Fact]
     public void Span_takes_attributes_first_and_content_second()
     {
-        var span = L.Span(new SpanAttr(Color: "primary"), ["$100"]);
+        var span = L.Span(new SpanAttr { Color = "primary" }, ["$100"]);
 
         Assert.Equal("primary", span.Attrs["color"]);
         Assert.Equal(["$100"], span.Children);
@@ -84,7 +84,7 @@ public class TextContentTests
         var doc = L.Document(new DocumentAttr(Size: "a4"), [
             L.Section(L.NoAttr, [
                 L.Layout(L.NoAttr, [
-                    L.Text(new TextAttr(FontSize: "14pt"), ["Total: ", L.Span(new SpanAttr(Bold: "true"), ["$100"])]),
+                    L.Text(new TextAttr { FontSize = "14pt" }, ["Total: ", L.Span(new SpanAttr { Bold = "true" }, ["$100"])]),
                 ]),
             ]),
         ]);

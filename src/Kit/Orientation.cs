@@ -1,10 +1,11 @@
+// Generated from lpdf.xsd by scripts/gen-sdk-api.mjs.
+// Do not edit: change the schema and run `make gen-sdk-api`.
 namespace Lpdf.Kit;
 
-/// <summary>Page orientation applied to a section or document.</summary>
-public enum Orientation
+#pragma warning disable CS1591
+/// <summary>The values of the <c>orientation</c> attribute of a document or a section.</summary>
+public static class Orientation
 {
-    /// <summary>Portrait (taller than wide).</summary>
-    Portrait,
-    /// <summary>Landscape (wider than tall).</summary>
-    Landscape,
+    public const string Portrait = "portrait";
+    public const string Landscape = "landscape";
 }

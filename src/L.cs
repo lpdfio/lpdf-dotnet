@@ -66,6 +66,8 @@ public static class L
         if (a.Orientation is not null) d["orientation"] = a.Orientation;
         if (a.Margin      is not null) d["margin"]      = a.Margin;
         if (a.Background  is not null) d["background"]  = a.Background;
+        if (a.Font        is not null) d["font"]        = a.Font;
+        if (a.Debug       is not null) d["debug"]       = a.Debug;
 
         if (a.Tokens is not null)
         {
@@ -78,20 +80,10 @@ public static class L
             if (t.Radius is not null) td["radius"] = t.Radius;
             if (t.Width  is not null) td["width"]  = t.Width;
             if (t.TextSize is not null) td["text-size"] = t.TextSize;
-            if (t.Fonts  is not null)
-            {
-                var fonts = new Dictionary<string, object?>(StringComparer.Ordinal);
-                foreach (var (name, def) in t.Fonts)
-                    fonts[name] = def switch
-                    {
-                        FontSrc     src     => (object)new { src     = src.Src },
-                        FontBuiltin builtin => (object)new { builtin = builtin.Builtin },
-                        _                   => null,
-                    };
-                td["fonts"] = fonts;
-            }
             d["tokens"] = td;
         }
+
+        if (a.Assets is not null) d["assets"] = a.Assets.ToAttrs();
 
         if (a.Meta is not null)
         {
@@ -120,6 +112,10 @@ public static class L
     /// <summary>Wrap canvas layer nodes into a <c>canvas</c> block.</summary>
     public static SectionCanvas Canvas(object? _attrs, LayerNode[]? layers = null)
         => new((layers ?? []).ToList(), new Dictionary<string, string>(StringComparer.Ordinal));
+
+    /// <summary>Create a <see cref="DocumentAssets"/> instance (convenience factory).</summary>
+    public static DocumentAssets Assets(DocumentAssets attrs)
+        => attrs;
 
     /// <summary>Create a <see cref="DocumentTokens"/> instance (convenience factory).</summary>
     public static DocumentTokens Tokens(DocumentTokens attrs)
@@ -152,13 +148,13 @@ public static class L
         => Container("frame", attrs, nodes);
 
     /// <summary>Build a <c>link</c> layout node (hyperlink wrapper).</summary>
-    public static ContainerNode Link(LinkAttr? attrs = null, Node[]? nodes = null)
+    public static ContainerNode Link(LinkAttr attrs, Node[]? nodes = null)
         => Container("link", attrs, nodes);
 
     // ── Table ─────────────────────────────────────────────────────────────────
 
     /// <summary>Build a <c>table</c> layout node.</summary>
-    public static ContainerNode Table(TableAttr? attrs = null, Node[]? nodes = null)
+    public static ContainerNode Table(TableAttr attrs, Node[]? nodes = null)
         => Container("table", attrs, nodes);
 
     /// <summary>Build a <c>thead</c> table header row group.</summary>
@@ -216,37 +212,40 @@ public static class L
 
     // ── Canvas ────────────────────────────────────────────────────────────────
 
-    /// <summary>Build a <c>canvas-layer</c> node containing canvas primitives.</summary>
+    /// <summary>Build a <c>layer</c> containing canvas primitives.</summary>
     public static LayerNode Layer(LayerAttr? attrs = null, CanvasNode[]? nodes = null)
-        => new((nodes ?? []).ToList(), attrs);
+        => new(AttrsHelper.Attrs(attrs), (nodes ?? []).ToList());
 
-    /// <summary>Build a <c>canvas-rect</c> node.</summary>
-    public static RectNode Rect(double x, double y, double w, double h, RectStyle? style = null)
-        => new(x, y, w, h, style);
+    /// <summary>Build a <c>rect</c> on the canvas.</summary>
+    public static RectNode Rect(RectAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build a <c>canvas-line</c> node.</summary>
-    public static LineNode Line(double x1, double y1, double x2, double y2, LineStyle? style = null)
-        => new(x1, y1, x2, y2, style);
+    /// <summary>Build a <c>line</c> on the canvas.</summary>
+    public static LineNode Line(LineAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build a <c>canvas-ellipse</c> node.</summary>
-    public static EllipseNode Ellipse(double cx, double cy, double rx, double ry, EllipseStyle? style = null)
-        => new(cx, cy, rx, ry, style);
+    /// <summary>Build an <c>ellipse</c> on the canvas.</summary>
+    public static EllipseNode Ellipse(EllipseAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build a <c>canvas-circle</c> node (uniform radii convenience form).</summary>
-    public static CircleNode Circle(double cx, double cy, double r, EllipseStyle? style = null)
-        => new(cx, cy, r, style);
+    /// <summary>Build a <c>circle</c> on the canvas.</summary>
+    public static CircleNode Circle(CircleAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build a <c>canvas-path</c> node from an SVG path string.</summary>
-    public static PathNode Path(string d, PathStyle? style = null)
-        => new(d, style);
+    /// <summary>Build a <c>path</c> on the canvas from an SVG path string in <c>D</c>.</summary>
+    public static PathNode Path(PathAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build a <c>canvas-text</c> node.</summary>
-    public static Canvas.TextNode TextAt(double x, double y, string content, TextStyle? style = null, Run[]? runs = null)
-        => new(x, y, content, style, runs);
+    /// <summary>
+    /// Build text on the canvas. Each item of <paramref name="nodes"/> is a plain string or a
+    /// <see cref="SpanNode"/>, and the two can be mixed.
+    /// </summary>
+    public static Canvas.TextNode TextAt(CanvasTextAttr attrs, TextContent[]? nodes = null)
+        => new(AttrsHelper.Attrs(attrs), (nodes ?? []).Select(item => item.Value).ToList());
 
-    /// <summary>Build a <c>canvas-image</c> node.</summary>
-    public static ImageNode ImgAt(double x, double y, string name, double? w = null, double? h = null, string? anchor = null)
-        => new(x, y, name, w, h, anchor);
+    /// <summary>Build an <c>img</c> on the canvas.</summary>
+    public static ImageNode ImgAt(CanvasImgAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
 
     // ── Private ───────────────────────────────────────────────────────────────
 

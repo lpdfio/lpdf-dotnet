@@ -169,7 +169,7 @@ internal sealed class WasmRunner : IDisposable
             return fontBytes ?? new Dictionary<string, byte[]>();
 
         var merged = new Dictionary<string, byte[]>(fontBytes ?? new Dictionary<string, byte[]>());
-        var srcPaths = isTree ? ExtractFontSrcsFromJson(input) : ExtractFontSrcsFromXml(input);
+        var srcPaths = isTree ? ExtractAssetSrcsFromJson(input, "fonts") : ExtractFontSrcsFromXml(input);
         foreach (var (name, src) in srcPaths)
         {
             if (merged.ContainsKey(name)) continue;
@@ -188,7 +188,7 @@ internal sealed class WasmRunner : IDisposable
         var merged = new Dictionary<string, byte[]>(imageBytes ?? new Dictionary<string, byte[]>());
         if (srcFallback is null) return merged;
 
-        var srcPaths = isTree ? ExtractImageSrcsFromJson(input) : ExtractImageSrcsFromXml(input);
+        var srcPaths = isTree ? ExtractAssetSrcsFromJson(input, "images") : ExtractImageSrcsFromXml(input);
         foreach (var (name, src) in srcPaths)
         {
             if (merged.ContainsKey(name)) continue;
@@ -230,57 +230,31 @@ internal sealed class WasmRunner : IDisposable
         return result;
     }
 
-    private static Dictionary<string, string> ExtractFontSrcsFromJson(string json)
+    /// <summary>
+    /// The <c>ref ?? name → src</c> pairs of the fonts or images a document tree declares in its
+    /// <c>assets</c>. <paramref name="kind"/> is <c>fonts</c> or <c>images</c>.
+    /// </summary>
+    private static Dictionary<string, string> ExtractAssetSrcsFromJson(string json, string kind)
     {
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
         try
         {
             using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-            if (!root.TryGetProperty("attrs", out var attrs)) return result;
-            if (!attrs.TryGetProperty("tokens", out var tokens)) return result;
-            if (!tokens.TryGetProperty("fonts", out var fonts)) return result;
-            foreach (var font in fonts.EnumerateObject())
+            if (!doc.RootElement.TryGetProperty("attrs", out var attrs)) return result;
+            if (!attrs.TryGetProperty("assets", out var assets)) return result;
+            if (!assets.TryGetProperty(kind, out var declared)) return result;
+            foreach (var asset in declared.EnumerateArray())
             {
-                if (font.Value.TryGetProperty("src", out var srcEl))
-                {
-                    var src = srcEl.GetString();
-                    if (src is null) continue;
-                    var key = font.Value.TryGetProperty("ref", out var refEl)
-                        ? (refEl.GetString() ?? font.Name)
-                        : font.Name;
-                    result[key] = src;
-                }
+                if (!asset.TryGetProperty("src", out var srcElement) || srcElement.GetString() is not { } src) continue;
+                var name = asset.GetProperty("name").GetString();
+                var key  = asset.TryGetProperty("ref", out var refElement) ? refElement.GetString() ?? name : name;
+                if (key is not null) result[key] = src;
             }
         }
-        catch { /* malformed JSON */ }
-        return result;
-    }
-
-    private static Dictionary<string, string> ExtractImageSrcsFromJson(string json)
-    {
-        var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        try
+        catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException)
         {
-            using var doc = JsonDocument.Parse(json);
-            var root = doc.RootElement;
-            if (!root.TryGetProperty("attrs", out var attrs)) return result;
-            if (!attrs.TryGetProperty("tokens", out var tokens)) return result;
-            if (!tokens.TryGetProperty("images", out var images)) return result;
-            foreach (var img in images.EnumerateObject())
-            {
-                if (img.Value.TryGetProperty("src", out var srcEl))
-                {
-                    var src = srcEl.GetString();
-                    if (src is null) continue;
-                    var key = img.Value.TryGetProperty("ref", out var refEl)
-                        ? (refEl.GetString() ?? img.Name)
-                        : img.Name;
-                    result[key] = src;
-                }
-            }
+            // A tree that is not shaped like a document declares no assets to read.
         }
-        catch { /* malformed JSON */ }
         return result;
     }
 

@@ -2,11 +2,9 @@ namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
 
-/// <summary>A <c>canvas-circle</c> node (uniform radii convenience form).</summary>
-public sealed record CircleNode(
-    double        Cx, double Cy, double R,
-    EllipseStyle? Style = null) : CanvasNode
+/// <summary>A <c>circle</c> on the canvas.</summary>
+public sealed record CircleNode(Dictionary<string, string> Attrs) : CanvasNode
 {
     /// <inheritdoc/>
-    public override string Type => "canvas-circle";
+    public override string Type => "circle";
 }

@@ -1,20 +1,13 @@
+// Generated from lpdf.xsd by scripts/gen-sdk-api.mjs.
+// Do not edit: change the schema and run `make gen-sdk-api`.
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>
-/// Pin positioning helper — an absolute-position anchor for a node within its container.
-/// Pass as the <c>pin</c> attribute value using <see cref="ToString"/>.
-/// </summary>
-public sealed record Pin(string? Top = null, string? Right = null, string? Bottom = null, string? Left = null)
+/// <summary>The values of the <c>pin</c> attribute of a region.</summary>
+public static class Pin
 {
-    /// <summary>Renders the pin as a CSS shorthand string, e.g. <c>"top:10pt right:20pt"</c>.</summary>
-    public override string ToString()
-    {
-        var parts = new List<string>(4);
-        if (Top    is not null) parts.Add($"top:{Top}");
-        if (Right  is not null) parts.Add($"right:{Right}");
-        if (Bottom is not null) parts.Add($"bottom:{Bottom}");
-        if (Left   is not null) parts.Add($"left:{Left}");
-        return string.Join(" ", parts);
-    }
+    public const string Top = "top";
+    public const string Bottom = "bottom";
+    public const string Left = "left";
+    public const string Right = "right";
 }

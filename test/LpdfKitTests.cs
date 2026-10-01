@@ -42,7 +42,7 @@ public class LpdfKitTypesTests
     [Fact]
     public void Stack_ProducesContainerNodeWithType()
     {
-        var node      = L.Stack(attrs: new StackAttr(Gap: "m", Background: "surface"));
+        var node      = L.Stack(attrs: new StackAttr { Gap = "m", Background = "surface" });
         var container = Assert.IsType<ContainerNode>(node);
         Assert.Equal("stack",   container.Type);
         Assert.Equal("m",       container.Attrs["gap"]);
@@ -52,7 +52,7 @@ public class LpdfKitTypesTests
     [Fact]
     public void Grid_ColWidthKebabCased()
     {
-        var node = (ContainerNode)L.Grid(attrs: new GridAttr(ColWidth: "120pt", Cols: "3"));
+        var node = (ContainerNode)L.Grid(attrs: new GridAttr { ColWidth = "120pt", Cols = "3" });
         Assert.Equal("120pt", node.Attrs["col-width"]);
         Assert.Equal("3",     node.Attrs["cols"]);
     }
@@ -63,7 +63,7 @@ public class LpdfKitTypesTests
         var raw  = L.Raw("Total: ");
         var span = L.Span(
             nodes: ["$100"],
-            attrs: new SpanAttr(Bold: "true", Color: "primary"));
+            attrs: new SpanAttr { Bold = "true", Color = "primary" });
 
         var node = L.Text(nodes: [raw, span]);
         Assert.Equal(2, node.Children.Count);
@@ -76,7 +76,7 @@ public class LpdfKitTypesTests
     [Fact]
     public void Divider_HasNoChildren()
     {
-        var node = L.Divider(attrs: new DividerAttr(Color: "surface-alt"));
+        var node = L.Divider(attrs: new DividerAttr { Color = "surface-alt" });
         Assert.Equal("divider",     node.Type);
         Assert.Equal("surface-alt", node.Attrs["color"]);
     }
@@ -116,45 +116,22 @@ public class KitToXmlTests
     }
 
     [Fact]
-    public async Task KitToXml_BuiltinFontPlacedInAssets()
+    public async Task KitToXml_WritesTheAssetsUnderTheSchemaNames()
     {
         var doc = L.Document(
-            attrs: new DocumentAttr(
-                Tokens: new DocumentTokens(Fonts: new()
-                {
-                    ["heading"] = new FontBuiltin("Helvetica-Bold"),
-                })
-            ),
+            attrs: new DocumentAttr(Assets: new DocumentAssets(
+                Fonts:
+                [
+                    new FontAttr { Name = "heading", Core = "Helvetica-Bold" },
+                    new FontAttr { Name = "body", Ref = "body-font", Src = "/fonts/MyFont.ttf" },
+                ],
+                Images: [new ImageAttr { Name = "logo", Src = "logo.png" }])),
             nodes: [L.Section(nodes: [L.Layout(null)])]);
         var xml = await L.ToXml(doc);
 
-        Assert.Contains("<assets>",               xml);
-        Assert.Contains("core=\"Helvetica-Bold\"", xml);
-
-        var tokensStart   = xml.IndexOf("<tokens>",  StringComparison.Ordinal);
-        var tokensEnd     = xml.IndexOf("</tokens>", StringComparison.Ordinal);
-        var fontsInTokens = tokensStart >= 0 ? xml.IndexOf("<fonts>", tokensStart, StringComparison.Ordinal) : -1;
-        Assert.True(
-            tokensStart < 0 || fontsInTokens < 0 || fontsInTokens > tokensEnd,
-            "Font was incorrectly placed inside <tokens>");
-    }
-
-    [Fact]
-    public async Task KitToXml_CustomFontUsesRefAlias()
-    {
-        var doc = L.Document(
-            attrs: new DocumentAttr(
-                Tokens: new DocumentTokens(Fonts: new()
-                {
-                    ["body"] = new FontSrc("/fonts/MyFont.ttf"),
-                })
-            ),
-            nodes: [L.Section(nodes: [L.Layout(null)])]);
-        var xml = await L.ToXml(doc);
-
-        Assert.Contains("ref=\"body\"", xml);
-        Assert.DoesNotContain("ref=\"/fonts/MyFont.ttf\"", xml);
-        Assert.Contains("src=", xml);
+        Assert.Contains("<font name=\"heading\" core=\"Helvetica-Bold\"/>", xml);
+        Assert.Contains("<font name=\"body\" ref=\"body-font\" src=\"/fonts/MyFont.ttf\"/>", xml);
+        Assert.Contains("<image name=\"logo\" src=\"logo.png\"/>", xml);
     }
 
     [Fact]

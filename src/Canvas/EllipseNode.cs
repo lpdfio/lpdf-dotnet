@@ -2,11 +2,9 @@ namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
 
-/// <summary>A <c>canvas-ellipse</c> node.</summary>
-public sealed record EllipseNode(
-    double       Cx, double Cy, double Rx, double Ry,
-    EllipseStyle? Style = null) : CanvasNode
+/// <summary>An <c>ellipse</c> on the canvas.</summary>
+public sealed record EllipseNode(Dictionary<string, string> Attrs) : CanvasNode
 {
     /// <inheritdoc/>
-    public override string Type => "canvas-ellipse";
+    public override string Type => "ellipse";
 }

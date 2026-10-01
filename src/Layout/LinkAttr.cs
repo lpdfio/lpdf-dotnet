@@ -1,7 +1,14 @@
+// Generated from lpdf.xsd by scripts/gen-sdk-api.mjs.
+// Do not edit: change the schema and run `make gen-sdk-api`.
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>Attributes for the <c>link</c> layout primitive.</summary>
-public sealed record LinkAttr(
-    string? Url    = null, string? Gap    = null,
-    string? Width  = null, string? Height = null);
+/// <summary>Attributes of the <c>link</c> element.</summary>
+public sealed record LinkAttr
+{
+    public required string Href { get; init; }
+    public string? Gap { get; init; }
+    public string? Width { get; init; }
+    public string? Height { get; init; }
+    public string? Debug { get; init; }
+}

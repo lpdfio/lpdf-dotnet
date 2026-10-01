@@ -42,6 +42,10 @@ public class NoAttributesTests
         Assert.DoesNotContain(typeof(BarcodeAttr), convertible);
         Assert.DoesNotContain(typeof(RegionAttr), convertible);
         Assert.DoesNotContain(typeof(FieldAttr), convertible);
+        Assert.DoesNotContain(typeof(LinkAttr), convertible);
+        Assert.DoesNotContain(typeof(TableAttr), convertible);
+        Assert.DoesNotContain(typeof(Lpdf.Canvas.RectAttr), convertible);
+        Assert.DoesNotContain(typeof(Lpdf.Canvas.CanvasTextAttr), convertible);
     }
 
     [Fact]

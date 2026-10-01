@@ -75,7 +75,7 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
         writer.WriteEndArray();
     }
 
-    private static void WriteTextContent(Utf8JsonWriter writer, List<Content> children, JsonSerializerOptions options)
+    internal static void WriteTextContent(Utf8JsonWriter writer, List<Content> children, JsonSerializerOptions options)
     {
         writer.WriteStartArray("nodes");
         foreach (var item in children)
@@ -109,159 +109,37 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
         switch (value)
         {
             case LayerNode layer:
-                WriteLayerOptions(writer, layer.Options);
+                NodeConverter.WriteAttrs(writer, layer.Attrs);
                 writer.WriteStartArray("nodes");
                 foreach (var node in layer.Nodes)
                     JsonSerializer.Serialize(writer, node, options);
                 writer.WriteEndArray();
                 break;
+            case Canvas.TextNode text:
+                NodeConverter.WriteAttrs(writer, text.Attrs);
+                NodeConverter.WriteTextContent(writer, text.Children, options);
+                break;
             case RectNode rect:
-                writer.WriteNumber("x", rect.X);
-                writer.WriteNumber("y", rect.Y);
-                writer.WriteNumber("w", rect.W);
-                writer.WriteNumber("h", rect.H);
-                WriteRectStyle(writer, rect.Style);
+                NodeConverter.WriteAttrs(writer, rect.Attrs);
                 break;
             case LineNode line:
-                writer.WriteNumber("x1", line.X1);
-                writer.WriteNumber("y1", line.Y1);
-                writer.WriteNumber("x2", line.X2);
-                writer.WriteNumber("y2", line.Y2);
-                WriteLineStyle(writer, line.Style);
+                NodeConverter.WriteAttrs(writer, line.Attrs);
                 break;
             case EllipseNode ellipse:
-                writer.WriteNumber("cx", ellipse.Cx);
-                writer.WriteNumber("cy", ellipse.Cy);
-                writer.WriteNumber("rx", ellipse.Rx);
-                writer.WriteNumber("ry", ellipse.Ry);
-                WriteEllipseStyle(writer, ellipse.Style);
+                NodeConverter.WriteAttrs(writer, ellipse.Attrs);
                 break;
             case CircleNode circle:
-                writer.WriteNumber("cx", circle.Cx);
-                writer.WriteNumber("cy", circle.Cy);
-                writer.WriteNumber("r",  circle.R);
-                WriteEllipseStyle(writer, circle.Style);
+                NodeConverter.WriteAttrs(writer, circle.Attrs);
                 break;
             case PathNode path:
-                writer.WriteString("d", path.D);
-                WritePathStyle(writer, path.Style);
-                break;
-            case Canvas.TextNode text:
-                writer.WriteNumber("x", text.X);
-                writer.WriteNumber("y", text.Y);
-                writer.WriteString("content", text.Content);
-                WriteTextStyle(writer, text.Style);
-                WriteRuns(writer, text.Runs, options);
+                NodeConverter.WriteAttrs(writer, path.Attrs);
                 break;
             case ImageNode img:
-                writer.WriteNumber("x", img.X);
-                writer.WriteNumber("y", img.Y);
-                writer.WriteString("name", img.Name);
-                if (img.W.HasValue)        writer.WriteNumber("w",      img.W.Value);
-                if (img.H.HasValue)        writer.WriteNumber("h",      img.H.Value);
-                if (img.Anchor is not null) writer.WriteString("anchor", img.Anchor);
+                NodeConverter.WriteAttrs(writer, img.Attrs);
                 break;
         }
 
         writer.WriteEndObject();
-    }
-
-    private static void WriteLayerOptions(Utf8JsonWriter writer, LayerAttr? opts)
-    {
-        if (opts is null) return;
-        if (opts.Page    is not null) writer.WriteString("page",    opts.Page);
-        if (opts.Opacity.HasValue)    writer.WriteNumber("opacity", opts.Opacity.Value);
-        if (opts.Transform is { } t)
-        {
-            writer.WriteStartArray("transform");
-            writer.WriteNumberValue(t.A); writer.WriteNumberValue(t.B);
-            writer.WriteNumberValue(t.C); writer.WriteNumberValue(t.D);
-            writer.WriteNumberValue(t.E); writer.WriteNumberValue(t.F);
-            writer.WriteEndArray();
-        }
-        if (opts.Clip is { } c)
-        {
-            writer.WriteStartObject("clip");
-            writer.WriteNumber("x", c.X); writer.WriteNumber("y", c.Y);
-            writer.WriteNumber("w", c.W); writer.WriteNumber("h", c.H);
-            if (c.BorderRadius.HasValue) writer.WriteNumber("borderRadius", c.BorderRadius.Value);
-            writer.WriteEndObject();
-        }
-    }
-
-    private static void WriteRectStyle(Utf8JsonWriter writer, RectStyle? s)
-    {
-        if (s is null) return;
-        if (s.Fill         is not null) writer.WriteString("fill",         s.Fill);
-        if (s.Stroke       is not null) writer.WriteString("stroke",       s.Stroke);
-        if (s.StrokeWidth.HasValue)     writer.WriteNumber("strokeWidth",  s.StrokeWidth.Value);
-        if (s.StrokeDash.HasValue)      writer.WriteNumber("strokeDash",   s.StrokeDash.Value);
-        if (s.BorderRadius.HasValue)    writer.WriteNumber("borderRadius", s.BorderRadius.Value);
-        if (s.Opacity.HasValue)         writer.WriteNumber("opacity",      s.Opacity.Value);
-        if (s.Anchor       is not null) writer.WriteString("anchor",       s.Anchor);
-    }
-
-    private static void WriteLineStyle(Utf8JsonWriter writer, LineStyle? s)
-    {
-        if (s is null) return;
-        if (s.Stroke       is not null) writer.WriteString("stroke",      s.Stroke);
-        if (s.StrokeWidth.HasValue)     writer.WriteNumber("strokeWidth", s.StrokeWidth.Value);
-        if (s.StrokeDash.HasValue)      writer.WriteNumber("strokeDash",  s.StrokeDash.Value);
-        if (s.LineCap.HasValue)         writer.WriteString("lineCap",     s.LineCap.Value.ToString().ToLowerInvariant());
-        if (s.LineJoin.HasValue)        writer.WriteString("lineJoin",    s.LineJoin.Value.ToString().ToLowerInvariant());
-    }
-
-    private static void WriteEllipseStyle(Utf8JsonWriter writer, EllipseStyle? s)
-    {
-        if (s is null) return;
-        if (s.Fill        is not null) writer.WriteString("fill",        s.Fill);
-        if (s.Stroke      is not null) writer.WriteString("stroke",      s.Stroke);
-        if (s.StrokeWidth.HasValue)    writer.WriteNumber("strokeWidth", s.StrokeWidth.Value);
-        if (s.StrokeDash.HasValue)     writer.WriteNumber("strokeDash",  s.StrokeDash.Value);
-        if (s.Opacity.HasValue)        writer.WriteNumber("opacity",     s.Opacity.Value);
-        if (s.Anchor      is not null) writer.WriteString("anchor",      s.Anchor);
-    }
-
-    private static void WritePathStyle(Utf8JsonWriter writer, PathStyle? s)
-    {
-        if (s is null) return;
-        if (s.Fill        is not null) writer.WriteString("fill",        s.Fill);
-        if (s.Stroke      is not null) writer.WriteString("stroke",      s.Stroke);
-        if (s.StrokeWidth.HasValue)    writer.WriteNumber("strokeWidth", s.StrokeWidth.Value);
-        if (s.StrokeDash.HasValue)     writer.WriteNumber("strokeDash",  s.StrokeDash.Value);
-        if (s.FillRuleEvenodd.HasValue) writer.WriteString("fillRule",   s.FillRuleEvenodd.Value ? "evenodd" : "nonzero");
-        if (s.LineCap.HasValue)        writer.WriteString("lineCap",     s.LineCap.Value.ToString().ToLowerInvariant());
-        if (s.LineJoin.HasValue)       writer.WriteString("lineJoin",    s.LineJoin.Value.ToString().ToLowerInvariant());
-        if (s.Opacity.HasValue)        writer.WriteNumber("opacity",     s.Opacity.Value);
-    }
-
-    private static void WriteTextStyle(Utf8JsonWriter writer, Canvas.TextStyle? s)
-    {
-        if (s is null) return;
-        if (s.Font       is not null) writer.WriteString("font",       s.Font);
-        if (s.Size.HasValue)          writer.WriteNumber("size",       s.Size.Value);
-        if (s.Color      is not null) writer.WriteString("color",      s.Color);
-        if (s.Align.HasValue)         writer.WriteString("align",      s.Align.Value.ToString().ToLowerInvariant());
-        if (s.LineHeight.HasValue)    writer.WriteNumber("lineHeight", s.LineHeight.Value);
-        if (s.Width.HasValue)         writer.WriteNumber("width",      s.Width.Value);
-        if (s.Opacity.HasValue)       writer.WriteNumber("opacity",    s.Opacity.Value);
-        if (s.Anchor     is not null) writer.WriteString("anchor",     s.Anchor);
-    }
-
-    private static void WriteRuns(Utf8JsonWriter writer, Run[]? runs, JsonSerializerOptions options)
-    {
-        if (runs is null || runs.Length == 0) return;
-        writer.WriteStartArray("runs");
-        foreach (var r in runs)
-        {
-            writer.WriteStartObject();
-            writer.WriteString("text", r.Text);
-            if (r.Font  is not null) writer.WriteString("font",  r.Font);
-            if (r.Size.HasValue)     writer.WriteNumber("size",  r.Size.Value);
-            if (r.Color is not null) writer.WriteString("color", r.Color);
-            writer.WriteEndObject();
-        }
-        writer.WriteEndArray();
     }
 }
 
@@ -335,14 +213,6 @@ internal sealed class SectionNodeConverter : JsonConverter<SectionNode>
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// FontConverter — serialises Kit.Font subtypes
-// ──────────────────────────────────────────────────────────────────────────────
-
-// Note: FontConverter is also defined on Kit.Font via [JsonConverter] attribute.
-// This duplicate registration in DocumentJson.Options is harmless — it ensures
-// the converter is used even if the attribute is not visible in the options chain.
-
-// ──────────────────────────────────────────────────────────────────────────────
 // DocumentJson — shared serialisation options for Document → WASM JSON
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -357,7 +227,6 @@ internal static class DocumentJson
             new CanvasNodeConverter(),
             new SectionContentConverter(),
             new SectionNodeConverter(),
-            new Kit.FontConverter(),
         },
     };
 }

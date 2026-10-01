@@ -1,21 +1,14 @@
+// Generated from lpdf.xsd by scripts/gen-sdk-api.mjs.
+// Do not edit: change the schema and run `make gen-sdk-api`.
 namespace Lpdf.Shared;
 
-/// <summary>
-/// Well-known <c>page</c> scope values for <see cref="Lpdf.Canvas.LayerAttr.Page"/>
-/// and <see cref="Lpdf.Layout.RegionAttr.Page"/>.
-/// Raw range strings such as <c>"2-4"</c>, <c>"1,3-5"</c>, or <c>"2-last"</c>
-/// may be passed directly without using these constants.
-/// </summary>
+#pragma warning disable CS1591
+/// <summary>The named values of the <c>page</c> attribute of a layer or a region. A range such as 2-4 or 1,3-5 is a string.</summary>
 public static class PageScope
 {
-    /// <summary>Apply to every page.</summary>
-    public const string Each  = "each";
-    /// <summary>Apply to the first page only.</summary>
+    public const string Each = "each";
     public const string First = "first";
-    /// <summary>Apply to the last page only.</summary>
-    public const string Last  = "last";
-    /// <summary>Apply to odd-numbered pages.</summary>
-    public const string Odd   = "odd";
-    /// <summary>Apply to even-numbered pages.</summary>
-    public const string Even  = "even";
+    public const string Last = "last";
+    public const string Odd = "odd";
+    public const string Even = "even";
 }
