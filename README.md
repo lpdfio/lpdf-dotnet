@@ -16,6 +16,7 @@ dotnet add package Lpdfio.Lpdf
 
 ```csharp
 using Lpdf;
+using static Lpdf.L;
 
 var engine = L.Engine();
 

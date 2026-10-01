@@ -13,12 +13,14 @@ namespace Lpdf;
 /// <example>
 /// <code>
 /// using Lpdf;
+/// using Lpdf.Kit;
 /// using Lpdf.Layout;
+/// using static Lpdf.L;
 ///
 /// var doc = L.Document(new DocumentAttr(Size: "a4"), [
-///     L.Section(null, [
-///         L.Layout(null, [
-///             L.Text([L.Raw("Hello")], new TextAttr(Font: "heading")),
+///     L.Section(NoAttr, [
+///         L.Layout(NoAttr, [
+///             L.Text(new TextAttr(Font: "heading"), ["Hello"]),
 ///         ])
 ///     ])
 /// ]);
@@ -28,8 +30,11 @@ namespace Lpdf;
 /// </summary>
 public static class L
 {
-    /// <summary>No attributes — pass as the <c>attrs</c> argument for container nodes that need none.</summary>
-    public const object? NoAttr = null;
+    /// <summary>
+    /// No attributes: pass as the <c>attrs</c> argument of any builder that takes its attributes as an
+    /// optional argument. Reach it as <c>NoAttr</c> with <c>using static Lpdf.L;</c>, or as <c>L.NoAttr</c>.
+    /// </summary>
+    public static readonly NoAttributes NoAttr = NoAttributes.Instance;
 
     // ── Engine ────────────────────────────────────────────────────────────────
 
@@ -170,16 +175,22 @@ public static class L
 
     // ── Layout leaves ─────────────────────────────────────────────────────────
 
-    /// <summary>Build a <c>text</c> paragraph node.</summary>
-    public static Layout.TextNode Text(Content[]? nodes = null, TextAttr? attrs = null) => new(
+    /// <summary>
+    /// Build a <c>text</c> paragraph node. Each item of <paramref name="nodes"/> is a plain string or a
+    /// <see cref="SpanNode"/>, and the two can be mixed.
+    /// </summary>
+    public static Layout.TextNode Text(TextAttr? attrs = null, TextContent[]? nodes = null) => new(
         AttrsHelper.Attrs(attrs),
-        (nodes ?? []).ToList());
+        (nodes ?? []).Select(item => item.Value).ToList());
 
-    /// <summary>Wrap a plain string as inline <see cref="Content"/>.</summary>
-    public static Content Raw(string raw) => new RawText(raw);
+    /// <summary>
+    /// Wrap a plain string as inline text. A string converts to <see cref="TextContent"/> on its own, so this
+    /// is only needed to name a run before it is used.
+    /// </summary>
+    public static TextContent Raw(string raw) => raw;
 
     /// <summary>Build a <c>span</c> inline node.</summary>
-    public static SpanNode Span(string[]? nodes = null, SpanAttr? attrs = null) => new(
+    public static SpanNode Span(SpanAttr? attrs = null, string[]? nodes = null) => new(
         AttrsHelper.Attrs(attrs),
         (nodes ?? []).ToList());
 
