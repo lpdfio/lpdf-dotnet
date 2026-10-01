@@ -48,7 +48,7 @@ var pdf = await engine.Render(doc);
 
 ## Docs
 
-[lpdf.io/docs](https://lpdf.io/docs/?sdk=dotnet&p=install&utm_campaign=sdk-dotnet&utm_medium=referral&utm_source=readme)
+[lpdf.io/docs](https://lpdf.io/docs/install/?sdk=dotnet&utm_campaign=sdk-dotnet&utm_medium=referral&utm_source=readme)
 
 ## Issues
 
