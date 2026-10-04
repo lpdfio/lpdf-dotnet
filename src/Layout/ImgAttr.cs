@@ -16,5 +16,6 @@ public sealed record ImgAttr
     public string? Background { get; init; }
     public string? Border { get; init; }
     public string? Radius { get; init; }
+    public string? Paginate { get; init; }
     public string? Debug { get; init; }
 }

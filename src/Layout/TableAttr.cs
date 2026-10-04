@@ -15,5 +15,6 @@ public sealed record TableAttr
     public string? Background { get; init; }
     public string? Width { get; init; }
     public string? Height { get; init; }
+    public string? Paginate { get; init; }
     public string? Debug { get; init; }
 }

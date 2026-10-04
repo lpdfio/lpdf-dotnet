@@ -14,5 +14,6 @@ public sealed record TextAttr
     public string? Color { get; init; }
     public string? Align { get; init; }
     public string? Width { get; init; }
+    public string? Paginate { get; init; }
     public string? Debug { get; init; }
 }

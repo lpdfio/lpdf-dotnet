@@ -15,5 +15,6 @@ public sealed record BarcodeAttr
     public string? Hrt { get; init; }
     public string? Color { get; init; }
     public string? Background { get; init; }
+    public string? Paginate { get; init; }
     public string? Debug { get; init; }
 }
