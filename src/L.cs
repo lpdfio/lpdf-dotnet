@@ -210,6 +210,13 @@ public static class L
     public static FieldNode Field(FieldAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
+    /// <summary>
+    /// Build a <c>bookmark</c>: an entry of the PDF's outline and a target for <c>href="#id"</c> links. It marks
+    /// the node that follows it; in a section's content it marks the section's first page.
+    /// </summary>
+    public static BookmarkNode Bookmark(BookmarkAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
+
     // ── Canvas ────────────────────────────────────────────────────────────────
 
     /// <summary>Build a <c>layer</c> containing canvas primitives.</summary>

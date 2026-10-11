@@ -55,6 +55,9 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
             case FieldNode f:
                 WriteAttrs(writer, f.Attrs);
                 break;
+            case BookmarkNode b:
+                WriteAttrs(writer, b.Attrs);
+                break;
         }
 
         writer.WriteEndObject();
@@ -144,7 +147,7 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// SectionContentConverter — serialises SectionLayout and SectionCanvas
+// SectionContentConverter — serialises SectionBookmark, SectionLayout and SectionCanvas
 // ──────────────────────────────────────────────────────────────────────────────
 
 internal sealed class SectionContentConverter : JsonConverter<SectionContent>
@@ -159,6 +162,12 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
     {
         writer.WriteStartObject();
         writer.WriteString("type", value.Type);
+        if (value is SectionBookmark bookmark)
+        {
+            NodeConverter.WriteAttrs(writer, bookmark.Attrs);
+            writer.WriteEndObject();
+            return;
+        }
         writer.WriteStartObject("attrs");
         if (value is SectionLayout sl)
         {
