@@ -6,6 +6,7 @@ namespace Lpdf.Layout;
 /// <summary>Attributes of the <c>link</c> element.</summary>
 public sealed record LinkAttr
 {
+    /// <summary>Where the link goes: a URL, or #id to jump to the bookmark with that id. In an entry of a table of contents, # alone jumps to that entry's bookmark.</summary>
     public required string Href { get; init; }
     public string? Gap { get; init; }
     public string? Width { get; init; }

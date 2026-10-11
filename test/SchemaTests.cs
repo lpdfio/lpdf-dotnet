@@ -190,6 +190,43 @@ public class SchemaTests
         Assert.NotEqual(await Render(Doc("bold=\"true\"")), await Render(Doc("")));
     }
 
+    // -- Bookmarks and the table of contents -------------------------------------------------------
+
+    [Fact]
+    public void Bookmark_goes_in_a_layout_and_directly_in_a_section()
+    {
+        var bookmark = L.Bookmark(new BookmarkAttr { Label = "Methods", Level = "2", Id = "methods" });
+        Assert.Equal(new Dictionary<string, string> { ["label"] = "Methods", ["level"] = "2", ["id"] = "methods" }, bookmark.Attrs);
+
+        var section = L.Section(new SectionAttr(Type: SectionType.Toc, TocIndentStep: "14pt"), [
+            L.Bookmark(new BookmarkAttr { Label = "Contents" }),
+            L.Layout(null, [bookmark, L.Text(null, ["Methods"])]),
+        ]);
+        Assert.Equal(new Dictionary<string, string> { ["type"] = "toc", ["toc-indent-step"] = "14pt" }, section.Attrs);
+        Assert.Equal("bookmark", Assert.IsType<SectionBookmark>(section.Nodes[0]).Type);
+    }
+
+    [Fact]
+    public async Task Bookmarks_fill_the_outline_and_render_like_their_xml()
+    {
+        var built = L.Document(null, [
+            L.Section(null, [L.Bookmark(new BookmarkAttr { Label = "Cover" }), L.Layout(null, [L.Text(null, ["Cover"])])]),
+            L.Section(null, [
+                L.Layout(null, [
+                    L.Link(new LinkAttr { Href = "#methods" }, [L.Text(null, ["Go to Methods"])]),
+                    L.Bookmark(new BookmarkAttr { Label = "Methods" }),
+                    L.Text(null, ["Methods"]),
+                ]),
+            ]),
+        ]);
+        var pdf = await Render(built);
+
+        Assert.Contains("/Title (Cover)", pdf);
+        Assert.Contains("/Title (Methods)", pdf);
+        Assert.Contains("/D /methods", pdf);
+        Assert.Equal(pdf, await Render(await L.ToXml(built)));
+    }
+
     // -- Assets ------------------------------------------------------------------------------------
 
     private static readonly byte[] Pixel = Convert.FromBase64String(
