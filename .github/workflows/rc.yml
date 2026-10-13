@@ -18,7 +18,7 @@ jobs:
   rc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0   # full history and tags, for "Unreleased commits"
 
@@ -63,7 +63,7 @@ jobs:
       # ── Build and test ───────────────────────────────────────────────────────
       # The csproj version stays the repo's placeholder: this package is for
       # inspection only, never for a registry.
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -74,7 +74,7 @@ jobs:
         run: dotnet build Lpdf.sln -c Release --no-restore
 
       # The check below is a Node script.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
 
@@ -113,7 +113,7 @@ jobs:
         run: dotnet pack Lpdf.csproj -c Release --no-build -o nupkg
 
       - name: Upload package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: rc-${{ env.CORE_TAG }}
           path: nupkg/*.nupkg
