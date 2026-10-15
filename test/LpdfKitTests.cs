@@ -40,11 +40,11 @@ public class LpdfKitTypesTests
     // -- Layout helpers --------------------------------------------------------
 
     [Fact]
-    public void Stack_ProducesContainerNodeWithType()
+    public void Column_ProducesContainerNodeWithType()
     {
-        var node      = L.Stack(attrs: new StackAttr { Gap = "m", Background = "surface" });
+        var node      = L.Column(attrs: new ColumnAttr { Gap = "m", Background = "surface" });
         var container = Assert.IsType<ContainerNode>(node);
-        Assert.Equal("stack",   container.Type);
+        Assert.Equal("column",  container.Type);
         Assert.Equal("m",       container.Attrs["gap"]);
         Assert.Equal("surface", container.Attrs["background"]);
     }
@@ -84,7 +84,7 @@ public class LpdfKitTypesTests
     [Fact]
     public void Section_ChildrenAreLayoutNodes()
     {
-        var layout  = L.Layout(null, [L.Stack()]);
+        var layout  = L.Layout(null, [L.Column()]);
         var section = L.Section(
             attrs:  new SectionAttr(Size: "a4"),
             nodes:  [layout]);

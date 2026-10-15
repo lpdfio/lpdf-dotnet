@@ -30,9 +30,9 @@ public class DataBindingTests
     public async Task DataSource_ExpandsArray()
     {
         var xml = Doc("""
-            <stack data-source="items" gap="xs">
+            <column data-source="items" gap="xs">
               <text data-value="label">Fallback item</text>
-            </stack>
+            </column>
             """);
         using var engine = L.Engine().SetLicenseKey("test-key");
         var bytes = await engine.Render(xml, new RenderOptions

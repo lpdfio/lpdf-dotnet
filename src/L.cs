@@ -123,9 +123,9 @@ public static class L
 
     // ── Layout containers ─────────────────────────────────────────────────────
 
-    /// <summary>Build a <c>stack</c> layout node (vertical column).</summary>
-    public static ContainerNode Stack(StackAttr? attrs = null, Node[]? nodes = null)
-        => Container("stack", attrs, nodes);
+    /// <summary>Build a <c>column</c> layout node (children top to bottom).</summary>
+    public static ContainerNode Column(ColumnAttr? attrs = null, Node[]? nodes = null)
+        => Container("column", attrs, nodes);
 
     /// <summary>Build a <c>flank</c> layout node (horizontal row).</summary>
     public static ContainerNode Flank(FlankAttr? attrs = null, Node[]? nodes = null)
@@ -135,9 +135,9 @@ public static class L
     public static ContainerNode Split(SplitAttr? attrs = null, Node[]? nodes = null)
         => Container("split", attrs, nodes);
 
-    /// <summary>Build a <c>cluster</c> layout node (wrapping flex row).</summary>
-    public static ContainerNode Cluster(ClusterAttr? attrs = null, Node[]? nodes = null)
-        => Container("cluster", attrs, nodes);
+    /// <summary>Build a <c>row</c> layout node (children side by side, wrapping).</summary>
+    public static ContainerNode Row(RowAttr? attrs = null, Node[]? nodes = null)
+        => Container("row", attrs, nodes);
 
     /// <summary>Build a <c>grid</c> layout node (multi-column grid).</summary>
     public static ContainerNode Grid(GridAttr? attrs = null, Node[]? nodes = null)

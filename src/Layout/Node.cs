@@ -10,6 +10,6 @@ namespace Lpdf.Layout;
 [JsonConverter(typeof(Lpdf.Shared.NodeConverter))]
 public abstract record Node
 {
-    /// <summary>The lpdf element name (e.g. <c>stack</c>, <c>text</c>, <c>img</c>).</summary>
+    /// <summary>The lpdf element name (e.g. <c>column</c>, <c>text</c>, <c>img</c>).</summary>
     public abstract string Type { get; }
 }

@@ -23,7 +23,7 @@ var engine = L.Engine();
 var doc = L.Document(new() { Size = "letter", Margin = "48pt" }, [
     L.Section(NoAttr, [
         L.Layout(NoAttr, [
-            L.Stack(new() { Gap = "24pt" }, [
+            L.Column(new() { Gap = "24pt" }, [
                 L.Split(NoAttr, [
                     L.Text(new() { FontSize = "8pt", Color = "#888888" }, ["ACME CORP"]),
                     L.Text(new() { FontSize = "22pt", Bold = "true" }, ["Project Proposal"]),

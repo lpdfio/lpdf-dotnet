@@ -3,8 +3,8 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>Places children top to bottom, each at the full width, with gap between them. Can split across pages between children.</summary>
-public sealed record StackAttr
+/// <summary>Children side by side, continuing on the next line when they run out of width. Splits across pages between lines.</summary>
+public sealed record RowAttr
 {
     public string? Font { get; init; }
     public string? FontSize { get; init; }

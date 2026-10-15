@@ -160,7 +160,7 @@ public class SchemaTests
         var built = L.Document(new DocumentAttr(Size: "a4"), [
             L.Section(null, [
                 L.Layout(null, [
-                    L.Stack(new StackAttr { Gap = "12pt" }, [
+                    L.Column(new ColumnAttr { Gap = "12pt" }, [
                         L.Text(new TextAttr { Align = "right", Bold = "true" }, ["Title"]),
                         L.Text(null, ["Body ", L.Span(new SpanAttr { Bold = "true" }, ["bold"]), " text"]),
                         L.Link(new LinkAttr { Href = "https://lpdf.io" }, [L.Text(null, ["link"])]),

@@ -3,8 +3,8 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>A row that wraps: children sit side by side, and continue on the next line when they run out of width. Splits across pages between lines.</summary>
-public sealed record ClusterAttr
+/// <summary>Places children top to bottom, each at the full width, with gap between them. Can split across pages between children.</summary>
+public sealed record ColumnAttr
 {
     public string? Font { get; init; }
     public string? FontSize { get; init; }

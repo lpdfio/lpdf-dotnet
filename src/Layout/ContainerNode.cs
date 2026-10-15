@@ -1,6 +1,6 @@
 namespace Lpdf.Layout;
 
-/// <summary>A serialised layout container node (stack, flank, grid, table, etc.).</summary>
+/// <summary>A serialised layout container node (column, row, grid, table, etc.).</summary>
 public sealed record ContainerNode(
     Dictionary<string, string> Attrs,
     List<Node>                 Nodes,
