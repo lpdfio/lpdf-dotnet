@@ -3,8 +3,8 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>One row where the children keep their own width except one, which fills the rest. By default the last child fills; set end to true and the first fills. Never splits across pages.</summary>
-public sealed record FlankAttr
+/// <summary>Places children top to bottom, each at the full width, with gap between them. Can split across pages between children.</summary>
+public sealed record ColumnAttr
 {
     public string? Font { get; init; }
     public string? FontSize { get; init; }
@@ -23,8 +23,8 @@ public sealed record FlankAttr
     public string? Paginate { get; init; }
     public string? Debug { get; init; }
     public string? Align { get; init; }
+    public string? Justify { get; init; }
 
-    /// <summary>false (the default): every child but the last keeps its own width at the left, and the last fills the rest. true: the first child fills, and the others keep their own width at the right.</summary>
-    public string? End { get; init; }
+    /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
 }

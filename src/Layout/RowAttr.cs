@@ -3,8 +3,8 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>A row that wraps: children sit side by side, and continue on the next line when they run out of width. Splits across pages between lines.</summary>
-public sealed record ClusterAttr
+/// <summary>Children side by side, continuing on the next line when they run out of width. A child with width set to fill takes what its line leaves; justify set to between puts a line's first child at the left edge, its last at the right and the others evenly between. Splits across pages between lines.</summary>
+public sealed record RowAttr
 {
     public string? Font { get; init; }
     public string? FontSize { get; init; }
@@ -24,5 +24,7 @@ public sealed record ClusterAttr
     public string? Debug { get; init; }
     public string? Align { get; init; }
     public string? Justify { get; init; }
+
+    /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
 }

@@ -51,8 +51,8 @@ public class NoAttributesTests
     [Fact]
     public void NoAttr_builds_the_same_container_as_null()
     {
-        var withNoAttr = L.Stack(L.NoAttr, [L.Text(L.NoAttr, ["x"])]);
-        var withNull = L.Stack(null, [L.Text(null, ["x"])]);
+        var withNoAttr = L.Column(L.NoAttr, [L.Text(L.NoAttr, ["x"])]);
+        var withNull = L.Column(null, [L.Text(null, ["x"])]);
 
         Assert.Empty(withNoAttr.Attrs);
         Assert.Equal(withNull.Attrs, withNoAttr.Attrs);

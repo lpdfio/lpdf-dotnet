@@ -17,6 +17,8 @@ public sealed record FieldAttr
     public string? Readonly { get; init; }
     public string? MaxLen { get; init; }
     public string? ActionUrl { get; init; }
+
+    /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
     public string? Height { get; init; }
     public string? Background { get; init; }
