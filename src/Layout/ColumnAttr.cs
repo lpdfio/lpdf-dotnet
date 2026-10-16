@@ -24,5 +24,7 @@ public sealed record ColumnAttr
     public string? Debug { get; init; }
     public string? Align { get; init; }
     public string? Justify { get; init; }
+
+    /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
 }

@@ -13,6 +13,8 @@ public sealed record TextAttr
     public string? Bold { get; init; }
     public string? Color { get; init; }
     public string? Align { get; init; }
+
+    /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
 
     /// <summary>The fewest lines of the text that may stand alone at the top of the next page when it splits. Default 2. If fewer would be left, lines move from the first page to the next; 1 turns the protection off.</summary>
