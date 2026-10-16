@@ -127,14 +127,6 @@ public static class L
     public static ContainerNode Column(ColumnAttr? attrs = null, Node[]? nodes = null)
         => Container("column", attrs, nodes);
 
-    /// <summary>Build a <c>flank</c> layout node (horizontal row).</summary>
-    public static ContainerNode Flank(FlankAttr? attrs = null, Node[]? nodes = null)
-        => Container("flank", attrs, nodes);
-
-    /// <summary>Build a <c>split</c> layout node (two-column split).</summary>
-    public static ContainerNode Split(SplitAttr? attrs = null, Node[]? nodes = null)
-        => Container("split", attrs, nodes);
-
     /// <summary>Build a <c>row</c> layout node (children side by side, wrapping).</summary>
     public static ContainerNode Row(RowAttr? attrs = null, Node[]? nodes = null)
         => Container("row", attrs, nodes);

@@ -26,8 +26,6 @@ public sealed class NoAttributes
     public static implicit operator DocumentAttr?(NoAttributes _) => null;
     public static implicit operator SectionAttr?(NoAttributes _) => null;
     public static implicit operator ColumnAttr?(NoAttributes _) => null;
-    public static implicit operator FlankAttr?(NoAttributes _) => null;
-    public static implicit operator SplitAttr?(NoAttributes _) => null;
     public static implicit operator RowAttr?(NoAttributes _) => null;
     public static implicit operator GridAttr?(NoAttributes _) => null;
     public static implicit operator FrameAttr?(NoAttributes _) => null;
