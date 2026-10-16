@@ -147,7 +147,7 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// SectionContentConverter — serialises SectionBookmark, SectionLayout and SectionCanvas
+// SectionContentConverter — serialises SectionBookmark, SectionLayer and SectionLayout
 // ──────────────────────────────────────────────────────────────────────────────
 
 internal sealed class SectionContentConverter : JsonConverter<SectionContent>
@@ -160,6 +160,11 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
 
     public override void Write(Utf8JsonWriter writer, SectionContent value, JsonSerializerOptions options)
     {
+        if (value is SectionLayer layer)
+        {
+            JsonSerializer.Serialize<CanvasNode>(writer, layer.Layer, options);
+            return;
+        }
         writer.WriteStartObject();
         writer.WriteString("type", value.Type);
         if (value is SectionBookmark bookmark)
@@ -174,10 +179,6 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
             // Write extra attrs if any were set (currently attrs dict is empty by convention)
             foreach (var (k, v) in sl.Attrs) writer.WriteString(k, v);
         }
-        else if (value is SectionCanvas sc)
-        {
-            foreach (var (k, v) in sc.Attrs) writer.WriteString(k, v);
-        }
         writer.WriteEndObject();
 
         writer.WriteStartArray("nodes");
@@ -185,11 +186,6 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
         {
             foreach (var node in layout.Nodes)
                 JsonSerializer.Serialize(writer, node, options);
-        }
-        else if (value is SectionCanvas canvas)
-        {
-            foreach (var layer in canvas.Layers)
-                JsonSerializer.Serialize(writer, layer, options);
         }
         writer.WriteEndArray();
 

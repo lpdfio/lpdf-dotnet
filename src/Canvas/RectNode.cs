@@ -2,7 +2,7 @@ namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
 
-/// <summary>A <c>rect</c> on the canvas.</summary>
+/// <summary>A <c>rect</c> in a layer.</summary>
 public sealed record RectNode(Dictionary<string, string> Attrs) : CanvasNode
 {
     /// <inheritdoc/>

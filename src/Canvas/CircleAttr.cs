@@ -3,7 +3,7 @@
 namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
-/// <summary>Attributes of the <c>circle</c> element on the canvas.</summary>
+/// <summary>Attributes of the <c>circle</c> element in a layer.</summary>
 public sealed record CircleAttr
 {
     public required string R { get; init; }
