@@ -3,7 +3,7 @@
 namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
-/// <summary>Attributes of the <c>img</c> element on the canvas.</summary>
+/// <summary>Attributes of the <c>img</c> element in a layer.</summary>
 public sealed record CanvasImgAttr
 {
     public required string Name { get; init; }

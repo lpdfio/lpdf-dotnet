@@ -101,17 +101,16 @@ public static class L
         return new PdfDocument(d, (nodes ?? []).ToList());
     }
 
-    /// <summary>Build a <c>section</c> (page) node.</summary>
+    /// <summary>
+    /// Build a <c>section</c> (page) node. Its content is a bookmark, then layers, then at most one layout, then
+    /// layers: the layers before the layout paint under it, and the layers after it paint over it.
+    /// </summary>
     public static SectionNode Section(SectionAttr? attrs = null, SectionContent[]? nodes = null)
         => new(AttrsHelper.Attrs(attrs), (nodes ?? []).ToList());
 
     /// <summary>Wrap layout nodes into a <c>layout</c> block.</summary>
     public static SectionLayout Layout(object? _attrs, Node[]? nodes = null)
         => new((nodes ?? []).ToList(), new Dictionary<string, string>(StringComparer.Ordinal));
-
-    /// <summary>Wrap canvas layer nodes into a <c>canvas</c> block.</summary>
-    public static SectionCanvas Canvas(object? _attrs, LayerNode[]? layers = null)
-        => new((layers ?? []).ToList(), new Dictionary<string, string>(StringComparer.Ordinal));
 
     /// <summary>Create a <see cref="DocumentAssets"/> instance (convenience factory).</summary>
     public static DocumentAssets Assets(DocumentAssets attrs)
@@ -209,40 +208,40 @@ public static class L
     public static BookmarkNode Bookmark(BookmarkAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
-    // ── Canvas ────────────────────────────────────────────────────────────────
+    // ── Layers ────────────────────────────────────────────────────────────────
 
-    /// <summary>Build a <c>layer</c> containing canvas primitives.</summary>
+    /// <summary>Build a <c>layer</c>, which goes directly in a section, holding what it draws at fixed places.</summary>
     public static LayerNode Layer(LayerAttr? attrs = null, CanvasNode[]? nodes = null)
         => new(AttrsHelper.Attrs(attrs), (nodes ?? []).ToList());
 
-    /// <summary>Build a <c>rect</c> on the canvas.</summary>
+    /// <summary>Build a <c>rect</c> in a layer.</summary>
     public static RectNode Rect(RectAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build a <c>line</c> on the canvas.</summary>
+    /// <summary>Build a <c>line</c> in a layer.</summary>
     public static LineNode Line(LineAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build an <c>ellipse</c> on the canvas.</summary>
+    /// <summary>Build an <c>ellipse</c> in a layer.</summary>
     public static EllipseNode Ellipse(EllipseAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build a <c>circle</c> on the canvas.</summary>
+    /// <summary>Build a <c>circle</c> in a layer.</summary>
     public static CircleNode Circle(CircleAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
-    /// <summary>Build a <c>path</c> on the canvas from an SVG path string in <c>D</c>.</summary>
+    /// <summary>Build a <c>path</c> in a layer from an SVG path string in <c>D</c>.</summary>
     public static PathNode Path(PathAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
     /// <summary>
-    /// Build text on the canvas. Each item of <paramref name="nodes"/> is a plain string or a
+    /// Build text in a layer. Each item of <paramref name="nodes"/> is a plain string or a
     /// <see cref="SpanNode"/>, and the two can be mixed.
     /// </summary>
     public static Canvas.TextNode TextAt(CanvasTextAttr attrs, TextContent[]? nodes = null)
         => new(AttrsHelper.Attrs(attrs), (nodes ?? []).Select(item => item.Value).ToList());
 
-    /// <summary>Build an <c>img</c> on the canvas.</summary>
+    /// <summary>Build an <c>img</c> in a layer.</summary>
     public static ImageNode ImgAt(CanvasImgAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 

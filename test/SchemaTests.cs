@@ -81,7 +81,7 @@ public class SchemaTests
         Assert.Equal("true", doc.Attrs["debug"]);
     }
 
-    // -- Canvas ------------------------------------------------------------------------------------
+    // -- Layers ------------------------------------------------------------------------------------
 
     [Fact]
     public void Rect_writes_its_attributes_as_given()
@@ -140,16 +140,45 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_canvas_shape_is_drawn()
+    public async Task A_layer_shape_is_drawn()
     {
-        var empty = L.Document(new DocumentAttr(Size: "a4"), [L.Section(null, [L.Canvas(null, [L.Layer(null, [])])])]);
+        var empty = L.Document(new DocumentAttr(Size: "a4"), [L.Section(null, [L.Layer(null, [])])]);
         var drawn = L.Document(new DocumentAttr(Size: "a4"), [
             L.Section(null, [
-                L.Canvas(null, [L.Layer(null, [L.Rect(new RectAttr { X = "50pt", Y = "50pt", W = "200pt", H = "100pt", Fill = "#ff0000" })])]),
+                L.Layer(null, [L.Rect(new RectAttr { X = "50pt", Y = "50pt", W = "200pt", H = "100pt", Fill = "#ff0000" })]),
             ]),
         ]);
 
         Assert.NotEqual(await Render(empty), await Render(drawn));
+    }
+
+    [Fact]
+    public async Task Layers_go_directly_in_a_section_before_and_after_its_layout()
+    {
+        var section = L.Section(null, [
+            L.Layer(new LayerAttr { Page = PageScope.First }, [L.Rect(new RectAttr { W = "10pt", H = "10pt" })]),
+            L.Layout(null, [L.Text(null, ["Body"])]),
+            L.Layer(new LayerAttr { Page = PageScope.Last }, [L.Rect(new RectAttr { W = "20pt", H = "20pt" })]),
+        ]);
+        Assert.Equal(["layer", "layout", "layer"], section.Nodes.Select(n => n.Type));
+
+        var xml = await L.ToXml(L.Document(null, [section]));
+        var under = xml.IndexOf("<layer page=\"first\">", StringComparison.Ordinal);
+        var layout = xml.IndexOf("<layout>", StringComparison.Ordinal);
+        var over = xml.IndexOf("<layer page=\"last\">", StringComparison.Ordinal);
+        Assert.True(under >= 0 && under < layout && layout < over, xml);
+        Assert.DoesNotContain("<canvas", xml);
+    }
+
+    [Fact]
+    public async Task A_section_with_two_layouts_is_rejected()
+    {
+        var doc = L.Document(null, [
+            L.Section(null, [L.Layout(null, [L.Text(null, ["a"])]), L.Layout(null, [L.Text(null, ["b"])])]),
+        ]);
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
+        Assert.Contains("at most one <layout>", error.Message);
     }
 
     // -- Rendering ---------------------------------------------------------------------------------
@@ -166,13 +195,11 @@ public class SchemaTests
                         L.Link(new LinkAttr { Href = "https://lpdf.io" }, [L.Text(null, ["link"])]),
                     ]),
                 ]),
-                L.Canvas(null, [
-                    L.Layer(new LayerAttr { Page = PageScope.Each }, [
-                        L.Rect(new RectAttr { X = "40pt", Y = "40pt", W = "100pt", H = "60pt", Fill = "#ff0000", Radius = "6pt" }),
-                        L.Circle(new CircleAttr { Cx = "300pt", Cy = "300pt", R = "40pt", Fill = "#00ff00" }),
-                        L.TextAt(new CanvasTextAttr { X = "40pt", Y = "120pt", FontSize = "10pt" },
-                            ["Canvas ", L.Span(new SpanAttr { Color = "#0000ff" }, ["text"])]),
-                    ]),
+                L.Layer(new LayerAttr { Page = PageScope.Each }, [
+                    L.Rect(new RectAttr { X = "40pt", Y = "40pt", W = "100pt", H = "60pt", Fill = "#ff0000", Radius = "6pt" }),
+                    L.Circle(new CircleAttr { Cx = "300pt", Cy = "300pt", R = "40pt", Fill = "#00ff00" }),
+                    L.TextAt(new CanvasTextAttr { X = "40pt", Y = "120pt", FontSize = "10pt" },
+                        ["Layer ", L.Span(new SpanAttr { Color = "#0000ff" }, ["text"])]),
                 ]),
             ]),
         ]);

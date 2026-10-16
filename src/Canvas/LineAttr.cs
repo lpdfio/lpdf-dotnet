@@ -3,7 +3,7 @@
 namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
-/// <summary>Attributes of the <c>line</c> element on the canvas.</summary>
+/// <summary>Attributes of the <c>line</c> element in a layer.</summary>
 public sealed record LineAttr
 {
     public required string X1 { get; init; }

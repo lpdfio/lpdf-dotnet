@@ -2,7 +2,7 @@ namespace Lpdf.Canvas;
 
 #pragma warning disable CS1591
 
-/// <summary>A <c>line</c> on the canvas.</summary>
+/// <summary>A <c>line</c> in a layer.</summary>
 public sealed record LineNode(Dictionary<string, string> Attrs) : CanvasNode
 {
     /// <inheritdoc/>
