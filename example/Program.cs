@@ -6,8 +6,8 @@
 using Lpdf;
 using Lpdf.Engine;
 
-var root    = Path.Combine(AppContext.BaseDirectory, "../../../../../../../example/");
-var fixtures = Path.Combine(AppContext.BaseDirectory, "../../../../../../../test/fixtures/");
+var root    = Path.Combine(AppContext.BaseDirectory, "../../../../../../example/");
+var fixtures = Path.Combine(AppContext.BaseDirectory, "../../../../../../test/fixtures/");
 
 // ── example1 / example2 ─────────────────────────────────────────────────────
 
