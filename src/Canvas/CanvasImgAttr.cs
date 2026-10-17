@@ -7,8 +7,8 @@ namespace Lpdf.Canvas;
 public sealed record CanvasImgAttr
 {
     public required string Name { get; init; }
-    public required string W { get; init; }
-    public required string H { get; init; }
+    public required string Width { get; init; }
+    public required string Height { get; init; }
     public string? X { get; init; }
     public string? Y { get; init; }
     public string? Anchor { get; init; }

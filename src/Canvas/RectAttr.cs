@@ -6,8 +6,8 @@ namespace Lpdf.Canvas;
 /// <summary>Attributes of the <c>rect</c> element in a layer.</summary>
 public sealed record RectAttr
 {
-    public required string W { get; init; }
-    public required string H { get; init; }
+    public required string Width { get; init; }
+    public required string Height { get; init; }
     public string? X { get; init; }
     public string? Y { get; init; }
     public string? Anchor { get; init; }

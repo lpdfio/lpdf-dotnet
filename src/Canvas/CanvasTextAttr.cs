@@ -13,7 +13,7 @@ public sealed record CanvasTextAttr
     public string? FontSize { get; init; }
     public string? Color { get; init; }
     public string? Align { get; init; }
-    public string? W { get; init; }
+    public string? Width { get; init; }
     public string? LineHeight { get; init; }
     public string? Opacity { get; init; }
 }
