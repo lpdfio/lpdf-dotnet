@@ -19,5 +19,4 @@ public sealed record EllipseAttr
     public string? Stroke { get; init; }
     public string? StrokeWidth { get; init; }
     public string? StrokeDash { get; init; }
-    public string? Opacity { get; init; }
 }

@@ -118,7 +118,7 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
                     JsonSerializer.Serialize(writer, node, options);
                 writer.WriteEndArray();
                 break;
-            case Canvas.TextNode text:
+            case TextAtNode text:
                 NodeConverter.WriteAttrs(writer, text.Attrs);
                 NodeConverter.WriteTextContent(writer, text.Children, options);
                 break;
@@ -137,8 +137,11 @@ internal sealed class CanvasNodeConverter : JsonConverter<CanvasNode>
             case PathNode path:
                 NodeConverter.WriteAttrs(writer, path.Attrs);
                 break;
-            case ImageNode img:
+            case ImgAtNode img:
                 NodeConverter.WriteAttrs(writer, img.Attrs);
+                break;
+            case BarcodeAtNode barcode:
+                NodeConverter.WriteAttrs(writer, barcode.Attrs);
                 break;
         }
 

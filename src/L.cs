@@ -234,14 +234,18 @@ public static class L
         => new(AttrsHelper.Attrs(attrs));
 
     /// <summary>
-    /// Build text in a layer. Each item of <paramref name="nodes"/> is a plain string or a
-    /// <see cref="SpanNode"/>, and the two can be mixed.
+    /// Build a <c>text-at</c>, the text of the layout put at a fixed place. Each item of <paramref name="nodes"/>
+    /// is a plain string or a <see cref="SpanNode"/>, and the two can be mixed.
     /// </summary>
-    public static Canvas.TextNode TextAt(CanvasTextAttr attrs, TextContent[]? nodes = null)
+    public static TextAtNode TextAt(TextAtAttr attrs, TextContent[]? nodes = null)
         => new(AttrsHelper.Attrs(attrs), (nodes ?? []).Select(item => item.Value).ToList());
 
-    /// <summary>Build an <c>img</c> in a layer.</summary>
-    public static ImageNode ImgAt(CanvasImgAttr attrs)
+    /// <summary>Build an <c>img-at</c>, an image at a fixed place. It needs <c>Width</c> or <c>Height</c>.</summary>
+    public static ImgAtNode ImgAt(ImgAtAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
+
+    /// <summary>Build a <c>barcode-at</c>, a barcode at a fixed place.</summary>
+    public static BarcodeAtNode BarcodeAt(BarcodeAtAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
     // ── Private ───────────────────────────────────────────────────────────────
