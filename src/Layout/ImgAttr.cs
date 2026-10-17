@@ -3,7 +3,7 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>Attributes of the <c>img</c> element.</summary>
+/// <summary>An image. It is never stretched. With only a width or a height, the other follows the image's proportions. With both, they are a maximum: the image takes the largest size that fits in them, and its box becomes that size, which the parent's align places. To put images of different shapes in slots of one size, wrap each in a frame of that size. With neither, the image has its natural size.</summary>
 public sealed record ImgAttr
 {
     public required string Name { get; init; }
