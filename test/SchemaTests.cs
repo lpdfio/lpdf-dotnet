@@ -181,6 +181,14 @@ public class SchemaTests
         Assert.Contains("at most one <layout>", error.Message);
     }
 
+    [Fact]
+    public async Task The_margin_is_written_on_the_layout()
+    {
+        var doc = L.Document(null, [L.Section(null, [L.Layout(new() { Margin = "48pt" }, [L.Text(null, ["Body"])])])]);
+
+        Assert.Contains("<layout margin=\"48pt\">", await L.ToXml(doc));
+    }
+
     // -- Rendering ---------------------------------------------------------------------------------
 
     [Fact]

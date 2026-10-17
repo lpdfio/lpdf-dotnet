@@ -3,7 +3,7 @@ namespace Lpdf.Kit;
 /// <summary>Document-level attributes applied as defaults to every section.</summary>
 public sealed record DocumentAttr(
     string?        Size        = null, string?        Orientation = null,
-    string?        Margin      = null, string?        Background  = null,
-    string?        Font        = null, string?        Debug       = null,
+    string?        Background  = null, string?        Font        = null,
+    string?        Debug       = null,
     DocumentTokens? Tokens     = null, DocumentMeta?  Meta        = null,
     DocumentAssets? Assets     = null);
