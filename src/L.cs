@@ -64,7 +64,6 @@ public static class L
 
         if (a.Size        is not null) d["size"]        = a.Size;
         if (a.Orientation is not null) d["orientation"] = a.Orientation;
-        if (a.Margin      is not null) d["margin"]      = a.Margin;
         if (a.Background  is not null) d["background"]  = a.Background;
         if (a.Font        is not null) d["font"]        = a.Font;
         if (a.Debug       is not null) d["debug"]       = a.Debug;
@@ -108,9 +107,9 @@ public static class L
     public static SectionNode Section(SectionAttr? attrs = null, SectionContent[]? nodes = null)
         => new(AttrsHelper.Attrs(attrs), (nodes ?? []).ToList());
 
-    /// <summary>Wrap layout nodes into a <c>layout</c> block.</summary>
-    public static SectionLayout Layout(object? _attrs, Node[]? nodes = null)
-        => new((nodes ?? []).ToList(), new Dictionary<string, string>(StringComparer.Ordinal));
+    /// <summary>Wrap layout nodes into a <c>layout</c> block, which keeps them inside its margin.</summary>
+    public static SectionLayout Layout(LayoutAttr? attrs = null, Node[]? nodes = null)
+        => new((nodes ?? []).ToList(), AttrsHelper.Attrs(attrs));
 
     /// <summary>Create a <see cref="DocumentAssets"/> instance (convenience factory).</summary>
     public static DocumentAssets Assets(DocumentAssets attrs)

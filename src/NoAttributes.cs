@@ -25,6 +25,7 @@ public sealed class NoAttributes
 #pragma warning disable CS1591
     public static implicit operator DocumentAttr?(NoAttributes _) => null;
     public static implicit operator SectionAttr?(NoAttributes _) => null;
+    public static implicit operator LayoutAttr?(NoAttributes _) => null;
     public static implicit operator ColumnAttr?(NoAttributes _) => null;
     public static implicit operator RowAttr?(NoAttributes _) => null;
     public static implicit operator GridAttr?(NoAttributes _) => null;

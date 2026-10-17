@@ -32,9 +32,16 @@ public class LpdfKitTypesTests
     [Fact]
     public void Document_StringOptionsAppearedInAttrs()
     {
-        var doc = L.Document(attrs: new DocumentAttr(Size: "a4", Margin: "28pt"));
-        Assert.Equal("a4",   doc.Attrs["size"]);
-        Assert.Equal("28pt", doc.Attrs["margin"]);
+        var doc = L.Document(attrs: new DocumentAttr(Size: "a4", Orientation: "landscape"));
+        Assert.Equal("a4",        doc.Attrs["size"]);
+        Assert.Equal("landscape", doc.Attrs["orientation"]);
+    }
+
+    [Fact]
+    public void Layout_MarginAppearsInAttrs()
+    {
+        var layout = L.Layout(new LayoutAttr { Margin = "20pt 30pt" });
+        Assert.Equal("20pt 30pt", layout.Attrs["margin"]);
     }
 
     // -- Layout helpers --------------------------------------------------------

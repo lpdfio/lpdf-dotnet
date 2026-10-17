@@ -20,9 +20,9 @@ using static Lpdf.L;
 
 var engine = L.Engine();
 
-var doc = L.Document(new() { Size = "letter", Margin = "48pt" }, [
+var doc = L.Document(new() { Size = "letter" }, [
     L.Section(NoAttr, [
-        L.Layout(NoAttr, [
+        L.Layout(new() { Margin = "48pt" }, [
             L.Column(new() { Gap = "24pt" }, [
                 L.Row(new() { Justify = "between" }, [
                     L.Text(new() { FontSize = "8pt", Color = "#888888" }, ["ACME CORP"]),

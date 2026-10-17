@@ -176,7 +176,6 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
         writer.WriteStartObject("attrs");
         if (value is SectionLayout sl)
         {
-            // Write extra attrs if any were set (currently attrs dict is empty by convention)
             foreach (var (k, v) in sl.Attrs) writer.WriteString(k, v);
         }
         writer.WriteEndObject();
