@@ -7,8 +7,12 @@ namespace Lpdf.Canvas;
 public sealed record CircleAttr
 {
     public required string R { get; init; }
-    public string? Cx { get; init; }
-    public string? Cy { get; init; }
+
+    /// <summary>Where the circle's box goes, the square of side 2r around it: its left edge, or with anchor, an offset from that point of the page, where the box's matching point goes. The centre is r further in.</summary>
+    public string? X { get; init; }
+
+    /// <summary>Where the circle's box goes, the square of side 2r around it: its top edge, or with anchor, an offset from that point of the page, where the box's matching point goes. The centre is r further in.</summary>
+    public string? Y { get; init; }
     public string? Anchor { get; init; }
     public string? Fill { get; init; }
     public string? Stroke { get; init; }

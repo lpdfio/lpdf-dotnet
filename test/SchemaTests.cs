@@ -48,7 +48,7 @@ public class SchemaTests
     {
         Assert.NotNull(typeof(LinkAttr).GetProperty("Href")!.GetCustomAttribute<RequiredMemberAttribute>());
         Assert.NotNull(typeof(FieldAttr).GetProperty("Type")!.GetCustomAttribute<RequiredMemberAttribute>());
-        Assert.NotNull(typeof(RectAttr).GetProperty("W")!.GetCustomAttribute<RequiredMemberAttribute>());
+        Assert.NotNull(typeof(RectAttr).GetProperty("Width")!.GetCustomAttribute<RequiredMemberAttribute>());
         Assert.Null(typeof(RectAttr).GetProperty("Fill")!.GetCustomAttribute<RequiredMemberAttribute>());
     }
 
@@ -86,13 +86,13 @@ public class SchemaTests
     [Fact]
     public void Rect_writes_its_attributes_as_given()
     {
-        var node = L.Rect(new RectAttr { X = "10pt", Y = "20pt", W = "100pt", H = "50pt", Fill = "#ff0000", Radius = "5pt" });
+        var node = L.Rect(new RectAttr { X = "10pt", Y = "20pt", Width = "100pt", Height = "50pt", Fill = "#ff0000", Radius = "5pt" });
 
         Assert.Equal("rect", node.Type);
         Assert.Equal(
             new Dictionary<string, string>
             {
-                ["w"] = "100pt", ["h"] = "50pt", ["x"] = "10pt", ["y"] = "20pt", ["fill"] = "#ff0000", ["radius"] = "5pt",
+                ["width"] = "100pt", ["height"] = "50pt", ["x"] = "10pt", ["y"] = "20pt", ["fill"] = "#ff0000", ["radius"] = "5pt",
             },
             node.Attrs);
     }
@@ -101,9 +101,9 @@ public class SchemaTests
     public void Canvas_primitives_use_their_schema_names()
     {
         Assert.Equal("line", L.Line(new LineAttr { X1 = "0pt", Y1 = "0pt", X2 = "9pt", Y2 = "9pt", LineCap = "round" }).Type);
-        Assert.Equal("circle", L.Circle(new CircleAttr { R = "5pt", Cx = "1pt", Cy = "1pt" }).Type);
+        Assert.Equal("circle", L.Circle(new CircleAttr { R = "5pt", X = "1pt", Y = "1pt" }).Type);
         Assert.Equal("ellipse", L.Ellipse(new EllipseAttr { Rx = "5pt", Ry = "3pt" }).Type);
-        Assert.Equal("img", L.ImgAt(new CanvasImgAttr { Name = "logo", W = "10pt", H = "10pt" }).Type);
+        Assert.Equal("img", L.ImgAt(new CanvasImgAttr { Name = "logo", Width = "10pt", Height = "10pt" }).Type);
 
         var path = L.Path(new PathAttr { D = "M 0 0 L 9 9", FillRule = "evenodd" });
         Assert.Equal("evenodd", path.Attrs["fill-rule"]);
@@ -145,7 +145,7 @@ public class SchemaTests
         var empty = L.Document(new DocumentAttr(Size: "a4"), [L.Section(null, [L.Layer(null, [])])]);
         var drawn = L.Document(new DocumentAttr(Size: "a4"), [
             L.Section(null, [
-                L.Layer(null, [L.Rect(new RectAttr { X = "50pt", Y = "50pt", W = "200pt", H = "100pt", Fill = "#ff0000" })]),
+                L.Layer(null, [L.Rect(new RectAttr { X = "50pt", Y = "50pt", Width = "200pt", Height = "100pt", Fill = "#ff0000" })]),
             ]),
         ]);
 
@@ -156,9 +156,9 @@ public class SchemaTests
     public async Task Layers_go_directly_in_a_section_before_and_after_its_layout()
     {
         var section = L.Section(null, [
-            L.Layer(new LayerAttr { Page = PageScope.First }, [L.Rect(new RectAttr { W = "10pt", H = "10pt" })]),
+            L.Layer(new LayerAttr { Page = PageScope.First }, [L.Rect(new RectAttr { Width = "10pt", Height = "10pt" })]),
             L.Layout(null, [L.Text(null, ["Body"])]),
-            L.Layer(new LayerAttr { Page = PageScope.Last }, [L.Rect(new RectAttr { W = "20pt", H = "20pt" })]),
+            L.Layer(new LayerAttr { Page = PageScope.Last }, [L.Rect(new RectAttr { Width = "20pt", Height = "20pt" })]),
         ]);
         Assert.Equal(["layer", "layout", "layer"], section.Nodes.Select(n => n.Type));
 
@@ -179,6 +179,48 @@ public class SchemaTests
 
         var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
         Assert.Contains("at most one <layout>", error.Message);
+    }
+
+    [Fact]
+    public void A_layer_shape_is_sized_by_width_and_height_and_placed_by_x_and_y()
+    {
+        foreach (var attr in new[] { typeof(RectAttr), typeof(CanvasImgAttr), typeof(CanvasTextAttr) })
+        {
+            Assert.Null(attr.GetProperty("W"));
+            Assert.NotNull(attr.GetProperty("Width"));
+        }
+        Assert.Null(typeof(RectAttr).GetProperty("H"));
+        Assert.NotNull(typeof(RectAttr).GetProperty("Height"));
+
+        foreach (var attr in new[] { typeof(CircleAttr), typeof(EllipseAttr) })
+        {
+            Assert.Null(attr.GetProperty("Cx"));
+            Assert.Null(attr.GetProperty("Cy"));
+            Assert.NotNull(attr.GetProperty("X"));
+            Assert.NotNull(attr.GetProperty("Y"));
+        }
+    }
+
+    [Fact]
+    public void A_barcode_is_sized_by_width_and_height_not_by_size()
+    {
+        Assert.Null(typeof(BarcodeAttr).GetProperty("Size"));
+        Assert.NotNull(typeof(BarcodeAttr).GetProperty("Width"));
+        Assert.NotNull(typeof(BarcodeAttr).GetProperty("Height"));
+    }
+
+    [Fact]
+    public async Task A_circle_is_written_with_x_and_y_and_drawn_where_its_box_is()
+    {
+        var circleAt = (string x) => L.Document(new DocumentAttr(Size: "a4"), [
+            L.Section(null, [L.Layer(null, [L.Circle(new CircleAttr { X = x, Y = "20pt", R = "10pt", Fill = "#ff0000" })])]),
+        ]);
+
+        var xml = await L.ToXml(circleAt("20pt"));
+        Assert.Contains("<circle ", xml);
+        Assert.Contains("x=\"20pt\"", xml);
+        Assert.DoesNotContain("cx=", xml);
+        Assert.NotEqual(await Render(circleAt("20pt")), await Render(circleAt("120pt")));
     }
 
     [Fact]
@@ -204,8 +246,8 @@ public class SchemaTests
                     ]),
                 ]),
                 L.Layer(new LayerAttr { Page = PageScope.Each }, [
-                    L.Rect(new RectAttr { X = "40pt", Y = "40pt", W = "100pt", H = "60pt", Fill = "#ff0000", Radius = "6pt" }),
-                    L.Circle(new CircleAttr { Cx = "300pt", Cy = "300pt", R = "40pt", Fill = "#00ff00" }),
+                    L.Rect(new RectAttr { X = "40pt", Y = "40pt", Width = "100pt", Height = "60pt", Fill = "#ff0000", Radius = "6pt" }),
+                    L.Circle(new CircleAttr { X = "260pt", Y = "260pt", R = "40pt", Fill = "#00ff00" }),
                     L.TextAt(new CanvasTextAttr { X = "40pt", Y = "120pt", FontSize = "10pt" },
                         ["Layer ", L.Span(new SpanAttr { Color = "#0000ff" }, ["text"])]),
                 ]),
