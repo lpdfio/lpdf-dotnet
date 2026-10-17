@@ -103,7 +103,7 @@ public class SchemaTests
         Assert.Equal("line", L.Line(new LineAttr { X1 = "0pt", Y1 = "0pt", X2 = "9pt", Y2 = "9pt", LineCap = "round" }).Type);
         Assert.Equal("circle", L.Circle(new CircleAttr { R = "5pt", X = "1pt", Y = "1pt" }).Type);
         Assert.Equal("ellipse", L.Ellipse(new EllipseAttr { Rx = "5pt", Ry = "3pt" }).Type);
-        Assert.Equal("img", L.ImgAt(new CanvasImgAttr { Name = "logo", Width = "10pt", Height = "10pt" }).Type);
+        Assert.Equal("img-at", L.ImgAt(new ImgAtAttr { Name = "logo", Width = "10pt", Height = "10pt" }).Type);
 
         var path = L.Path(new PathAttr { D = "M 0 0 L 9 9", FillRule = "evenodd" });
         Assert.Equal("evenodd", path.Attrs["fill-rule"]);
@@ -113,10 +113,10 @@ public class SchemaTests
     public void Canvas_text_takes_attributes_first_and_content_second()
     {
         var node = L.TextAt(
-            new CanvasTextAttr { X = "10pt", Y = "20pt", FontSize = "12pt" },
+            new TextAtAttr { X = "10pt", Y = "20pt", FontSize = "12pt" },
             ["base ", L.Span(new SpanAttr { Font = "Helvetica-Bold" }, ["bold"])]);
 
-        Assert.Equal("text", node.Type);
+        Assert.Equal("text-at", node.Type);
         Assert.Equal("12pt", node.Attrs["font-size"]);
         Assert.Equal(2, node.Children.Count);
         Assert.IsType<SpanNode>(node.Children[1]);
@@ -125,12 +125,13 @@ public class SchemaTests
     [Fact]
     public void Layer_attributes_are_written_as_given()
     {
-        var node = L.Layer(new LayerAttr { Page = PageScope.First, Opacity = "0.5", Transform = "rotate(45 100 100)" });
+        var node = L.Layer(new LayerAttr { Page = PageScope.First, Opacity = "0.5", Transform = "rotate(45 100 100)", Clip = "0pt 0pt 200pt 100pt" });
 
         Assert.Equal("layer", node.Type);
         Assert.Equal("first", node.Attrs["page"]);
         Assert.Equal("0.5", node.Attrs["opacity"]);
         Assert.Equal("rotate(45 100 100)", node.Attrs["transform"]);
+        Assert.Equal("0pt 0pt 200pt 100pt", node.Attrs["clip"]);
     }
 
     [Fact]
@@ -184,7 +185,7 @@ public class SchemaTests
     [Fact]
     public void A_layer_shape_is_sized_by_width_and_height_and_placed_by_x_and_y()
     {
-        foreach (var attr in new[] { typeof(RectAttr), typeof(CanvasImgAttr), typeof(CanvasTextAttr) })
+        foreach (var attr in new[] { typeof(RectAttr), typeof(ImgAtAttr), typeof(TextAtAttr) })
         {
             Assert.Null(attr.GetProperty("W"));
             Assert.NotNull(attr.GetProperty("Width"));
@@ -199,6 +200,28 @@ public class SchemaTests
             Assert.NotNull(attr.GetProperty("X"));
             Assert.NotNull(attr.GetProperty("Y"));
         }
+    }
+
+    [Fact]
+    public void A_barcode_at_is_written_under_its_element_name()
+    {
+        var node = L.BarcodeAt(new BarcodeAtAttr { Type = "qr", Data = "x", X = "10pt", Y = "20pt", Width = "60pt" });
+
+        Assert.Equal("barcode-at", node.Type);
+        Assert.Equal("60pt", node.Attrs["width"]);
+    }
+
+    [Fact]
+    public async Task A_text_at_is_written_under_its_element_name_with_its_content()
+    {
+        var doc = L.Document(null, [L.Section(null, [L.Layer(null, [
+            L.TextAt(new TextAtAttr { X = "10pt", Y = "20pt", MaxLines = "2", Width = "80pt" }, ["Page {page} of {pages}"]),
+        ])])]);
+
+        var xml = await L.ToXml(doc);
+        Assert.Contains("<text-at ", xml);
+        Assert.Contains("max-lines=\"2\"", xml);
+        Assert.Contains(">Page {page} of {pages}</text-at>", xml);
     }
 
     [Fact]
@@ -248,7 +271,7 @@ public class SchemaTests
                 L.Layer(new LayerAttr { Page = PageScope.Each }, [
                     L.Rect(new RectAttr { X = "40pt", Y = "40pt", Width = "100pt", Height = "60pt", Fill = "#ff0000", Radius = "6pt" }),
                     L.Circle(new CircleAttr { X = "260pt", Y = "260pt", R = "40pt", Fill = "#00ff00" }),
-                    L.TextAt(new CanvasTextAttr { X = "40pt", Y = "120pt", FontSize = "10pt" },
+                    L.TextAt(new TextAtAttr { X = "40pt", Y = "120pt", FontSize = "10pt" },
                         ["Layer ", L.Span(new SpanAttr { Color = "#0000ff" }, ["text"])]),
                 ]),
             ]),

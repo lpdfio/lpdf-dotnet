@@ -13,5 +13,4 @@ public sealed record PathAttr
     public string? StrokeWidth { get; init; }
     public string? StrokeDash { get; init; }
     public string? LineCap { get; init; }
-    public string? Opacity { get; init; }
 }

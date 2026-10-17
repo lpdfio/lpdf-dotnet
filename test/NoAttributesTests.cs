@@ -45,7 +45,7 @@ public class NoAttributesTests
         Assert.DoesNotContain(typeof(LinkAttr), convertible);
         Assert.DoesNotContain(typeof(TableAttr), convertible);
         Assert.DoesNotContain(typeof(Lpdf.Canvas.RectAttr), convertible);
-        Assert.DoesNotContain(typeof(Lpdf.Canvas.CanvasTextAttr), convertible);
+        Assert.DoesNotContain(typeof(Lpdf.Canvas.TextAtAttr), convertible);
     }
 
     [Fact]
