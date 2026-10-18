@@ -135,6 +135,25 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_layer_gives_its_text_a_font_a_size_and_a_color_under_their_schema_names()
+    {
+        var node = L.Layer(new LayerAttr { Font = "Courier", FontSize = "s", Color = "danger" });
+
+        Assert.Equal("Courier", node.Attrs["font"]);
+        Assert.Equal("s", node.Attrs["font-size"]);
+        Assert.Equal("danger", node.Attrs["color"]);
+    }
+
+    [Fact]
+    public void A_box_has_a_color_and_an_opacity()
+    {
+        var node = L.Column(new ColumnAttr { Color = "text-muted", Opacity = "0.5" });
+
+        Assert.Equal("text-muted", node.Attrs["color"]);
+        Assert.Equal("0.5", node.Attrs["opacity"]);
+    }
+
+    [Fact]
     public void A_transform_is_a_string_a_layer_accepts()
     {
         Assert.Equal("matrix(1,0,0,1,10,20)", new Transform(1, 0, 0, 1, 10, 20).ToString());
