@@ -17,14 +17,14 @@ public sealed record TextAtAttr
     public string? Color { get; init; }
     public string? Align { get; init; }
 
-    /// <summary>Width of the box. Without it the text is one line of the width its characters need, and align has no effect; a long text runs on past the edge of the page, which cuts it off, but stays in the PDF. With it, a line past the width is cut off at it, or ends in an ellipsis with ellipsis, and max-lines above 1 wraps the text within it.</summary>
-    public string? Width { get; init; }
-
-    /// <summary>The most lines drawn, 1 by default. Above 1 it needs a width to wrap at, and wraps the text within it; only whole lines are drawn, and the rest of the text is dropped.</summary>
+    /// <summary>The most lines drawn. Only whole lines are drawn, and the rest of the text is dropped. A text in the layout has no cap by default and wraps at the width it has; the lines it drops take no room, and a text that splits across pages keeps the cap across them. A text-at is one line by default, and above 1 needs a width to wrap within.</summary>
     public string? MaxLines { get; init; }
 
-    /// <summary>End the last line drawn in an ellipsis when the text does not fit its width and max-lines. Off by default: the line is cut off at the width.</summary>
+    /// <summary>End the last line drawn in an ellipsis when max-lines drops text, shortened to fit the width. Off by default: the text stops at the end of a line. A text-at also ends a line in one when it is cut off at its width. A text in the layout without max-lines is never cut, so there it has no effect.</summary>
     public string? Ellipsis { get; init; }
+
+    /// <summary>Width of the box. Without it the text is one line of the width its characters need, and align has no effect; a long text runs on past the edge of the page, which cuts it off, but stays in the PDF. With it, a line past the width is cut off at it, or ends in an ellipsis with ellipsis, and max-lines above 1 wraps the text within it.</summary>
+    public string? Width { get; init; }
 
     /// <summary>The distance between lines, as a factor of the font size. Default 1.2.</summary>
     public string? LineHeight { get; init; }
