@@ -30,6 +30,25 @@ public class LpdfKitTypesTests
     }
 
     [Fact]
+    public void Document_LineHeightRowIsATokenRowUnderItsSchemaName()
+    {
+        var doc = L.Document(attrs: new DocumentAttr(
+            Tokens: new DocumentTokens(LineHeight: new() { ["m"] = "1.2", ["xxl"] = "2" })
+        ));
+
+        var tokens = Assert.IsType<Dictionary<string, object?>>(doc.Attrs["tokens"]);
+        Assert.True(tokens.ContainsKey("line-height"));
+        Assert.Equal("2", ((Dictionary<string, string>)tokens["line-height"]!)["xxl"]);
+    }
+
+    [Fact]
+    public void Text_LineHeightIsATokenOrAFactorUnderItsSchemaName()
+    {
+        Assert.Equal("l",   L.Text(new TextAttr { LineHeight = "l" },   ["A token"]).Attrs["line-height"]);
+        Assert.Equal("1.5", L.Text(new TextAttr { LineHeight = "1.5" }, ["A factor"]).Attrs["line-height"]);
+    }
+
+    [Fact]
     public void Document_StringOptionsAppearedInAttrs()
     {
         var doc = L.Document(attrs: new DocumentAttr(Size: "a4", Orientation: "landscape"));

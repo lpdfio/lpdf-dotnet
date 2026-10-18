@@ -79,6 +79,7 @@ public static class L
             if (t.Radius is not null) td["radius"] = t.Radius;
             if (t.Width  is not null) td["width"]  = t.Width;
             if (t.TextSize is not null) td["text-size"] = t.TextSize;
+            if (t.LineHeight is not null) td["line-height"] = t.LineHeight;
             d["tokens"] = td;
         }
 
