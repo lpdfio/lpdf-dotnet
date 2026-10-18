@@ -154,6 +154,15 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_box_and_a_layer_shape_have_a_shadow()
+    {
+        Assert.Equal("2pt 3pt #000000 0.2", L.Column(new ColumnAttr { Shadow = "2pt 3pt #000000 0.2" }).Attrs["shadow"]);
+        Assert.Equal("2pt 3pt #000000", L.Rect(new RectAttr { Width = "50pt", Height = "30pt", Shadow = "2pt 3pt #000000" }).Attrs["shadow"]);
+        Assert.Equal("-2pt -3pt text", L.Circle(new CircleAttr { R = "5pt", Shadow = "-2pt -3pt text" }).Attrs["shadow"]);
+        Assert.Equal("2pt 3pt #000000 0.5", L.Ellipse(new EllipseAttr { Rx = "5pt", Ry = "3pt", Shadow = "2pt 3pt #000000 0.5" }).Attrs["shadow"]);
+    }
+
+    [Fact]
     public void A_transform_is_a_string_a_layer_accepts()
     {
         Assert.Equal("matrix(1,0,0,1,10,20)", new Transform(1, 0, 0, 1, 10, 20).ToString());
