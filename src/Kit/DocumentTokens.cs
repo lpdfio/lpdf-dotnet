@@ -8,4 +8,5 @@ public sealed record DocumentTokens(
     Dictionary<string, string>?   Border = null,
     Dictionary<string, string>?   Radius = null,
     Dictionary<string, string>?   Width  = null,
-    Dictionary<string, string>?   TextSize = null);
+    Dictionary<string, string>?   TextSize = null,
+    Dictionary<string, string>?   LineHeight = null);
