@@ -80,6 +80,7 @@ public static class L
             if (t.Width  is not null) td["width"]  = t.Width;
             if (t.TextSize is not null) td["text-size"] = t.TextSize;
             if (t.LineHeight is not null) td["line-height"] = t.LineHeight;
+            if (t.Gradients is not null) td["gradients"] = t.Gradients;
             d["tokens"] = td;
         }
 

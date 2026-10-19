@@ -42,6 +42,22 @@ public class LpdfKitTypesTests
     }
 
     [Fact]
+    public void Document_GradientsAreATokenRowOfNamedGradients()
+    {
+        var doc = L.Document(attrs: new DocumentAttr(
+            Tokens: new DocumentTokens(Gradients: new()
+            {
+                ["fade"] = new() { ["type"] = "linear", ["from"] = "primary", ["to"] = "#0f3e8a", ["angle"] = "90" },
+            })
+        ));
+
+        var tokens = Assert.IsType<Dictionary<string, object?>>(doc.Attrs["tokens"]);
+        var gradients = Assert.IsType<Dictionary<string, Dictionary<string, object>>>(tokens["gradients"]);
+        Assert.Equal("linear", gradients["fade"]["type"]);
+        Assert.Equal("90", gradients["fade"]["angle"]);
+    }
+
+    [Fact]
     public void Text_LineHeightIsATokenOrAFactorUnderItsSchemaName()
     {
         Assert.Equal("l",   L.Text(new TextAttr { LineHeight = "l" },   ["A token"]).Attrs["line-height"]);
@@ -158,6 +174,32 @@ public class KitToXmlTests
         Assert.Contains("<font name=\"heading\" core=\"Helvetica-Bold\"/>", xml);
         Assert.Contains("<font name=\"body\" ref=\"body-font\" src=\"/fonts/MyFont.ttf\"/>", xml);
         Assert.Contains("<image name=\"logo\" src=\"logo.png\"/>", xml);
+    }
+
+    [Fact]
+    public async Task KitToXml_WritesTheGradientsOfTheTokens()
+    {
+        var doc = L.Document(
+            attrs: new DocumentAttr(Tokens: new DocumentTokens(Gradients: new()
+            {
+                ["fade"] = new() { ["type"] = "linear", ["from"] = "primary", ["to"] = "#0f3e8a", ["angle"] = "90" },
+                ["sunset"] = new()
+                {
+                    ["type"] = "radial",
+                    ["stops"] = new List<Dictionary<string, object>>
+                    {
+                        new() { ["offset"] = "0%", ["color"] = "#f97316" },
+                        new() { ["offset"] = "100%", ["color"] = "#8b5cf6" },
+                    },
+                },
+            })),
+            nodes: [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Background = "gradient:fade" })])])]);
+        var xml = await L.ToXml(doc);
+
+        Assert.Contains("<gradient name=\"fade\" type=\"linear\" from=\"primary\" to=\"#0f3e8a\" angle=\"90\"/>", xml);
+        Assert.Contains("<gradient name=\"sunset\" type=\"radial\">", xml);
+        Assert.Contains("offset=\"0%\"", xml);
+        Assert.Contains("<column background=\"gradient:fade\"", xml);
     }
 
     [Fact]

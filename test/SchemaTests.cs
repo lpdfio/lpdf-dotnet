@@ -309,6 +309,24 @@ public class SchemaTests
     }
 
     [Fact]
+    public async Task A_gradient_of_the_tokens_fills_a_box_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        PdfDocument Build(string background) => L.Document(
+            new DocumentAttr(Tokens: new DocumentTokens(Gradients: new()
+            {
+                ["fade"] = new() { ["type"] = "linear", ["from"] = "#ff0000", ["to"] = "#0000ff", ["angle"] = 90 },
+            })),
+            [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Background = background, Height = "60pt" })])])]);
+
+        var gradient = Build("gradient:fade");
+        var pdf = await Render(gradient);
+
+        Assert.Equal(pdf, await Render(await L.ToXml(gradient)));
+        Assert.NotEqual(pdf, await Render(Build("#336699")));
+        Assert.Contains("/ShadingType 2", pdf);
+    }
+
+    [Fact]
     public async Task Bold_text_is_the_bold_face_of_the_font()
     {
         static string Doc(string attrs) =>
