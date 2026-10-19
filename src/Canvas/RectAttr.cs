@@ -16,4 +16,7 @@ public sealed record RectAttr
     public string? Stroke { get; init; }
     public string? StrokeWidth { get; init; }
     public string? StrokeDash { get; init; }
+
+    /// <summary>A hard-edged shadow: a copy of the shape, moved right and down by the first two lengths (negative is left and up) and filled with the color, drawn under the shape. An opacity from 0 to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur. A shape with no fill shows the shadow only outside it.</summary>
+    public string? Shadow { get; init; }
 }
