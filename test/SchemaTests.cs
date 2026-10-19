@@ -253,6 +253,18 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_text_that_captures_and_one_that_shows_a_capture_are_written_under_the_schema_names()
+    {
+        var source = L.Text(new TextAttr { Capture = "chapter" }, ["x"]);
+        Assert.Equal("chapter", source.Attrs["capture"]);
+
+        var sink = L.Text(new TextAttr { CaptureRef = "chapter", CaptureMode = "first", CaptureFallback = "None" }, []);
+        Assert.Equal("chapter", sink.Attrs["capture-ref"]);
+        Assert.Equal("first", sink.Attrs["capture-mode"]);
+        Assert.Equal("None", sink.Attrs["capture-fallback"]);
+    }
+
+    [Fact]
     public void A_barcode_is_sized_by_width_and_height_not_by_size()
     {
         Assert.Null(typeof(BarcodeAttr).GetProperty("Size"));
