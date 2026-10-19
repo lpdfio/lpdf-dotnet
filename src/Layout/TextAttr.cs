@@ -31,6 +31,18 @@ public sealed record TextAttr
 
     /// <summary>The fewest lines of the text that may stand alone at the bottom of a page when it splits. Default 2. If fewer would fit, the whole text moves to the next page; 1 turns the protection off. When no split can keep both widows and orphans, even on an empty page, the text splits where the lines fit.</summary>
     public string? Orphans { get; init; }
+
+    /// <summary>Records the words of this text under a name as the pages are filled, so a text with capture-ref in a header or a footer can show them. Put it on a heading in the flow. The page that holds the text counts it, the words above it on that page included, and a text that splits across pages is recorded on the page where it starts. A text cannot have both capture and capture-ref.</summary>
+    public string? Capture { get; init; }
+
+    /// <summary>Shows what was captured under this name, as of the page the text is drawn on, in place of words of its own. Put it in a region. It takes the lines it may use, one unless max-lines says more, whatever it shows, so a header or a footer does not grow with its value; a longer value is cut, and ends in dots with ellipsis. On a page where nothing was captured it shows the latest value of an earlier page of the section, and capture-fallback before any.</summary>
+    public string? CaptureRef { get; init; }
+
+    /// <summary>Which of the texts captured under the name on this page the text shows: the first or the last. Default last. Only for a text with capture-ref.</summary>
+    public string? CaptureMode { get; init; }
+
+    /// <summary>What the text shows until something has been captured in the section. Default: nothing. Only for a text with capture-ref.</summary>
+    public string? CaptureFallback { get; init; }
     public string? Paginate { get; init; }
     public string? Debug { get; init; }
 }
