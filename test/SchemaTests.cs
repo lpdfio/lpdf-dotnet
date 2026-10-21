@@ -321,6 +321,32 @@ public class SchemaTests
     }
 
     [Fact]
+    public async Task An_alias_is_the_slot_it_names_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        PdfDocument Build(string size) => L.Document(
+            new DocumentAttr(Tokens: new DocumentTokens(Aliases: new() { ["caption"] = "xs", ["heading"] = "xl" })),
+            [L.Section(nodes: [L.Layout(null, [L.Text(new TextAttr { FontSize = size }, ["Sized"])])])]);
+
+        var caption = Build("caption");
+        var pdf = await Render(caption);
+
+        Assert.Equal(pdf, await Render(await L.ToXml(caption)));
+        Assert.Equal(pdf, await Render(Build("xs")));
+        Assert.NotEqual(pdf, await Render(Build("heading")));
+    }
+
+    [Fact]
+    public async Task A_name_that_is_neither_a_slot_nor_an_alias_is_rejected()
+    {
+        var doc = L.Document(
+            new DocumentAttr(Tokens: new DocumentTokens(Aliases: new() { ["caption"] = "xs" })),
+            [L.Section(nodes: [L.Layout(null, [L.Text(new TextAttr { FontSize = "medum" }, ["Sized"])])])]);
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
+        Assert.Contains("invalid text size: 'medum': expected a slot from xs to xxl, an alias (caption)", error.Message);
+    }
+
+    [Fact]
     public async Task A_gradient_of_the_tokens_fills_a_box_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(string background) => L.Document(

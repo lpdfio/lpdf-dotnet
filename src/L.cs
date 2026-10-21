@@ -81,6 +81,7 @@ public static class L
             if (t.TextSize is not null) td["text-size"] = t.TextSize;
             if (t.LineHeight is not null) td["line-height"] = t.LineHeight;
             if (t.Gradients is not null) td["gradients"] = t.Gradients;
+            if (t.Aliases is not null) td["aliases"] = t.Aliases;
             d["tokens"] = td;
         }
 
