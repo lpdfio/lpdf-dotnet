@@ -55,6 +55,16 @@ public class LpdfKitTypesTests
     }
 
     [Fact]
+    public void Document_HeightIsATokenRowUnderItsSchemaName()
+    {
+        var row = new Dictionary<string, string> { ["xs"] = "10pt", ["m"] = "30pt", ["xxl"] = "60pt" };
+        var doc = L.Document(attrs: new DocumentAttr(Tokens: new DocumentTokens(Height: row)));
+
+        var tokens = Assert.IsType<Dictionary<string, object?>>(doc.Attrs["tokens"]);
+        Assert.Same(row, tokens["height"]);
+    }
+
+    [Fact]
     public void Document_GradientsAreATokenRowOfNamedGradients()
     {
         var doc = L.Document(attrs: new DocumentAttr(
@@ -201,6 +211,20 @@ public class KitToXmlTests
         Assert.Contains("<alias name=\"caption\" value=\"xs\"/>", xml);
         Assert.Contains("<alias name=\"sub-title\" value=\"l\"/>", xml);
         Assert.Contains("<text font-size=\"caption\">", xml);
+    }
+
+    [Fact]
+    public async Task KitToXml_WritesTheHeightRowOfTheTokens()
+    {
+        var doc = L.Document(
+            attrs: new DocumentAttr(Tokens: new DocumentTokens(Height: new() { ["xs"] = "10pt", ["m"] = "30pt" })),
+            nodes: [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Height = "m" })])])]);
+        var xml = await L.ToXml(doc);
+
+        Assert.Contains("<height ", xml);
+        Assert.Contains("xs=\"10pt\"", xml);
+        Assert.Contains("m=\"30pt\"", xml);
+        Assert.Contains("<column height=\"m\"", xml);
     }
 
     [Fact]
