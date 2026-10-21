@@ -42,6 +42,19 @@ public class LpdfKitTypesTests
     }
 
     [Fact]
+    public void Document_AliasesAreATokenRowOfNamesForSlots()
+    {
+        var doc = L.Document(attrs: new DocumentAttr(
+            Tokens: new DocumentTokens(Aliases: new() { ["caption"] = "xs", ["sub-title"] = "l" })
+        ));
+
+        var tokens = Assert.IsType<Dictionary<string, object?>>(doc.Attrs["tokens"]);
+        var aliases = Assert.IsType<Dictionary<string, string>>(tokens["aliases"]);
+        Assert.Equal("xs", aliases["caption"]);
+        Assert.Equal("l", aliases["sub-title"]);
+    }
+
+    [Fact]
     public void Document_GradientsAreATokenRowOfNamedGradients()
     {
         var doc = L.Document(attrs: new DocumentAttr(
@@ -174,6 +187,20 @@ public class KitToXmlTests
         Assert.Contains("<font name=\"heading\" core=\"Helvetica-Bold\"/>", xml);
         Assert.Contains("<font name=\"body\" ref=\"body-font\" src=\"/fonts/MyFont.ttf\"/>", xml);
         Assert.Contains("<image name=\"logo\" src=\"logo.png\"/>", xml);
+    }
+
+    [Fact]
+    public async Task KitToXml_WritesTheAliasesOfTheTokens()
+    {
+        var doc = L.Document(
+            attrs: new DocumentAttr(Tokens: new DocumentTokens(Aliases: new() { ["caption"] = "xs", ["sub-title"] = "l" })),
+            nodes: [L.Section(nodes: [L.Layout(null, [L.Text(new TextAttr { FontSize = "caption" }, ["Small"])])])]);
+        var xml = await L.ToXml(doc);
+
+        Assert.Contains("<aliases>", xml);
+        Assert.Contains("<alias name=\"caption\" value=\"xs\"/>", xml);
+        Assert.Contains("<alias name=\"sub-title\" value=\"l\"/>", xml);
+        Assert.Contains("<text font-size=\"caption\">", xml);
     }
 
     [Fact]
