@@ -192,6 +192,10 @@ public static class L
     public static ImgNode Img(ImgAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
+    /// <summary>Build a <c>shape</c> node: a rect, circle or ellipse that takes its box in the layout, as an image does.</summary>
+    public static ShapeNode Shape(ShapeAttr attrs)
+        => new(AttrsHelper.Attrs(attrs));
+
     /// <summary>Build a <c>barcode</c> node.</summary>
     public static BarcodeNode Barcode(BarcodeAttr attrs)
         => new(AttrsHelper.Attrs(attrs));

@@ -49,6 +49,9 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
             case ImgNode img:
                 WriteAttrs(writer, img.Attrs);
                 break;
+            case ShapeNode shape:
+                WriteAttrs(writer, shape.Attrs);
+                break;
             case BarcodeNode bc:
                 WriteAttrs(writer, bc.Attrs);
                 break;
