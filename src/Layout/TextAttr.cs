@@ -3,7 +3,7 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>A block of wrapping text. Use span children to style parts of it. Splits across pages between lines.</summary>
+/// <summary>A block of wrapping text. Use span children to style parts of it, and fn children for footnotes. Splits across pages between lines.</summary>
 public sealed record TextAttr
 {
     public string? FontSize { get; init; }

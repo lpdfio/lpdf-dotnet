@@ -1,8 +1,8 @@
 namespace Lpdf.Layout;
 
 /// <summary>
-/// One item of a <c>text</c> node: a plain string or a <see cref="SpanNode"/>. Both convert to it, so a
-/// list can mix them: <c>L.Text(NoAttr, ["Total: ", L.Span(attrs, ["$100"])])</c>.
+/// One item of a <c>text</c> node: a plain string, a <see cref="SpanNode"/> or a <see cref="FnNode"/>. All
+/// convert to it, so a list can mix them: <c>L.Text(NoAttr, ["Total: ", L.Span(attrs, ["$100"])])</c>.
 /// </summary>
 /// <remarks>
 /// <see cref="Content"/> is an interface, and C# allows no conversions on an interface, so this struct
@@ -21,4 +21,7 @@ public readonly struct TextContent
 
     /// <summary>An inline <c>span</c>.</summary>
     public static implicit operator TextContent(SpanNode span) => new(span);
+
+    /// <summary>A footnote, <c>fn</c>.</summary>
+    public static implicit operator TextContent(FnNode fn) => new(fn);
 }

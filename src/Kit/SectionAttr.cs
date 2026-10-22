@@ -4,4 +4,4 @@ namespace Lpdf.Kit;
 public sealed record SectionAttr(
     string? Size        = null, string? Orientation = null,
     string? Background  = null, string? Title       = null, string? Debug = null,
-    string? Type        = null, string? TocIndentStep = null);
+    string? Type        = null, string? TocIndentStep = null, string? FootnoteCounter = null);

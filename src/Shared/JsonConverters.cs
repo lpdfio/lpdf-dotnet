@@ -39,6 +39,10 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
                 foreach (var str in s.Children) writer.WriteStringValue(str);
                 writer.WriteEndArray();
                 break;
+            case FnNode fn:
+                WriteAttrs(writer, fn.Attrs);
+                WriteTextContent(writer, fn.Children, options);
+                break;
             case RegionNode r:
                 WriteAttrs(writer, r.Attrs);
                 WriteLayoutNodes(writer, r.Nodes, options);
@@ -90,6 +94,8 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
                 writer.WriteStringValue(raw.Value);
             else if (item is SpanNode span)
                 JsonSerializer.Serialize(writer, (Layout.Node)span, options);
+            else if (item is FnNode fn)
+                JsonSerializer.Serialize(writer, (Layout.Node)fn, options);
         }
         writer.WriteEndArray();
     }
