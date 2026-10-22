@@ -457,6 +457,26 @@ public class SchemaTests
     }
 
     [Fact]
+    public async Task A_table_cell_that_spans_rows_moves_the_cells_under_it_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        PdfDocument Build(TdAttr? first) => L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
+            L.Table(new TableAttr { Cols = "1fr 1fr" }, [
+                L.Tr(null, [L.Td(first, [L.Text(null, ["A"])]), L.Td(null, [L.Text(null, ["B"])])]),
+                L.Tr(null, [L.Td(null, [L.Text(null, ["C"])])]),
+            ]),
+        ])])]);
+
+        var spanning = Build(new TdAttr { Rowspan = "2" });
+
+        Assert.Equal("2", L.Td(new TdAttr { Rowspan = "2" }).Attrs["rowspan"]);
+        Assert.NotEqual(await Render(Build(null)), await Render(spanning));
+        Assert.Equal(await Render(spanning), await Render(await L.ToXml(spanning)));
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new TdAttr { Rowspan = "3" })));
+        Assert.Contains("a rowspan that runs 1 row past the last row of the table", error.Message);
+    }
+
+    [Fact]
     public async Task A_footnote_is_an_fn_child_of_a_text_and_the_counter_is_an_attribute_of_the_document_and_a_section()
     {
         var text = L.Text(L.NoAttr, ["Total", L.Fn(L.NoAttr, ["See ", L.Span(new SpanAttr { Bold = "true" }, ["this"]), "."]), " here"]);
