@@ -378,6 +378,56 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_shape_has_the_attributes_of_its_type_under_the_schema_names()
+    {
+        var node = L.Shape(new ShapeAttr
+        {
+            Type = "rect", Width = "14pt", Height = "m", Radius = "2pt", Fill = "primary",
+            Stroke = "#000000", StrokeWidth = "1pt", StrokeDash = "3 2", Opacity = "0.5",
+        });
+
+        Assert.Equal("shape", node.Type);
+        Assert.Equal(
+            new Dictionary<string, string>
+            {
+                ["type"] = "rect", ["width"] = "14pt", ["height"] = "m", ["radius"] = "2pt", ["fill"] = "primary",
+                ["stroke"] = "#000000", ["stroke-width"] = "1pt", ["stroke-dash"] = "3 2", ["opacity"] = "0.5",
+            },
+            node.Attrs);
+        Assert.Equal("5pt", L.Shape(new ShapeAttr { Type = "circle", R = "5pt" }).Attrs["r"]);
+    }
+
+    [Fact]
+    public async Task A_shape_of_each_type_is_drawn_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        PdfDocument Build(params Node[] shapes) => L.Document(
+            nodes: [L.Section(nodes: [L.Layout(null, [L.Row(new RowAttr { Align = "center" }, [.. shapes, L.Text(null, ["After"])])])])]);
+
+        var without = await Render(Build());
+        foreach (var shape in new Node[]
+        {
+            L.Shape(new ShapeAttr { Type = "rect", Width = "60pt", Height = "12pt", Fill = "#00aa00" }),
+            L.Shape(new ShapeAttr { Type = "circle", R = "8pt", Fill = "#00aa00" }),
+            L.Shape(new ShapeAttr { Type = "ellipse", Width = "40pt", Height = "20pt", Fill = "#00aa00" }),
+        })
+        {
+            var document = Build(shape);
+            Assert.NotEqual(without, await Render(document));
+            Assert.Equal(await Render(document), await Render(await L.ToXml(document)));
+        }
+    }
+
+    [Fact]
+    public async Task A_circle_without_r_is_rejected_and_says_so()
+    {
+        var doc = L.Document(
+            nodes: [L.Section(nodes: [L.Layout(null, [L.Shape(new ShapeAttr { Type = "circle" })])])]);
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
+        Assert.Contains("a circle needs 'r'", error.Message);
+    }
+
+    [Fact]
     public async Task A_gradient_of_the_tokens_fills_a_box_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(string background) => L.Document(
