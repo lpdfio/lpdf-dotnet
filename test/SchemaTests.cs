@@ -347,6 +347,37 @@ public class SchemaTests
     }
 
     [Fact]
+    public async Task A_height_is_the_slot_it_names_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        PdfDocument Build(string height, Dictionary<string, string>? row = null) => L.Document(
+            new DocumentAttr(Tokens: row is null ? null : new DocumentTokens(Height: row)),
+            [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Background = "#cccccc", Height = height })])])]);
+
+        var slot = Build("m");
+        var pdf = await Render(slot);
+
+        Assert.Equal(pdf, await Render(await L.ToXml(slot)));
+        Assert.Equal(pdf, await Render(Build("32pt")));
+        Assert.NotEqual(pdf, await Render(Build("xl")));
+
+        var row = new Dictionary<string, string>
+        {
+            ["xs"] = "10pt", ["s"] = "20pt", ["m"] = "50pt", ["l"] = "60pt", ["xl"] = "70pt", ["xxl"] = "80pt",
+        };
+        Assert.Equal(await Render(Build("50pt")), await Render(Build("m", row)));
+    }
+
+    [Fact]
+    public async Task A_height_that_is_not_a_slot_a_length_fill_or_full_is_rejected()
+    {
+        var doc = L.Document(
+            nodes: [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Height = "medum" })])])]);
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
+        Assert.Contains("invalid height value: 'medum' — expected full, fill, a slot from xs to xxl or a pt value", error.Message);
+    }
+
+    [Fact]
     public async Task A_gradient_of_the_tokens_fills_a_box_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(string background) => L.Document(

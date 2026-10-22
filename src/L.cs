@@ -82,6 +82,7 @@ public static class L
             if (t.LineHeight is not null) td["line-height"] = t.LineHeight;
             if (t.Gradients is not null) td["gradients"] = t.Gradients;
             if (t.Aliases is not null) td["aliases"] = t.Aliases;
+            if (t.Height is not null) td["height"] = t.Height;
             d["tokens"] = td;
         }
 
