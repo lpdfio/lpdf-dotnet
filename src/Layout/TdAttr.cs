@@ -31,6 +31,9 @@ public sealed record TdAttr
     /// <summary>Where the box falls in the page flow. no: never split the box, and move it whole to the next page when it does not fit. break-before: start it on a new page. break-after: start the next sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving both to the next page if that sibling would not fit. break-before, break-after and keep-next take effect on the children of layout; on a box inside another box they are not applied. no applies at any depth.</summary>
     public string? Paginate { get; init; }
     public string? Debug { get; init; }
+
+    /// <summary>How many of the table's columns the cell spans. It is as wide as those columns and the gaps between them, and the cells after it in the row start at the column after its last. A row whose cells span more columns than the table's cols names is an error; a row with fewer leaves its last columns empty. It changes widths only: row heights and page breaks work as before. Default 1.</summary>
+    public string? Colspan { get; init; }
     public string? Align { get; init; }
     public string? Valign { get; init; }
 }
