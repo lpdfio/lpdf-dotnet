@@ -418,6 +418,26 @@ public class SchemaTests
     }
 
     [Fact]
+    public async Task A_kept_table_row_moves_on_with_the_row_after_it_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        // The table starts 30pt above the foot of the page, so rows A and B fit and C does not.
+        PdfDocument Build(TrAttr? keep) => L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
+            L.Frame(new FrameAttr { Height = "739pt" }),
+            L.Table(new TableAttr { Cols = "1fr" }, [
+                L.Tr(null, [L.Td(null, [L.Text(null, ["A"])])]),
+                L.Tr(keep, [L.Td(null, [L.Text(null, ["B"])])]),
+                L.Tr(null, [L.Td(null, [L.Text(null, ["C"])])]),
+            ]),
+        ])])]);
+
+        var kept = Build(new TrAttr { Keep = "with-next" });
+
+        Assert.Equal("with-next", L.Tr(new TrAttr { Keep = "with-next" }).Attrs["keep"]);
+        Assert.NotEqual(await Render(Build(null)), await Render(kept));
+        Assert.Equal(await Render(kept), await Render(await L.ToXml(kept)));
+    }
+
+    [Fact]
     public async Task A_footnote_is_an_fn_child_of_a_text_and_the_counter_is_an_attribute_of_the_document_and_a_section()
     {
         var text = L.Text(L.NoAttr, ["Total", L.Fn(L.NoAttr, ["See ", L.Span(new SpanAttr { Bold = "true" }, ["this"]), "."]), " here"]);
