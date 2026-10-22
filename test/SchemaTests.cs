@@ -418,6 +418,49 @@ public class SchemaTests
     }
 
     [Fact]
+    public async Task A_footnote_is_an_fn_child_of_a_text_and_the_counter_is_an_attribute_of_the_document_and_a_section()
+    {
+        var text = L.Text(L.NoAttr, ["Total", L.Fn(L.NoAttr, ["See ", L.Span(new SpanAttr { Bold = "true" }, ["this"]), "."]), " here"]);
+        var document = L.Document(
+            new DocumentAttr(FootnoteCounter: FootnoteCounter.Document),
+            [L.Section(new SectionAttr(FootnoteCounter: FootnoteCounter.Page), [L.Layout(null, [text])])]);
+
+        var xml = await L.ToXml(document);
+        Assert.Matches("<document [^>]*footnote-counter=\"document\"", xml);
+        Assert.Matches("<section [^>]*footnote-counter=\"page\"", xml);
+        Assert.Contains("<text>Total<fn>See <span bold=\"true\">this</span>.</fn> here</text>", xml);
+        Assert.Equal("fn", L.Fn().Type);
+        Assert.Empty(L.Fn().Attrs);
+    }
+
+    [Fact]
+    public async Task A_footnote_is_drawn_and_renders_the_same_from_the_builder_and_its_XML_and_one_in_a_table_is_rejected()
+    {
+        PdfDocument Build(params TextContent[] nodes) => L.Document(
+            nodes: [L.Section(nodes: [L.Layout(null, [L.Text(null, ["Total", .. nodes, " here"])])])]);
+
+        var without = await Render(Build());
+        var noted = Build(L.Fn(L.NoAttr, ["The note."]));
+        Assert.NotEqual(without, await Render(noted));
+        Assert.Equal(await Render(noted), await Render(await L.ToXml(noted)));
+
+        PdfDocument Counted(string counter) => L.Document(
+            new DocumentAttr(FootnoteCounter: counter),
+            [
+                L.Section(nodes: [L.Layout(null, [L.Text(null, ["One", L.Fn(L.NoAttr, ["A."])])])]),
+                L.Section(nodes: [L.Layout(null, [L.Text(null, ["Two", L.Fn(L.NoAttr, ["B."])])])]),
+            ]);
+        Assert.NotEqual(await Render(Counted(FootnoteCounter.Document)), await Render(Counted(FootnoteCounter.Section)));
+
+        var table = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
+            L.Table(new TableAttr { Cols = "1fr" }, [L.Tr(null, [L.Td(null, [L.Text(null, ["x", L.Fn(L.NoAttr, ["y"])])])])])])])]);
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(table));
+        Assert.Contains("<fn> is not supported in a table", error.Message);
+        var bad = await Assert.ThrowsAsync<EngineException>(() => Render(Counted("book")));
+        Assert.Contains("invalid footnote-counter 'book'", bad.Message);
+    }
+
+    [Fact]
     public async Task A_circle_without_r_is_rejected_and_says_so()
     {
         var doc = L.Document(

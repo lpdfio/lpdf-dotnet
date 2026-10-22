@@ -67,6 +67,7 @@ public static class L
         if (a.Background  is not null) d["background"]  = a.Background;
         if (a.Font        is not null) d["font"]        = a.Font;
         if (a.Debug       is not null) d["debug"]       = a.Debug;
+        if (a.FootnoteCounter is not null) d["footnote-counter"] = a.FootnoteCounter;
 
         if (a.Tokens is not null)
         {
@@ -166,8 +167,8 @@ public static class L
     // ── Layout leaves ─────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Build a <c>text</c> paragraph node. Each item of <paramref name="nodes"/> is a plain string or a
-    /// <see cref="SpanNode"/>, and the two can be mixed.
+    /// Build a <c>text</c> paragraph node. Each item of <paramref name="nodes"/> is a plain string, a
+    /// <see cref="SpanNode"/> or a <see cref="FnNode"/>, and they can be mixed.
     /// </summary>
     public static Layout.TextNode Text(TextAttr? attrs = null, TextContent[]? nodes = null) => new(
         AttrsHelper.Attrs(attrs),
@@ -183,6 +184,15 @@ public static class L
     public static SpanNode Span(SpanAttr? attrs = null, string[]? nodes = null) => new(
         AttrsHelper.Attrs(attrs),
         (nodes ?? []).ToList());
+
+    /// <summary>
+    /// Build an <c>fn</c> footnote, for the nodes of a <c>text</c>. The engine numbers it and puts a small raised
+    /// number at its place in the text; its words go at the bottom of the page where that number lands. It has
+    /// no attributes, so pass <see cref="NoAttr"/>. Its words are strings and spans.
+    /// </summary>
+    public static FnNode Fn(NoAttributes? attrs = null, TextContent[]? nodes = null) => new(
+        [],
+        (nodes ?? []).Select(item => item.Value).ToList());
 
     /// <summary>Build a <c>divider</c> horizontal rule node.</summary>
     public static DividerNode Divider(DividerAttr? attrs = null)
