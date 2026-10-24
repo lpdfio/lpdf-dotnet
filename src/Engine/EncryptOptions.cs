@@ -1,7 +1,7 @@
 namespace Lpdf.Engine;
 
 /// <summary>
-/// RC4-128 encryption options passed to <see cref="PdfEngine.SetEncryption"/>.
+/// Encryption options passed to <see cref="PdfEngine.SetEncryption"/>.
 /// </summary>
 public sealed class EncryptOptions
 {
@@ -11,4 +11,6 @@ public sealed class EncryptOptions
     public string OwnerPassword { get; init; } = "";
     /// <summary>Permission flags applied to the document.</summary>
     public EncryptPermissions Permissions { get; init; } = new();
+    /// <summary>The cipher. AES-256 unless set to <see cref="EncryptAlgorithm.Rc4128"/>.</summary>
+    public EncryptAlgorithm Algorithm { get; init; } = EncryptAlgorithm.Aes256;
 }
