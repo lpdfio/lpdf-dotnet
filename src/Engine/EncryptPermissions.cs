@@ -1,7 +1,7 @@
 namespace Lpdf.Engine;
 
 /// <summary>
-/// PDF permission flags for RC4-128 encryption.
+/// PDF permission flags for encryption.
 /// All flags default to <c>true</c> (allowed); set to <c>false</c> to restrict.
 /// </summary>
 public sealed class EncryptPermissions

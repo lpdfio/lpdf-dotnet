@@ -86,6 +86,62 @@ public class EngineFeatureTests
     }
 
     [Fact]
+    public async Task SetEncryption_EncryptsWithAes256ByDefault()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        engine.SetEncryption(new EncryptOptions { UserPassword = "open", OwnerPassword = "s3cr3t" });
+        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(_minimalXml));
+
+        Assert.Contains("/V 5", text);
+        Assert.Contains("/R 6", text);
+        Assert.Contains("/CFM /AESV3", text);
+    }
+
+    [Fact]
+    public async Task SetEncryption_WithRc4WritesTheRc4Dictionary()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        engine.SetEncryption(new EncryptOptions
+        {
+            OwnerPassword = "s3cr3t",
+            Algorithm     = EncryptAlgorithm.Rc4128,
+        });
+        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(_minimalXml));
+
+        Assert.Contains("/V 2", text);
+        Assert.Contains("/R 3", text);
+        Assert.DoesNotContain("AESV3", text);
+    }
+
+    [Fact]
+    public async Task SetEncryption_EveryAes256RenderGetsAFreshKey()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        engine.SetEncryption(new EncryptOptions { OwnerPassword = "s3cr3t" });
+
+        var first  = await engine.Render(_minimalXml);
+        var second = await engine.Render(_minimalXml);
+
+        Assert.False(first.SequenceEqual(second), "Two AES-256 renders must differ.");
+    }
+
+    [Fact]
+    public async Task SetEncryption_Rc4RendersOfOneDocumentAreIdentical()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        engine.SetEncryption(new EncryptOptions
+        {
+            OwnerPassword = "s3cr3t",
+            Algorithm     = EncryptAlgorithm.Rc4128,
+        });
+
+        var first  = await engine.Render(_minimalXml);
+        var second = await engine.Render(_minimalXml);
+
+        Assert.True(first.SequenceEqual(second));
+    }
+
+    [Fact]
     public async Task LoadImage_DoesNotThrowAndProducesValidPdf()
     {
         // A minimal 1×1 white grayscale PNG

@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Text.Json;
 using Lpdf.Engine;
 using Lpdf.Kit;
@@ -12,6 +13,9 @@ namespace Lpdf;
 /// </summary>
 public sealed class PdfEngine : IDisposable
 {
+    /// <summary>Bytes of entropy sent with an AES-256 request: one 256-bit key's worth.</summary>
+    private const int EntropyBytes = 32;
+
     private          string         _licenseKey = string.Empty;
     private readonly EngineOptions  _engineOpts;
     private readonly WasmRunner     _wasm;
@@ -62,7 +66,8 @@ public sealed class PdfEngine : IDisposable
     }
 
     /// <summary>
-    /// Configure RC4-128 encryption for all subsequent <see cref="Render(string, RenderOptions?)"/> calls.
+    /// Configure encryption for all subsequent <see cref="Render(string, RenderOptions?)"/> calls:
+    /// AES-256 unless <see cref="EncryptOptions.Algorithm"/> says otherwise.
     /// Pass <see langword="null"/> to clear previously set encryption.
     /// </summary>
     public PdfEngine SetEncryption(EncryptOptions? options)
@@ -140,6 +145,7 @@ public sealed class PdfEngine : IDisposable
     {
         if (_encrypt is null) return null;
         var p = _encrypt.Permissions;
+        var aes = _encrypt.Algorithm == EncryptAlgorithm.Aes256;
         return JsonSerializer.Serialize(new
         {
             user_password  = _encrypt.UserPassword,
@@ -155,6 +161,10 @@ public sealed class PdfEngine : IDisposable
                 assemble      = p.Assemble,
                 print_hq      = p.PrintHq,
             },
+            algorithm = aes ? "aes-256" : "rc4-128",
+            // AES-256 needs random bytes, which the engine does not make: they come from the
+            // operating system's secure generator, fresh for each render.
+            entropy = aes ? Convert.ToBase64String(RandomNumberGenerator.GetBytes(EntropyBytes)) : null,
         });
     }
 
