@@ -168,9 +168,19 @@ public static class L
 
     /// <summary>
     /// Build a <c>text</c> paragraph node. Each item of <paramref name="nodes"/> is a plain string, a
-    /// <see cref="SpanNode"/> or a <see cref="FnNode"/>, and they can be mixed.
+    /// <see cref="SpanNode"/>, a <see cref="CodeSpanNode"/> or a <see cref="FnNode"/>, and they can be mixed.
     /// </summary>
     public static Layout.TextNode Text(TextAttr? attrs = null, TextContent[]? nodes = null) => new(
+        AttrsHelper.Attrs(attrs),
+        (nodes ?? []).Select(item => item.Value).ToList());
+
+    /// <summary>
+    /// Build a <c>code</c> node: code in a box that fills the width and grows with its lines. The strings of
+    /// <paramref name="nodes"/> are kept as they are written: every space, and a new line wherever there is a
+    /// <c>\n</c>. A line longer than the box wraps. The items are strings and <see cref="SpanNode"/>s, which color
+    /// parts of the code.
+    /// </summary>
+    public static CodeNode Code(CodeAttr? attrs = null, TextContent[]? nodes = null) => new(
         AttrsHelper.Attrs(attrs),
         (nodes ?? []).Select(item => item.Value).ToList());
 
@@ -182,6 +192,11 @@ public static class L
 
     /// <summary>Build a <c>span</c> inline node.</summary>
     public static SpanNode Span(SpanAttr? attrs = null, string[]? nodes = null) => new(
+        AttrsHelper.Attrs(attrs),
+        (nodes ?? []).ToList());
+
+    /// <summary>Build a <c>code-span</c> inline node: a run of code in a <c>text</c>, in the code font on a tint.</summary>
+    public static CodeSpanNode CodeSpan(CodeSpanAttr? attrs = null, string[]? nodes = null) => new(
         AttrsHelper.Attrs(attrs),
         (nodes ?? []).ToList());
 
@@ -253,7 +268,7 @@ public static class L
 
     /// <summary>
     /// Build a <c>text-at</c>, the text of the layout put at a fixed place. Each item of <paramref name="nodes"/>
-    /// is a plain string or a <see cref="SpanNode"/>, and the two can be mixed.
+    /// is a plain string, a <see cref="SpanNode"/> or a <see cref="CodeSpanNode"/>, and they can be mixed.
     /// </summary>
     public static TextAtNode TextAt(TextAtAttr attrs, TextContent[]? nodes = null)
         => new(AttrsHelper.Attrs(attrs), (nodes ?? []).Select(item => item.Value).ToList());

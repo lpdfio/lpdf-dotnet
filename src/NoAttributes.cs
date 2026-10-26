@@ -34,7 +34,9 @@ public sealed class NoAttributes
     public static implicit operator TrAttr?(NoAttributes _) => null;
     public static implicit operator TdAttr?(NoAttributes _) => null;
     public static implicit operator TextAttr?(NoAttributes _) => null;
+    public static implicit operator CodeAttr?(NoAttributes _) => null;
     public static implicit operator SpanAttr?(NoAttributes _) => null;
+    public static implicit operator CodeSpanAttr?(NoAttributes _) => null;
     public static implicit operator DividerAttr?(NoAttributes _) => null;
     public static implicit operator LayerAttr?(NoAttributes _) => null;
 #pragma warning restore CS1591

@@ -33,10 +33,20 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
                 WriteAttrs(writer, t.Attrs);
                 WriteTextContent(writer, t.Children, options);
                 break;
+            case CodeNode code:
+                WriteAttrs(writer, code.Attrs);
+                WriteTextContent(writer, code.Children, options);
+                break;
             case SpanNode s:
                 WriteAttrs(writer, s.Attrs);
                 writer.WriteStartArray("nodes");
                 foreach (var str in s.Children) writer.WriteStringValue(str);
+                writer.WriteEndArray();
+                break;
+            case CodeSpanNode codeSpan:
+                WriteAttrs(writer, codeSpan.Attrs);
+                writer.WriteStartArray("nodes");
+                foreach (var str in codeSpan.Children) writer.WriteStringValue(str);
                 writer.WriteEndArray();
                 break;
             case FnNode fn:
@@ -94,6 +104,8 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
                 writer.WriteStringValue(raw.Value);
             else if (item is SpanNode span)
                 JsonSerializer.Serialize(writer, (Layout.Node)span, options);
+            else if (item is CodeSpanNode codeSpan)
+                JsonSerializer.Serialize(writer, (Layout.Node)codeSpan, options);
             else if (item is FnNode fn)
                 JsonSerializer.Serialize(writer, (Layout.Node)fn, options);
         }
