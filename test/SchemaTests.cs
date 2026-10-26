@@ -520,6 +520,39 @@ public class SchemaTests
     }
 
     [Fact]
+    public async Task A_code_and_a_code_span_are_written_as_their_elements_and_render_the_same_from_the_builder_and_its_XML()
+    {
+        var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
+            L.Code(new CodeAttr { TabSize = "2" }, ["\nfn a() {\n\tb(", L.Span(new SpanAttr { Color = "#c0392b" }, ["x"]), ");\n}\n"]),
+            L.Text(null, ["Run ", L.CodeSpan(new CodeSpanAttr { Background = "#ffff00" }, ["cargo test"]), " now"]),
+        ])])]);
+
+        var xml = await L.ToXml(document);
+        Assert.Contains("<code tab-size=\"2\">\nfn a() {\n\tb(<span color=\"#c0392b\">x</span>);\n}\n</code>", xml);
+        Assert.Contains("Run <code-span background=\"#ffff00\">cargo test</code-span> now", xml);
+        Assert.Equal("code", L.Code().Type);
+        Assert.Equal("code-span", L.CodeSpan().Type);
+        Assert.Equal(await Render(document), await Render(xml));
+    }
+
+    [Fact]
+    public async Task A_code_keeps_its_spaces_and_one_longer_than_a_page_goes_on_in_the_next_and_a_bad_tab_size_is_rejected()
+    {
+        PdfDocument Build(params TextContent[] nodes) => L.Document(
+            nodes: [L.Section(nodes: [L.Layout(null, [L.Code(null, nodes)])])]);
+
+        Assert.NotEqual(await Render(Build("a    b")), await Render(Build("a b")));
+
+        var lines = string.Join("\n", Enumerable.Range(1, 150).Select(i => $"line {i}"));
+        var pdf = await Render(Build(lines));
+        Assert.True(System.Text.RegularExpressions.Regex.Matches(pdf, @"/Type\s*/Page[^s]").Count >= 2, "the code splits across pages");
+
+        var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [L.Code(new CodeAttr { TabSize = "0" }, ["x"])])])]);
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(document));
+        Assert.Contains("invalid tab-size", error.Message);
+    }
+
+    [Fact]
     public async Task A_circle_without_r_is_rejected_and_says_so()
     {
         var doc = L.Document(
