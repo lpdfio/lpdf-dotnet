@@ -2,6 +2,7 @@ using Lpdf.Canvas;
 using Lpdf.Engine;
 using Lpdf.Kit;
 using Lpdf.Layout;
+using Lpdf.Markdown;
 using Lpdf.Shared;
 using System.Text.Json;
 
@@ -114,6 +115,15 @@ public static class L
 
     /// <summary>Wrap layout nodes into a <c>layout</c> block, which keeps them inside its margin.</summary>
     public static SectionLayout Layout(LayoutAttr? attrs = null, Node[]? nodes = null)
+        => new((nodes ?? []).ToList(), AttrsHelper.Attrs(attrs));
+
+    /// <summary>
+    /// Build a <c>markdown</c> block, which takes the place of a layout in a section and holds only Markdown: the
+    /// <see cref="LMarkdown.Styles"/> that say how each part looks, which are optional, and one
+    /// <see cref="LMarkdown.Content"/> with the text. What Markdown can't say, such as the page, a header, a
+    /// footer or a cover, stays in the section around it: layers paint a header and a footer in the margin it leaves.
+    /// </summary>
+    public static SectionMarkdown Markdown(MarkdownAttr? attrs = null, MarkdownPart[]? nodes = null)
         => new((nodes ?? []).ToList(), AttrsHelper.Attrs(attrs));
 
     /// <summary>Create a <see cref="DocumentAssets"/> instance (convenience factory).</summary>

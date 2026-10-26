@@ -7,6 +7,7 @@ using Lpdf.Canvas;
 using Lpdf.Engine;
 using Lpdf.Kit;
 using Lpdf.Layout;
+using Lpdf.Markdown;
 using Lpdf.Shared;
 using Xunit;
 
@@ -750,6 +751,97 @@ public class SchemaTests
         Assert.Equal("top", Pin.Top);
         Assert.Equal("landscape", Orientation.Landscape);
         Assert.Equal("Times-Bold", BuiltinFont.TimesBold);
+    }
+
+    // -- Markdown ----------------------------------------------------------------------------------
+
+    private const string MarkdownBody = "# Release notes\n\nSome *emphasis*, **strong** text and `code`.\n\n- one\n- two\n\n> a quote\n";
+
+    private static PdfDocument MarkdownDocument(MarkdownAttr? attrs = null, MarkdownStylesNode? styles = null, string text = MarkdownBody)
+    {
+        var parts = new List<MarkdownPart>();
+        if (styles is not null) parts.Add(styles);
+        parts.Add(LMarkdown.Content(L.NoAttr, [text]));
+        return L.Document(nodes: [L.Section(nodes: [L.Markdown(attrs, [.. parts])])]);
+    }
+
+    [Fact]
+    public void A_markdown_its_styles_its_content_and_their_rules_are_built_with_the_schema_names()
+    {
+        var markdown = L.Markdown(new MarkdownAttr { Margin = "54pt", Gap = "m", Bookmarks = "2" });
+        Assert.Equal("markdown", markdown.Type);
+        Assert.Equal(new Dictionary<string, string> { ["margin"] = "54pt", ["gap"] = "m", ["bookmarks"] = "2" }, markdown.Attrs);
+
+        var styles = LMarkdown.Styles(new MarkdownStylesAttr { Src = "styles.xml" }, [LMarkdown.H1(new MarkdownH1Attr { FontSize = "xl", Color = "muted" })]);
+        Assert.Equal("markdown-styles", styles.Type);
+        Assert.Equal("h1", styles.Rules[0].RuleType);
+        Assert.Equal(new Dictionary<string, string> { ["font-size"] = "xl", ["color"] = "muted" }, styles.Rules[0].Attrs);
+        Assert.Equal("quote", LMarkdown.Quote(new MarkdownQuoteAttr { BarColor = "primary" }).RuleType);
+        Assert.Empty(LMarkdown.Em(L.NoAttr).Attrs);
+        Assert.Equal(["# a"], LMarkdown.Content(L.NoAttr, ["# a"]).Text);
+    }
+
+    [Fact]
+    public async Task A_markdown_is_written_as_XML_with_its_Markdown_as_it_is_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        var document = MarkdownDocument(
+            new MarkdownAttr { Gap = "8pt" },
+            LMarkdown.Styles(L.NoAttr, [LMarkdown.H1(new MarkdownH1Attr { Color = "#ff0000" })]),
+            "a < b & c ]]> d\n\n    code\n");
+
+        var xml = await L.ToXml(document);
+        Assert.Contains("<markdown gap=\"8pt\">", xml);
+        Assert.Matches("<markdown-styles>\\s*<h1 color=\"#ff0000\"\\s*/>\\s*</markdown-styles>", xml);
+        Assert.Contains("<markdown-content><![CDATA[a < b & c ]]]]><![CDATA[> d", xml);
+        Assert.Equal(await Render(document), await Render(xml));
+    }
+
+    [Fact]
+    public async Task A_markdown_renders_the_text_it_is_given_and_a_rule_that_sets_a_color_changes_the_page()
+    {
+        var plain = await Render(MarkdownDocument());
+        Assert.StartsWith("%PDF-", plain);
+        Assert.NotEqual(plain, await Render(MarkdownDocument(styles: LMarkdown.Styles(L.NoAttr, [LMarkdown.H1(new MarkdownH1Attr { Color = "#ff0000" })]))));
+        Assert.NotEqual(plain, await Render(MarkdownDocument(text: "# Another title")));
+    }
+
+    [Fact]
+    public async Task A_file_of_rules_is_read_from_the_src_of_its_styles_or_loaded_by_name()
+    {
+        var inline = await Render(MarkdownDocument(styles: LMarkdown.Styles(L.NoAttr, [LMarkdown.H1(new MarkdownH1Attr { Color = "#ff0000" })])));
+        var fromSrc = MarkdownDocument(styles: LMarkdown.Styles(new MarkdownStylesAttr { Src = "styles.xml" }));
+        const string File = "<markdown-styles><h1 color=\"#ff0000\"/></markdown-styles>";
+
+        using (var engine = L.Engine(new EngineOptions { SrcFallback = _ => Encoding.UTF8.GetBytes(File) }).SetLicenseKey("test-key"))
+        {
+            Assert.Equal(inline, Normalised(await engine.Render(fromSrc)));
+            Assert.Equal(inline, Normalised(await engine.Render(await L.ToXml(fromSrc))));
+        }
+        using (var engine = L.Engine().SetLicenseKey("test-key").LoadMarkdownStyles("styles.xml", File))
+        {
+            Assert.Equal(inline, Normalised(await engine.Render(fromSrc)));
+        }
+    }
+
+    [Fact]
+    public async Task A_file_of_rules_that_is_not_there_and_raw_HTML_are_errors_that_name_the_src_and_the_line()
+    {
+        var missing = await Assert.ThrowsAsync<EngineException>(() => Render(MarkdownDocument(styles: LMarkdown.Styles(new MarkdownStylesAttr { Src = "missing-styles.xml" }))));
+        Assert.Contains("missing-styles.xml", missing.Message);
+
+        var html = await Assert.ThrowsAsync<EngineException>(() => Render(MarkdownDocument(text: "fine\n\n<div>no</div>\n")));
+        Assert.Contains("markdown line 3", html.Message);
+        Assert.Contains("raw HTML", html.Message);
+    }
+
+    [Fact]
+    public async Task The_Markdown_comes_from_the_data_of_an_XML_document_or_the_text_written_in_it()
+    {
+        const string xml = "<lpdf version=\"1\"><document><section><markdown><markdown-content data-value=\"body\"><![CDATA[# From the text]]></markdown-content></markdown></section></document></lpdf>";
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var fromData = Normalised(await engine.Render(xml, new RenderOptions { Data = new Dictionary<string, object?> { ["body"] = "# From the data" } }));
+        var fromText = Normalised(await engine.Render(xml));
+        Assert.NotEqual(fromData, fromText);
     }
 
     // -- Helpers -----------------------------------------------------------------------------------

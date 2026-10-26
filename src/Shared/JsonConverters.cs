@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Lpdf.Canvas;
 using Lpdf.Kit;
 using Lpdf.Layout;
+using Lpdf.Markdown;
 
 namespace Lpdf.Shared;
 
@@ -197,6 +198,17 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
             writer.WriteEndObject();
             return;
         }
+        if (value is SectionMarkdown markdown)
+        {
+            NodeConverter.WriteAttrs(writer, markdown.Attrs);
+            writer.WriteStartArray("nodes");
+            foreach (var part in markdown.Nodes)
+                WriteMarkdownPart(writer, part);
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+            return;
+        }
+
         writer.WriteStartObject("attrs");
         if (value is SectionLayout sl)
         {
@@ -212,6 +224,35 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
         }
         writer.WriteEndArray();
 
+        writer.WriteEndObject();
+    }
+
+    /// <summary>The styles of a markdown, with a rule for each of their children, or its content, as strings.</summary>
+    private static void WriteMarkdownPart(Utf8JsonWriter writer, MarkdownPart part)
+    {
+        writer.WriteStartObject();
+        writer.WriteString("type", part.Type);
+        switch (part)
+        {
+            case MarkdownStylesNode styles:
+                NodeConverter.WriteAttrs(writer, styles.Attrs);
+                writer.WriteStartArray("nodes");
+                foreach (var rule in styles.Rules)
+                {
+                    writer.WriteStartObject();
+                    writer.WriteString("type", rule.RuleType);
+                    NodeConverter.WriteAttrs(writer, rule.Attrs);
+                    writer.WriteEndObject();
+                }
+                writer.WriteEndArray();
+                break;
+            case MarkdownContentNode content:
+                NodeConverter.WriteAttrs(writer, new Dictionary<string, string>());
+                writer.WriteStartArray("nodes");
+                foreach (var text in content.Text) writer.WriteStringValue(text);
+                writer.WriteEndArray();
+                break;
+        }
         writer.WriteEndObject();
     }
 }
