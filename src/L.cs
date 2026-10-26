@@ -138,6 +138,21 @@ public static class L
     public static ContainerNode Grid(GridAttr? attrs = null, Node[]? nodes = null)
         => Container("grid", attrs, nodes);
 
+    /// <summary>
+    /// Build a <c>list</c> layout node: a list of items, which are <see cref="Li"/> nodes. A bullet list marks each
+    /// item with a shape; with <c>Type = "number"</c> the engine numbers them, in the <c>Format</c> given, and the
+    /// numbers follow the items that <c>data-source</c> makes.
+    /// </summary>
+    public static ContainerNode List(ListAttr? attrs = null, Node[]? nodes = null)
+        => Container("list", attrs, nodes);
+
+    /// <summary>
+    /// Build an <c>li</c>, an item of a <see cref="List"/>. Its words go in a <see cref="Text"/>; a <see cref="List"/>
+    /// inside it is a list under the item.
+    /// </summary>
+    public static ContainerNode Li(LiAttr? attrs = null, Node[]? nodes = null)
+        => Container("li", attrs, nodes);
+
     /// <summary>Build a <c>frame</c> layout node (fixed-size container).</summary>
     public static ContainerNode Frame(FrameAttr? attrs = null, Node[]? nodes = null)
         => Container("frame", attrs, nodes);

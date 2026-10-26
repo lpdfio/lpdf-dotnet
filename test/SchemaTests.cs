@@ -553,6 +553,40 @@ public class SchemaTests
     }
 
     [Fact]
+    public async Task A_list_is_written_with_its_items_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
+            L.List(new ListAttr { Type = "number", Format = "lower-alpha", Suffix = ")" }, [
+                L.Li(null, [L.Text(null, ["One"])]),
+                L.Li(null, [L.Text(null, ["Two"]), L.List(new ListAttr { Bullet = "dash" }, [L.Li(null, [L.Text(null, ["Nested"])])])]),
+            ]),
+        ])])]);
+
+        var xml = await L.ToXml(document);
+        Assert.Matches("<list format=\"lower-alpha\" suffix=\"\\)\" type=\"number\">\\s*<li>\\s*<text>One</text>\\s*</li>", xml);
+        Assert.Matches("<list bullet=\"dash\">\\s*<li>\\s*<text>Nested</text>", xml);
+        Assert.Equal("list", L.List().Type);
+        Assert.Equal("li", L.Li().Type);
+        Assert.Equal(await Render(document), await Render(xml));
+    }
+
+    [Fact]
+    public async Task A_number_list_writes_its_numbers_and_a_bullet_list_refuses_what_numbers_them()
+    {
+        Node[] Items() => [L.Li(null, [L.Text(null, ["A"])]), L.Li(null, [L.Text(null, ["B"])])];
+        PdfDocument Build(ListAttr? attrs) => L.Document(nodes: [L.Section(nodes: [L.Layout(null, [L.List(attrs, Items())])])]);
+
+        var bullets = await Render(Build(null));
+        var numbers = await Render(Build(new ListAttr { Type = "number" }));
+        var roman   = await Render(Build(new ListAttr { Type = "number", Format = "lower-roman", Start = "3" }));
+        Assert.NotEqual(bullets, numbers);
+        Assert.NotEqual(numbers, roman);
+
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new ListAttr { Format = "lower-alpha" })));
+        Assert.Contains("numbers the items of a list", error.Message);
+    }
+
+    [Fact]
     public async Task A_circle_without_r_is_rejected_and_says_so()
     {
         var doc = L.Document(

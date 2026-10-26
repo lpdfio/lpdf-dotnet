@@ -29,6 +29,8 @@ public sealed class NoAttributes
     public static implicit operator ColumnAttr?(NoAttributes _) => null;
     public static implicit operator RowAttr?(NoAttributes _) => null;
     public static implicit operator GridAttr?(NoAttributes _) => null;
+    public static implicit operator ListAttr?(NoAttributes _) => null;
+    public static implicit operator LiAttr?(NoAttributes _) => null;
     public static implicit operator FrameAttr?(NoAttributes _) => null;
     public static implicit operator TheadAttr?(NoAttributes _) => null;
     public static implicit operator TrAttr?(NoAttributes _) => null;
