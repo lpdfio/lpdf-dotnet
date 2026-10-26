@@ -3,7 +3,7 @@
 namespace Lpdf.Markdown;
 
 #pragma warning disable CS1591
-/// <summary>Markdown as the content of a section, where a layout would go. It holds only Markdown: optional markdown-styles, which say how each part of it looks, and one markdown-content, which holds the text. The page, a header, a footer or a cover are not Markdown, so they stay in the XML: layers paint a header and a footer in the margin, and a cover or a table of contents is a section of its own. CommonMark with tables, strikethrough and footnotes; raw HTML and math are an error that names the line. A heading is a bookmark, so the table of contents and the outline of the viewer fill themselves.</summary>
+/// <summary>Markdown as the content of a section, where a layout would go. It holds only Markdown: optional markdown-styles, which say how each part of it looks, and one markdown-content, which holds the text. The page, a header, a footer or a cover are not Markdown, so they stay in the XML: layers paint a header and a footer in the margin, and a cover or a table of contents is a section of its own. CommonMark with tables, strikethrough and footnotes; raw HTML is an error that names the line, and a $ is text. A heading is a bookmark, so the table of contents and the outline of the viewer fill themselves.</summary>
 public sealed record MarkdownAttr
 {
     /// <summary>The space between the page edges and the Markdown: one value for all four sides, or two to four in the order top, right, bottom, left. Defaults to 36pt. A layer draws a header or a footer in it.</summary>
