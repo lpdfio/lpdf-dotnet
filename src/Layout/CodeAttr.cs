@@ -12,7 +12,7 @@ public sealed record CodeAttr
     /// <summary>The color of the text inside the box. A text that sets no color of its own takes the nearest box's, and the text token when no box sets one. A divider or a barcode in the box keeps its own color.</summary>
     public string? Color { get; init; }
 
-    /// <summary>Space between the edge of the box and its content, written like CSS: one value for all sides, two for top-bottom and left-right, three for top, left-right and bottom, four for top, right, bottom and left.</summary>
+    /// <summary>Space between the edge of the box and its content, written like CSS: one value for all sides, two for top-bottom and left-right, three for top, left-right and bottom, four for top, right, bottom and left. Each value is a length or a name from the space row of the tokens, and they can be mixed: 0pt 0pt 0pt m.</summary>
     public string? Padding { get; init; }
 
     /// <summary>Height of the box. Leave it out to size to the content. A length, or a name from the height row of the tokens, fixes it; fill takes what is left after its siblings (shared equally if several use fill); full takes all the height available. Any of these stops the box splitting across pages.</summary>
