@@ -1,6 +1,7 @@
 using Lpdf.Canvas;
 using Lpdf.Kit;
 using Lpdf.Layout;
+using Lpdf.Markdown;
 
 namespace Lpdf;
 
@@ -41,5 +42,24 @@ public sealed class NoAttributes
     public static implicit operator CodeSpanAttr?(NoAttributes _) => null;
     public static implicit operator DividerAttr?(NoAttributes _) => null;
     public static implicit operator LayerAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownStylesAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownH1Attr?(NoAttributes _) => null;
+    public static implicit operator MarkdownH2Attr?(NoAttributes _) => null;
+    public static implicit operator MarkdownH3Attr?(NoAttributes _) => null;
+    public static implicit operator MarkdownH4Attr?(NoAttributes _) => null;
+    public static implicit operator MarkdownH5Attr?(NoAttributes _) => null;
+    public static implicit operator MarkdownH6Attr?(NoAttributes _) => null;
+    public static implicit operator MarkdownPAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownCodeAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownQuoteAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownLiAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownAAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownStrongAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownEmAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownDelAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownTableAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownThAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownTdAttr?(NoAttributes _) => null;
 #pragma warning restore CS1591
 }

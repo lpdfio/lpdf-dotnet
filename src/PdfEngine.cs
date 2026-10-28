@@ -21,6 +21,7 @@ public sealed class PdfEngine : IDisposable
     private readonly WasmRunner     _wasm;
     private readonly Dictionary<string, byte[]> _fonts  = new();
     private readonly Dictionary<string, byte[]> _images = new();
+    private readonly Dictionary<string, string> _markdownStyles = new();
     private          bool           _disposed;
     private          EncryptOptions? _encrypt;
 
@@ -107,6 +108,20 @@ public sealed class PdfEngine : IDisposable
         return this;
     }
 
+    /// <summary>
+    /// Register the text of a file of Markdown rules, the root of which is a <c>&lt;markdown-styles&gt;</c>, for the
+    /// <c>src</c> that names it in <c>&lt;markdown-styles src="…"&gt;</c>. Call before
+    /// <see cref="Render(string, RenderOptions?)"/>. Returns <c>this</c>.
+    /// </summary>
+    public PdfEngine LoadMarkdownStyles(string src, string text)
+    {
+        ThrowIfDisposed();
+        ArgumentNullException.ThrowIfNull(src);
+        ArgumentNullException.ThrowIfNull(text);
+        _markdownStyles[src] = text;
+        return this;
+    }
+
     /// <summary>Render an lpdf XML string to PDF bytes.</summary>
     /// <param name="xml">Full lpdf XML document string.</param>
     /// <param name="callOptions">Per-call options (data, timestamp).</param>
@@ -118,9 +133,10 @@ public sealed class PdfEngine : IDisposable
         var images = _images.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_images : null;
         var encryptJson = BuildEncryptJson();
         var dataJson    = BuildDataJson(callOptions?.Data);
+        var styles = _markdownStyles.Count > 0 ? new Dictionary<string, string>(_markdownStyles) : null;
         return Task.Run(() =>
             _wasm.RenderPdf(xml, _licenseKey, fonts, images,
-                _engineOpts.SrcFallback, encryptJson, callOptions?.CreatedOn, dataJson));
+                _engineOpts.SrcFallback, encryptJson, callOptions?.CreatedOn, dataJson, styles));
     }
 
     /// <summary>Render a <see cref="PdfDocument"/> tree to PDF bytes.</summary>
@@ -134,9 +150,10 @@ public sealed class PdfEngine : IDisposable
         var fonts  = _fonts.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_fonts : null;
         var images = _images.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_images : null;
         var encryptJson = BuildEncryptJson();
+        var styles = _markdownStyles.Count > 0 ? new Dictionary<string, string>(_markdownStyles) : null;
         return Task.Run(() =>
             _wasm.RenderTreePdf(json, _licenseKey, fonts, images,
-                _engineOpts.SrcFallback, encryptJson, callOptions?.CreatedOn));
+                _engineOpts.SrcFallback, encryptJson, callOptions?.CreatedOn, styles));
     }
 
     // ── Internals ─────────────────────────────────────────────────────────────

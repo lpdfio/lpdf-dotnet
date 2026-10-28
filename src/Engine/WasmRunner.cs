@@ -57,8 +57,9 @@ internal sealed class WasmRunner : IDisposable
         Func<string, byte[]>?                srcFallback,
         string?                              encryptJson = null,
         string?                              createdOn = null,
-        string?                              dataJson = null)
-        => InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, encryptJson, createdOn, dataJson);
+        string?                              dataJson = null,
+        IReadOnlyDictionary<string, string>? markdownStyles = null)
+        => InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, encryptJson, createdOn, dataJson, markdownStyles);
 
     /// <summary>
     /// Render an lpdf JSON document tree to raw PDF bytes.
@@ -70,8 +71,9 @@ internal sealed class WasmRunner : IDisposable
         IReadOnlyDictionary<string, byte[]>? imageBytes,
         Func<string, byte[]>?                srcFallback,
         string?                              encryptJson = null,
-        string?                              createdOn = null)
-        => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryptJson, createdOn);
+        string?                              createdOn = null,
+        IReadOnlyDictionary<string, string>? markdownStyles = null)
+        => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryptJson, createdOn, null, markdownStyles);
 
     /// <summary>
     /// Convert a JSON kit-tree (produced by <c>LpdfKit</c>) to an lpdf XML string.
@@ -107,10 +109,12 @@ internal sealed class WasmRunner : IDisposable
         bool                                 isTree,
         string?                              encryptJson = null,
         string?                              createdOn = null,
-        string?                              dataJson = null)
+        string?                              dataJson = null,
+        IReadOnlyDictionary<string, string>? markdownStyles = null)
     {
         var fonts  = ResolveAllFonts(input, fontBytes, srcFallback, isTree);
         var images = ResolveAllImages(input, imageBytes, srcFallback, isTree);
+        var styles = ResolveAllMarkdownStyles(input, markdownStyles, srcFallback, isTree);
 
         var fontsNode = new JsonObject();
         foreach (var (name, bytes) in fonts)
@@ -132,6 +136,14 @@ internal sealed class WasmRunner : IDisposable
             foreach (var (name, bytes) in images)
                 imagesNode[name] = Convert.ToBase64String(bytes);
             requestObj["images"] = imagesNode;
+        }
+
+        if (styles.Count > 0)
+        {
+            var stylesNode = new JsonObject();
+            foreach (var (src, text) in styles)
+                stylesNode[src] = text;
+            requestObj["markdown_styles"] = stylesNode;
         }
 
         if (encryptJson is not null)
@@ -196,6 +208,71 @@ internal sealed class WasmRunner : IDisposable
             catch { /* skip unresolvable images */ }
         }
         return merged;
+    }
+
+    /// <summary>
+    /// The files of Markdown rules a document names with a <c>src</c>: the ones loaded, and the ones the
+    /// <paramref name="srcFallback"/> reads. A file that can't be read is left for the engine to report, naming the
+    /// <c>src</c>.
+    /// </summary>
+    private static Dictionary<string, string> ResolveAllMarkdownStyles(
+        string input,
+        IReadOnlyDictionary<string, string>? markdownStyles,
+        Func<string, byte[]>?                srcFallback,
+        bool                                 isTree)
+    {
+        var merged = new Dictionary<string, string>(markdownStyles ?? new Dictionary<string, string>(), StringComparer.Ordinal);
+        if (srcFallback is null) return merged;
+
+        var srcs = isTree ? ExtractMarkdownStylesSrcsFromJson(input) : ExtractMarkdownStylesSrcsFromXml(input);
+        foreach (var src in srcs)
+        {
+            if (merged.ContainsKey(src)) continue;
+            try   { merged[src] = Encoding.UTF8.GetString(srcFallback(src)); }
+            catch { /* the engine says that the file was not loaded */ }
+        }
+        return merged;
+    }
+
+    private static List<string> ExtractMarkdownStylesSrcsFromXml(string xml)
+    {
+        var result = new List<string>();
+        foreach (Match m in Regex.Matches(xml, @"<markdown-styles\s[^>]*>"))
+        {
+            var src = Regex.Match(m.Value, @"\bsrc=""([^""]*)""").Groups[1].Value;
+            if (!string.IsNullOrEmpty(src)) result.Add(src);
+        }
+        return result;
+    }
+
+    /// <summary>The <c>src</c> of each <c>markdown-styles</c> in the markdown of any section of a document tree.</summary>
+    private static List<string> ExtractMarkdownStylesSrcsFromJson(string json)
+    {
+        var result = new List<string>();
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("nodes", out var sections)) return result;
+            foreach (var section in sections.EnumerateArray())
+            {
+                if (!section.TryGetProperty("nodes", out var children)) continue;
+                foreach (var child in children.EnumerateArray())
+                {
+                    if (child.GetProperty("type").GetString() != "markdown") continue;
+                    foreach (var part in child.GetProperty("nodes").EnumerateArray())
+                    {
+                        if (part.GetProperty("type").GetString() != "markdown-styles") continue;
+                        if (part.GetProperty("attrs").TryGetProperty("src", out var src) && src.GetString() is { Length: > 0 } text)
+                            result.Add(text);
+                    }
+                }
+            }
+        }
+        catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException)
+        {
+            // A tree that is not shaped like a document names no files of rules.
+        }
+        return result;
     }
 
     private static Dictionary<string, string> ExtractFontSrcsFromXml(string xml)
