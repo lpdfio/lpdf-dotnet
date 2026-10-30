@@ -824,14 +824,17 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_file_of_rules_that_is_not_there_and_raw_HTML_are_errors_that_name_the_src_and_the_line()
+    public async Task A_file_of_rules_that_is_not_there_is_an_error_that_names_the_src()
     {
         var missing = await Assert.ThrowsAsync<EngineException>(() => Render(MarkdownDocument(styles: LMarkdown.Styles(new MarkdownStylesAttr { Src = "missing-styles.xml" }))));
         Assert.Contains("missing-styles.xml", missing.Message);
+    }
 
-        var html = await Assert.ThrowsAsync<EngineException>(() => Render(MarkdownDocument(text: "fine\n\n<div>no</div>\n")));
-        Assert.Contains("markdown line 3", html.Message);
-        Assert.Contains("raw HTML", html.Message);
+    [Fact]
+    public async Task Raw_HTML_is_left_out_of_the_Markdown_and_the_words_in_it_are_kept()
+    {
+        var withHtml = await Render(MarkdownDocument(text: "fine\n\n<div>kept</div>\n"));
+        Assert.Equal(await Render(MarkdownDocument(text: "fine\n\nkept\n")), withHtml);
     }
 
     [Fact]
