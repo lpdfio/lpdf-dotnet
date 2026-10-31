@@ -8,7 +8,7 @@ namespace Lpdf.Kit;
 /// </summary>
 public sealed record SectionLayout(
     List<Node>                 Nodes,
-    Dictionary<string, string> Attrs) : SectionContent
+    Dictionary<string, object> Attrs) : SectionContent
 {
     /// <inheritdoc/>
     public override string Type => "layout";

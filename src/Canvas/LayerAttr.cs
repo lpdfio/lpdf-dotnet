@@ -9,7 +9,7 @@ public sealed record LayerAttr
     public string? Page { get; init; }
 
     /// <summary>How opaque everything in the layer is, from 0 to 1. To fade one element, put it in a layer of its own.</summary>
-    public string? Opacity { get; init; }
+    public double? Opacity { get; init; }
     public string? Transform { get; init; }
 
     /// <summary>A rectangle that cuts off what the layer draws outside it: x y w h, in points from the top left corner of the page.</summary>

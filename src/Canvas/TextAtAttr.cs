@@ -13,18 +13,18 @@ public sealed record TextAtAttr
     public string? Font { get; init; }
 
     /// <summary>Use the bold face of the font. It applies to the 14 built-in fonts: Helvetica becomes Helvetica-Bold, Times-Roman becomes Times-Bold, Courier becomes Courier-Bold, and the oblique and italic faces their bold forms. A custom font has no bold face to pick, so name one in font.</summary>
-    public string? Bold { get; init; }
+    public bool? Bold { get; init; }
     public string? Color { get; init; }
     public string? Align { get; init; }
 
     /// <summary>The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a name from the line-height row of the tokens. Default 1.2, which is the token m.</summary>
-    public string? LineHeight { get; init; }
+    public LineHeight? LineHeight { get; init; }
 
     /// <summary>The most lines drawn. Only whole lines are drawn, and the rest of the text is dropped. A text in the layout has no cap by default and wraps at the width it has; the lines it drops take no room, and a text that splits across pages keeps the cap across them. A text-at is one line by default, and above 1 needs a width to wrap within.</summary>
-    public string? MaxLines { get; init; }
+    public int? MaxLines { get; init; }
 
     /// <summary>End the last line drawn in an ellipsis when max-lines drops text, shortened to fit the width. Off by default: the text stops at the end of a line. A text-at also ends a line in one when it is cut off at its width. A text in the layout without max-lines is never cut, so there it has no effect.</summary>
-    public string? Ellipsis { get; init; }
+    public bool? Ellipsis { get; init; }
 
     /// <summary>Width of the box. Without it the text is one line of the width its characters need, and align has no effect; a long text runs on past the edge of the page, which cuts it off, but stays in the PDF. With it, a line past the width is cut off at it, or ends in an ellipsis with ellipsis, and max-lines above 1 wraps the text within it.</summary>
     public string? Width { get; init; }

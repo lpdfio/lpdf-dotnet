@@ -9,10 +9,10 @@ public sealed record MarkdownCodeAttr
     public string? Font { get; init; }
     public string? FontSize { get; init; }
     public string? Color { get; init; }
-    public string? LineHeight { get; init; }
+    public LineHeight? LineHeight { get; init; }
     public string? Padding { get; init; }
     public string? Background { get; init; }
     public string? Border { get; init; }
     public string? Radius { get; init; }
-    public string? TabSize { get; init; }
+    public int? TabSize { get; init; }
 }

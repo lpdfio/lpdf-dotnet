@@ -6,4 +6,4 @@ namespace Lpdf.Markdown;
 /// </summary>
 public sealed record MarkdownRule(
     string                     RuleType,
-    Dictionary<string, string> Attrs);
+    Dictionary<string, object> Attrs);

@@ -12,5 +12,5 @@ public sealed record RegionAttr
     /// <summary>Which pages show the region: each, first, last, odd, even, or a range such as 2-last. Defaults to each.</summary>
     public string? Page { get; init; }
     public string? W { get; init; }
-    public string? Debug { get; init; }
+    public bool? Debug { get; init; }
 }

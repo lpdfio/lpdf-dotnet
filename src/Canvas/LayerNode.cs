@@ -6,7 +6,7 @@ namespace Lpdf.Canvas;
 
 /// <summary>A <c>layer</c>, holding the shapes, text and images drawn at fixed places on the page.</summary>
 public sealed record LayerNode(
-    Dictionary<string, string> Attrs,
+    Dictionary<string, object> Attrs,
     List<CanvasNode>           Nodes) : CanvasNode
 {
     /// <inheritdoc/>

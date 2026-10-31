@@ -81,11 +81,31 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
         writer.WriteEndObject();
     }
 
-    internal static void WriteAttrs(Utf8JsonWriter writer, Dictionary<string, string> attrs)
+    internal static void WriteAttrs(Utf8JsonWriter writer, Dictionary<string, object> attrs)
     {
         writer.WriteStartObject("attrs");
-        foreach (var (k, v) in attrs) writer.WriteString(k, v);
+        foreach (var (k, v) in attrs) WriteAttr(writer, k, v);
         writer.WriteEndObject();
+    }
+
+    /// <summary>
+    /// One attribute, in the JSON type of its value: a string, <c>true</c> or <c>false</c>, or a number. The engine
+    /// checks it against the type the schema gives the attribute.
+    /// </summary>
+    internal static void WriteAttr(Utf8JsonWriter writer, string name, object value)
+    {
+        switch (value)
+        {
+            case string text: writer.WriteString(name, text); break;
+            case bool flag: writer.WriteBoolean(name, flag); break;
+            case int whole: writer.WriteNumber(name, whole); break;
+            case double number: writer.WriteNumber(name, number); break;
+            case LineHeight lineHeight: WriteAttr(writer, name, lineHeight.Value); break;
+            default:
+                writer.WritePropertyName(name);
+                JsonSerializer.Serialize(writer, value, value.GetType());
+                break;
+        }
     }
 
     internal static void WriteLayoutNodes(Utf8JsonWriter writer, List<Layout.Node> nodes, JsonSerializerOptions options)
@@ -212,7 +232,7 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
         writer.WriteStartObject("attrs");
         if (value is SectionLayout sl)
         {
-            foreach (var (k, v) in sl.Attrs) writer.WriteString(k, v);
+            foreach (var (k, v) in sl.Attrs) NodeConverter.WriteAttr(writer, k, v);
         }
         writer.WriteEndObject();
 
@@ -247,7 +267,7 @@ internal sealed class SectionContentConverter : JsonConverter<SectionContent>
                 writer.WriteEndArray();
                 break;
             case MarkdownContentNode content:
-                NodeConverter.WriteAttrs(writer, new Dictionary<string, string>());
+                NodeConverter.WriteAttrs(writer, new Dictionary<string, object>());
                 writer.WriteStartArray("nodes");
                 foreach (var text in content.Text) writer.WriteStringValue(text);
                 writer.WriteEndArray();

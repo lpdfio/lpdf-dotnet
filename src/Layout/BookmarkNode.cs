@@ -8,7 +8,7 @@ namespace Lpdf.Layout;
 /// section's first page.
 /// </summary>
 public sealed record BookmarkNode(
-    Dictionary<string, string> Attrs) : Node
+    Dictionary<string, object> Attrs) : Node
 {
     /// <inheritdoc/>
     public override string Type => "bookmark";

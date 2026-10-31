@@ -9,7 +9,7 @@ namespace Lpdf.Kit;
 public sealed record DocumentAttr(
     string?        Size        = null, string?        Orientation = null,
     string?        Background  = null, string?        Font        = null,
-    string?        Debug       = null,
+    bool?          Debug       = null,
     DocumentTokens? Tokens     = null, DocumentMeta?  Meta        = null,
     DocumentAssets? Assets     = null, string? FootnoteCounter = null,
     DocumentOutput? Output     = null,

@@ -8,10 +8,10 @@ public sealed record MarkdownH1Attr
 {
     public string? Font { get; init; }
     public string? FontSize { get; init; }
-    public string? Bold { get; init; }
+    public bool? Bold { get; init; }
     public string? Color { get; init; }
     public string? Align { get; init; }
-    public string? LineHeight { get; init; }
+    public LineHeight? LineHeight { get; init; }
     public string? Padding { get; init; }
     public string? Background { get; init; }
     public string? Border { get; init; }

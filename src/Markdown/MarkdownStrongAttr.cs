@@ -8,5 +8,5 @@ public sealed record MarkdownStrongAttr
 {
     public string? Font { get; init; }
     public string? Color { get; init; }
-    public string? Bold { get; init; }
+    public bool? Bold { get; init; }
 }

@@ -33,12 +33,12 @@ public class LpdfKitTypesTests
     public void Document_LineHeightRowIsATokenRowUnderItsSchemaName()
     {
         var doc = L.Document(attrs: new DocumentAttr(
-            Tokens: new DocumentTokens(LineHeight: new() { ["m"] = "1.2", ["xxl"] = "2" })
+            Tokens: new DocumentTokens(LineHeight: new() { ["m"] = 1.2, ["xxl"] = 2 })
         ));
 
         var tokens = Assert.IsType<Dictionary<string, object?>>(doc.Attrs["tokens"]);
         Assert.True(tokens.ContainsKey("line-height"));
-        Assert.Equal("2", ((Dictionary<string, string>)tokens["line-height"]!)["xxl"]);
+        Assert.Equal(2.0, ((Dictionary<string, double>)tokens["line-height"]!)["xxl"]);
     }
 
     [Fact]
@@ -70,21 +70,21 @@ public class LpdfKitTypesTests
         var doc = L.Document(attrs: new DocumentAttr(
             Tokens: new DocumentTokens(Gradients: new()
             {
-                ["fade"] = new() { ["type"] = "linear", ["from"] = "primary", ["to"] = "#0f3e8a", ["angle"] = "90" },
+                ["fade"] = new Gradient { Type = "linear", From = "primary", To = "#0f3e8a", Angle = 90 },
             })
         ));
 
         var tokens = Assert.IsType<Dictionary<string, object?>>(doc.Attrs["tokens"]);
         var gradients = Assert.IsType<Dictionary<string, Dictionary<string, object>>>(tokens["gradients"]);
         Assert.Equal("linear", gradients["fade"]["type"]);
-        Assert.Equal("90", gradients["fade"]["angle"]);
+        Assert.Equal<object>(90.0, gradients["fade"]["angle"]);
     }
 
     [Fact]
     public void Text_LineHeightIsATokenOrAFactorUnderItsSchemaName()
     {
         Assert.Equal("l",   L.Text(new TextAttr { LineHeight = "l" },   ["A token"]).Attrs["line-height"]);
-        Assert.Equal("1.5", L.Text(new TextAttr { LineHeight = "1.5" }, ["A factor"]).Attrs["line-height"]);
+        Assert.Equal<object>(1.5, L.Text(new TextAttr { LineHeight = 1.5 }, ["A factor"]).Attrs["line-height"]);
     }
 
     [Fact]
@@ -117,9 +117,9 @@ public class LpdfKitTypesTests
     [Fact]
     public void Grid_ColWidthKebabCased()
     {
-        var node = (ContainerNode)L.Grid(attrs: new GridAttr { ColWidth = "120pt", Cols = "3" });
+        var node = (ContainerNode)L.Grid(attrs: new GridAttr { ColWidth = "120pt", Cols = 3 });
         Assert.Equal("120pt", node.Attrs["col-width"]);
-        Assert.Equal("3",     node.Attrs["cols"]);
+        Assert.Equal<object>(3,     node.Attrs["cols"]);
     }
 
     [Fact]
@@ -128,13 +128,13 @@ public class LpdfKitTypesTests
         var raw  = L.Raw("Total: ");
         var span = L.Span(
             nodes: ["$100"],
-            attrs: new SpanAttr { Bold = "true", Color = "primary" });
+            attrs: new SpanAttr { Bold = true, Color = "primary" });
 
         var node = L.Text(nodes: [raw, span]);
         Assert.Equal(2, node.Children.Count);
         Assert.False(node.Children[0] is SpanNode);
         var s = Assert.IsType<SpanNode>(node.Children[1]);
-        Assert.Equal("true",    s.Attrs["bold"]);
+        Assert.Equal<object>(true,    s.Attrs["bold"]);
         Assert.Equal("primary", s.Attrs["color"]);
     }
 
@@ -233,15 +233,15 @@ public class KitToXmlTests
         var doc = L.Document(
             attrs: new DocumentAttr(Tokens: new DocumentTokens(Gradients: new()
             {
-                ["fade"] = new() { ["type"] = "linear", ["from"] = "primary", ["to"] = "#0f3e8a", ["angle"] = "90" },
-                ["sunset"] = new()
+                ["fade"] = new Gradient { Type = "linear", From = "primary", To = "#0f3e8a", Angle = 90 },
+                ["sunset"] = new Gradient
                 {
-                    ["type"] = "radial",
-                    ["stops"] = new List<Dictionary<string, object>>
-                    {
-                        new() { ["offset"] = "0%", ["color"] = "#f97316" },
-                        new() { ["offset"] = "100%", ["color"] = "#8b5cf6" },
-                    },
+                    Type = "radial",
+                    Stops =
+                    [
+                        new GradientStop { Offset = "0%", Color = "#f97316" },
+                        new GradientStop { Offset = "100%", Color = "#8b5cf6" },
+                    ],
                 },
             })),
             nodes: [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Background = "gradient:fade" })])])]);
