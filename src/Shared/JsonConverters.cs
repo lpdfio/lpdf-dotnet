@@ -99,6 +99,10 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
             case string text: writer.WriteString(name, text); break;
             case bool flag: writer.WriteBoolean(name, flag); break;
             case int whole: writer.WriteNumber(name, whole); break;
+            // JSON has no NaN or infinity: such a number goes as its text, which the engine refuses by name.
+            case double number when !double.IsFinite(number):
+                writer.WriteString(name, number.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                break;
             case double number: writer.WriteNumber(name, number); break;
             case LineHeight lineHeight: WriteAttr(writer, name, lineHeight.Value); break;
             default:

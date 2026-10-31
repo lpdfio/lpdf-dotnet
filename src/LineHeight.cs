@@ -1,6 +1,6 @@
 using System.Globalization;
-using System.Text.Json;
 using System.Text.Json.Serialization;
+using Lpdf.Shared;
 
 namespace Lpdf;
 
@@ -40,22 +40,4 @@ public readonly record struct LineHeight
 
     /// <inheritdoc/>
     public override string ToString() => Name ?? Factor.ToString(CultureInfo.InvariantCulture);
-}
-
-/// <summary>Writes a <see cref="LineHeight"/> as a string for a name and a number for a factor, and reads either.</summary>
-internal sealed class LineHeightConverter : JsonConverter<LineHeight>
-{
-    public override LineHeight Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        => reader.TokenType switch
-        {
-            JsonTokenType.String => reader.GetString()!,
-            JsonTokenType.Number => reader.GetDouble(),
-            var other => throw new JsonException($"a line-height is a string or a number, not {other}"),
-        };
-
-    public override void Write(Utf8JsonWriter writer, LineHeight value, JsonSerializerOptions options)
-    {
-        if (value.Name is not null) writer.WriteStringValue(value.Name);
-        else writer.WriteNumberValue(value.Factor);
-    }
 }

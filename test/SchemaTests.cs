@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Lpdf;
 using Lpdf.Canvas;
@@ -44,13 +45,44 @@ public class SchemaTests
 
     /// <summary>C# refuses a wrong type when it compiles; a node built around the classes reaches the engine, which refuses it.</summary>
     [Fact]
-    public async Task The_engine_refuses_a_value_of_the_wrong_type_and_an_attribute_the_element_does_not_have()
+    public async Task The_engine_refuses_a_value_of_the_wrong_type()
     {
-        var wrongType = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(new TextNode(new() { ["bold"] = "true" }, []))));
-        Assert.Contains("text: bold must be true or false, not \"true\"", wrongType.Message);
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(new TextNode(new() { ["bold"] = "true" }, []))));
+        Assert.Contains("text: bold must be true or false, not \"true\"", error.Message);
+    }
 
-        var unknown = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(new TextNode(new() { ["colr"] = "red" }, []))));
-        Assert.Contains("text: unknown attribute 'colr' — expected font-size, font, bold, color,", unknown.Message);
+    [Fact]
+    public async Task The_engine_refuses_an_attribute_the_element_does_not_have()
+    {
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(new TextNode(new() { ["colr"] = "red" }, []))));
+        Assert.Contains("text: unknown attribute 'colr' — expected font-size, font, bold, color,", error.Message);
+    }
+
+    /// <summary>JSON has no NaN or infinity, so such a number goes as its text, which the engine refuses by name.</summary>
+    [Theory]
+    [InlineData(double.NaN, "NaN")]
+    [InlineData(double.PositiveInfinity, "Infinity")]
+    public async Task The_engine_refuses_a_number_that_is_not_finite(double opacity, string text)
+    {
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(L.Column(new ColumnAttr { Opacity = opacity }))));
+        Assert.Contains($"column: opacity must be a number from 0 to 1, not \"{text}\"", error.Message);
+    }
+
+    [Theory]
+    [InlineData(1.5, "1.5")]
+    [InlineData(double.NaN, "\"NaN\"")]
+    public void A_line_height_factor_is_written_as_a_number(double factor, string json)
+    {
+        Assert.Equal(json, JsonSerializer.Serialize<LineHeight>(factor));
+    }
+
+    [Fact]
+    public void A_line_height_name_is_written_as_a_string_and_either_reads_back()
+    {
+        Assert.Equal("\"m\"", JsonSerializer.Serialize<LineHeight>("m"));
+        Assert.Equal("m", JsonSerializer.Deserialize<LineHeight>("\"m\"").Name);
+        Assert.Equal(1.5, JsonSerializer.Deserialize<LineHeight>("1.5").Factor);
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<LineHeight>("true"));
     }
 
     // -- Attribute names ---------------------------------------------------------------------------
