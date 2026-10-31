@@ -28,5 +28,5 @@ public sealed record TableAttr
     public string? Width { get; init; }
     public string? Height { get; init; }
     public string? Paginate { get; init; }
-    public string? Debug { get; init; }
+    public bool? Debug { get; init; }
 }

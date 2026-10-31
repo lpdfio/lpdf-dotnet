@@ -8,7 +8,7 @@ public sealed record MarkdownTdAttr
 {
     public string? Font { get; init; }
     public string? FontSize { get; init; }
-    public string? Bold { get; init; }
+    public bool? Bold { get; init; }
     public string? Color { get; init; }
     public string? Align { get; init; }
     public string? Padding { get; init; }

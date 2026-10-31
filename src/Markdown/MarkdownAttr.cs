@@ -22,6 +22,6 @@ public sealed record MarkdownAttr
     public string? Gap { get; init; }
 
     /// <summary>How many levels of headings become bookmarks, for the outline of the viewer and the table of contents: n keeps the levels 1 to n, 0 none. Default 6.</summary>
-    public string? Bookmarks { get; init; }
-    public string? Debug { get; init; }
+    public int? Bookmarks { get; init; }
+    public bool? Debug { get; init; }
 }

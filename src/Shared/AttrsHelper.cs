@@ -10,12 +10,14 @@ internal static class AttrsHelper
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> _propCache = new();
 
     /// <summary>
-    /// Reflect over any options record and convert its non-null string properties to
-    /// a kebab-case attribute dictionary.
+    /// Reflect over any options record and convert its non-null properties to a kebab-case attribute dictionary.
+    /// Each value keeps the type the schema gives the attribute: a <c>string</c>, a <c>bool</c>, an <c>int</c> or a
+    /// <c>double</c>, and a <see cref="LineHeight"/> as its name or its factor. A property of any other type, such
+    /// as the stops of a gradient, is left out.
     /// </summary>
-    internal static Dictionary<string, string> Attrs(object? options)
+    internal static Dictionary<string, object> Attrs(object? options)
     {
-        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        var result = new Dictionary<string, object>(StringComparer.Ordinal);
         if (options is null) return result;
 
         var props = _propCache.GetOrAdd(
@@ -23,9 +25,14 @@ internal static class AttrsHelper
             t => t.GetProperties(BindingFlags.Public | BindingFlags.Instance));
         foreach (var prop in props)
         {
-            var value = prop.GetValue(options);
-            if (value is string s)
-                result[PascalToKebab(prop.Name)] = s;
+            object? value = prop.GetValue(options) switch
+            {
+                LineHeight lineHeight => lineHeight.Value,
+                var scalar and (string or bool or int or double) => scalar,
+                _ => null,
+            };
+            if (value is not null)
+                result[PascalToKebab(prop.Name)] = value;
         }
         return result;
     }

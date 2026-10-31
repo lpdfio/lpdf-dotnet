@@ -12,10 +12,10 @@ public sealed record FieldAttr
     public string? Label { get; init; }
     public string? Options { get; init; }
     public string? Group { get; init; }
-    public string? Checked { get; init; }
-    public string? Required { get; init; }
-    public string? Readonly { get; init; }
-    public string? MaxLen { get; init; }
+    public bool? Checked { get; init; }
+    public bool? Required { get; init; }
+    public bool? Readonly { get; init; }
+    public int? MaxLen { get; init; }
     public string? ActionUrl { get; init; }
 
     /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
@@ -23,5 +23,5 @@ public sealed record FieldAttr
     public string? Height { get; init; }
     public string? Background { get; init; }
     public string? Border { get; init; }
-    public string? Debug { get; init; }
+    public bool? Debug { get; init; }
 }

@@ -5,7 +5,7 @@ namespace Lpdf.Markdown;
 /// Produced from <see cref="LMarkdown.Styles"/>.
 /// </summary>
 public sealed record MarkdownStylesNode(
-    Dictionary<string, string> Attrs,
+    Dictionary<string, object> Attrs,
     List<MarkdownRule>         Rules) : MarkdownPart
 {
     /// <inheritdoc/>

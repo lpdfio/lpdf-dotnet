@@ -19,5 +19,5 @@ public sealed record ImgAttr
     public string? Border { get; init; }
     public string? Radius { get; init; }
     public string? Paginate { get; init; }
-    public string? Debug { get; init; }
+    public bool? Debug { get; init; }
 }

@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Lpdf;
 using Lpdf.Canvas;
@@ -16,14 +17,82 @@ namespace Lpdf.Tests;
 /// <summary>The builders write the schema's names, and what they build renders like the XML it converts to.</summary>
 public class SchemaTests
 {
+    // -- Attribute types ---------------------------------------------------------------------------
+
+    private static PdfDocument InLayout(params Node[] nodes) => L.Document(nodes: [L.Section(nodes: [L.Layout(null, nodes)])]);
+
+    [Fact]
+    public void A_typed_attribute_keeps_its_type_in_the_tree()
+    {
+        var grid = L.Grid(new GridAttr { Cols = 3, Opacity = 0.5, Debug = true });
+        Assert.Equal(new Dictionary<string, object> { ["cols"] = 3, ["opacity"] = 0.5, ["debug"] = true }, grid.Attrs);
+        Assert.Equal<object>("m", L.Text(new TextAttr { LineHeight = "m" }).Attrs["line-height"]);
+        Assert.Equal<object>(1.5, L.Text(new TextAttr { LineHeight = 1.5 }).Attrs["line-height"]);
+    }
+
+    [Fact]
+    public async Task A_typed_value_renders_as_its_text_does_in_XML()
+    {
+        var built = InLayout(L.Grid(new GridAttr { Cols = 2, Opacity = 0.5 }, [
+            L.Text(new TextAttr { Bold = true, LineHeight = 1.5 }, ["a"]),
+            L.Text(new TextAttr { LineHeight = "l" }, ["b"]),
+        ]));
+        const string xml = "<lpdf version=\"1\"><document><section><layout><grid cols=\"2\" opacity=\"0.5\">"
+            + "<text bold=\"true\" line-height=\"1.5\">a</text><text line-height=\"l\">b</text></grid></layout></section></document></lpdf>";
+
+        Assert.Equal(await Render(xml), await Render(built));
+    }
+
+    /// <summary>C# refuses a wrong type when it compiles; a node built around the classes reaches the engine, which refuses it.</summary>
+    [Fact]
+    public async Task The_engine_refuses_a_value_of_the_wrong_type()
+    {
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(new TextNode(new() { ["bold"] = "true" }, []))));
+        Assert.Contains("text: bold must be true or false, not \"true\"", error.Message);
+    }
+
+    [Fact]
+    public async Task The_engine_refuses_an_attribute_the_element_does_not_have()
+    {
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(new TextNode(new() { ["colr"] = "red" }, []))));
+        Assert.Contains("text: unknown attribute 'colr' — expected font-size, font, bold, color,", error.Message);
+    }
+
+    /// <summary>JSON has no NaN or infinity, so such a number goes as its text, which the engine refuses by name.</summary>
+    [Theory]
+    [InlineData(double.NaN, "NaN")]
+    [InlineData(double.PositiveInfinity, "Infinity")]
+    public async Task The_engine_refuses_a_number_that_is_not_finite(double opacity, string text)
+    {
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(L.Column(new ColumnAttr { Opacity = opacity }))));
+        Assert.Contains($"column: opacity must be a number from 0 to 1, not \"{text}\"", error.Message);
+    }
+
+    [Theory]
+    [InlineData(1.5, "1.5")]
+    [InlineData(double.NaN, "\"NaN\"")]
+    public void A_line_height_factor_is_written_as_a_number(double factor, string json)
+    {
+        Assert.Equal(json, JsonSerializer.Serialize<LineHeight>(factor));
+    }
+
+    [Fact]
+    public void A_line_height_name_is_written_as_a_string_and_either_reads_back()
+    {
+        Assert.Equal("\"m\"", JsonSerializer.Serialize<LineHeight>("m"));
+        Assert.Equal("m", JsonSerializer.Deserialize<LineHeight>("\"m\"").Name);
+        Assert.Equal(1.5, JsonSerializer.Deserialize<LineHeight>("1.5").Factor);
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<LineHeight>("true"));
+    }
+
     // -- Attribute names ---------------------------------------------------------------------------
 
     [Fact]
     public void Text_align_and_bold_use_the_schema_names()
     {
-        var node = L.Text(new TextAttr { Align = "right", Bold = "true" }, ["x"]);
+        var node = L.Text(new TextAttr { Align = "right", Bold = true }, ["x"]);
 
-        Assert.Equal(new Dictionary<string, string> { ["align"] = "right", ["bold"] = "true" }, node.Attrs);
+        Assert.Equal(new Dictionary<string, object> { ["align"] = "right", ["bold"] = true }, node.Attrs);
     }
 
     [Fact]
@@ -36,11 +105,11 @@ public class SchemaTests
     [Fact]
     public void Field_carries_its_type_and_name_as_attributes()
     {
-        var node = L.Field(new FieldAttr { Type = FieldType.Text, Name = "email", MaxLen = "40", ActionUrl = "https://lpdf.io" });
+        var node = L.Field(new FieldAttr { Type = FieldType.Text, Name = "email", MaxLen = 40, ActionUrl = "https://lpdf.io" });
 
         Assert.Equal("text", node.Attrs["type"]);
         Assert.Equal("email", node.Attrs["name"]);
-        Assert.Equal("40", node.Attrs["max-len"]);
+        Assert.Equal<object>(40, node.Attrs["max-len"]);
         Assert.Equal("https://lpdf.io", node.Attrs["action-url"]);
     }
 
@@ -78,10 +147,10 @@ public class SchemaTests
     [Fact]
     public void Document_font_and_debug_are_written()
     {
-        var doc = L.Document(new DocumentAttr(Font: "Times-Roman", Debug: "true"));
+        var doc = L.Document(new DocumentAttr(Font: "Times-Roman", Debug: true));
 
         Assert.Equal("Times-Roman", doc.Attrs["font"]);
-        Assert.Equal("true", doc.Attrs["debug"]);
+        Assert.Equal<object>(true, doc.Attrs["debug"]);
     }
 
     // -- Layers ------------------------------------------------------------------------------------
@@ -93,7 +162,7 @@ public class SchemaTests
 
         Assert.Equal("rect", node.Type);
         Assert.Equal(
-            new Dictionary<string, string>
+            new Dictionary<string, object>
             {
                 ["width"] = "100pt", ["height"] = "50pt", ["x"] = "10pt", ["y"] = "20pt", ["fill"] = "#ff0000", ["radius"] = "5pt",
             },
@@ -128,11 +197,11 @@ public class SchemaTests
     [Fact]
     public void Layer_attributes_are_written_as_given()
     {
-        var node = L.Layer(new LayerAttr { Page = PageScope.First, Opacity = "0.5", Transform = "rotate(45 100 100)", Clip = "0pt 0pt 200pt 100pt" });
+        var node = L.Layer(new LayerAttr { Page = PageScope.First, Opacity = 0.5, Transform = "rotate(45 100 100)", Clip = "0pt 0pt 200pt 100pt" });
 
         Assert.Equal("layer", node.Type);
         Assert.Equal("first", node.Attrs["page"]);
-        Assert.Equal("0.5", node.Attrs["opacity"]);
+        Assert.Equal<object>(0.5, node.Attrs["opacity"]);
         Assert.Equal("rotate(45 100 100)", node.Attrs["transform"]);
         Assert.Equal("0pt 0pt 200pt 100pt", node.Attrs["clip"]);
     }
@@ -150,10 +219,10 @@ public class SchemaTests
     [Fact]
     public void A_box_has_a_color_and_an_opacity()
     {
-        var node = L.Column(new ColumnAttr { Color = "text-muted", Opacity = "0.5" });
+        var node = L.Column(new ColumnAttr { Color = "text-muted", Opacity = 0.5 });
 
         Assert.Equal("text-muted", node.Attrs["color"]);
-        Assert.Equal("0.5", node.Attrs["opacity"]);
+        Assert.Equal<object>(0.5, node.Attrs["opacity"]);
     }
 
     [Fact]
@@ -246,7 +315,7 @@ public class SchemaTests
     public async Task A_text_at_is_written_under_its_element_name_with_its_content()
     {
         var doc = L.Document(null, [L.Section(null, [L.Layer(null, [
-            L.TextAt(new TextAtAttr { X = "10pt", Y = "20pt", MaxLines = "2", Width = "80pt" }, ["Page {page} of {pages}"]),
+            L.TextAt(new TextAtAttr { X = "10pt", Y = "20pt", MaxLines = 2, Width = "80pt" }, ["Page {page} of {pages}"]),
         ])])]);
 
         var xml = await L.ToXml(doc);
@@ -306,8 +375,8 @@ public class SchemaTests
             L.Section(null, [
                 L.Layout(null, [
                     L.Column(new ColumnAttr { Gap = "12pt" }, [
-                        L.Text(new TextAttr { Align = "right", Bold = "true" }, ["Title"]),
-                        L.Text(null, ["Body ", L.Span(new SpanAttr { Bold = "true" }, ["bold"]), " text"]),
+                        L.Text(new TextAttr { Align = "right", Bold = true }, ["Title"]),
+                        L.Text(null, ["Body ", L.Span(new SpanAttr { Bold = true }, ["bold"]), " text"]),
                         L.Link(new LinkAttr { Href = "https://lpdf.io" }, [L.Text(null, ["link"])]),
                     ]),
                 ]),
@@ -386,15 +455,15 @@ public class SchemaTests
         var node = L.Shape(new ShapeAttr
         {
             Type = "rect", Width = "14pt", Height = "m", Radius = "2pt", Fill = "primary",
-            Stroke = "#000000", StrokeWidth = "1pt", StrokeDash = "3 2", Opacity = "0.5",
+            Stroke = "#000000", StrokeWidth = "1pt", StrokeDash = "3 2", Opacity = 0.5,
         });
 
         Assert.Equal("shape", node.Type);
         Assert.Equal(
-            new Dictionary<string, string>
+            new Dictionary<string, object>
             {
                 ["type"] = "rect", ["width"] = "14pt", ["height"] = "m", ["radius"] = "2pt", ["fill"] = "primary",
-                ["stroke"] = "#000000", ["stroke-width"] = "1pt", ["stroke-dash"] = "3 2", ["opacity"] = "0.5",
+                ["stroke"] = "#000000", ["stroke-width"] = "1pt", ["stroke-dash"] = "3 2", ["opacity"] = 0.5,
             },
             node.Attrs);
         Assert.Equal("5pt", L.Shape(new ShapeAttr { Type = "circle", R = "5pt" }).Attrs["r"]);
@@ -449,13 +518,13 @@ public class SchemaTests
             ]),
         ])])]);
 
-        var spanning = Build(new TdAttr { Colspan = "2" });
+        var spanning = Build(new TdAttr { Colspan = 2 });
 
-        Assert.Equal("2", L.Td(new TdAttr { Colspan = "2" }).Attrs["colspan"]);
+        Assert.Equal<object>(2, L.Td(new TdAttr { Colspan = 2 }).Attrs["colspan"]);
         Assert.NotEqual(await Render(Build(null)), await Render(spanning));
         Assert.Equal(await Render(spanning), await Render(await L.ToXml(spanning)));
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new TdAttr { Colspan = "3" })));
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new TdAttr { Colspan = 3 })));
         Assert.Contains("span 4 columns, but the table has 3", error.Message);
     }
 
@@ -469,20 +538,20 @@ public class SchemaTests
             ]),
         ])])]);
 
-        var spanning = Build(new TdAttr { Rowspan = "2" });
+        var spanning = Build(new TdAttr { Rowspan = 2 });
 
-        Assert.Equal("2", L.Td(new TdAttr { Rowspan = "2" }).Attrs["rowspan"]);
+        Assert.Equal<object>(2, L.Td(new TdAttr { Rowspan = 2 }).Attrs["rowspan"]);
         Assert.NotEqual(await Render(Build(null)), await Render(spanning));
         Assert.Equal(await Render(spanning), await Render(await L.ToXml(spanning)));
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new TdAttr { Rowspan = "3" })));
+        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new TdAttr { Rowspan = 3 })));
         Assert.Contains("a rowspan that runs 1 row past the last row of the table", error.Message);
     }
 
     [Fact]
     public async Task A_footnote_is_an_fn_child_of_a_text_and_the_counter_is_an_attribute_of_the_document_and_a_section()
     {
-        var text = L.Text(L.NoAttr, ["Total", L.Fn(L.NoAttr, ["See ", L.Span(new SpanAttr { Bold = "true" }, ["this"]), "."]), " here"]);
+        var text = L.Text(L.NoAttr, ["Total", L.Fn(L.NoAttr, ["See ", L.Span(new SpanAttr { Bold = true }, ["this"]), "."]), " here"]);
         var document = L.Document(
             new DocumentAttr(FootnoteCounter: FootnoteCounter.Document),
             [L.Section(new SectionAttr(FootnoteCounter: FootnoteCounter.Page), [L.Layout(null, [text])])]);
@@ -526,7 +595,7 @@ public class SchemaTests
     public async Task A_code_and_a_code_span_are_written_as_their_elements_and_render_the_same_from_the_builder_and_its_XML()
     {
         var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
-            L.Code(new CodeAttr { TabSize = "2" }, ["\nfn a() {\n\tb(", L.Span(new SpanAttr { Color = "#c0392b" }, ["x"]), ");\n}\n"]),
+            L.Code(new CodeAttr { TabSize = 2 }, ["\nfn a() {\n\tb(", L.Span(new SpanAttr { Color = "#c0392b" }, ["x"]), ");\n}\n"]),
             L.Text(null, ["Run ", L.CodeSpan(new CodeSpanAttr { Background = "#ffff00" }, ["cargo test"]), " now"]),
         ])])]);
 
@@ -550,9 +619,9 @@ public class SchemaTests
         var pdf = await Render(Build(lines));
         Assert.True(System.Text.RegularExpressions.Regex.Matches(pdf, @"/Type\s*/Page[^s]").Count >= 2, "the code splits across pages");
 
-        var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [L.Code(new CodeAttr { TabSize = "0" }, ["x"])])])]);
+        var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [L.Code(new CodeAttr { TabSize = 0 }, ["x"])])])]);
         var error = await Assert.ThrowsAsync<EngineException>(() => Render(document));
-        Assert.Contains("invalid tab-size", error.Message);
+        Assert.Contains("tab-size must be a whole number from 1 to 16, not 0", error.Message);
     }
 
     [Fact]
@@ -581,7 +650,7 @@ public class SchemaTests
 
         var bullets = await Render(Build(null));
         var numbers = await Render(Build(new ListAttr { Type = "number" }));
-        var roman   = await Render(Build(new ListAttr { Type = "number", Format = "lower-roman", Start = "3" }));
+        var roman   = await Render(Build(new ListAttr { Type = "number", Format = "lower-roman", Start = 3 }));
         Assert.NotEqual(bullets, numbers);
         Assert.NotEqual(numbers, roman);
 
@@ -605,7 +674,7 @@ public class SchemaTests
         PdfDocument Build(string background) => L.Document(
             new DocumentAttr(Tokens: new DocumentTokens(Gradients: new()
             {
-                ["fade"] = new() { ["type"] = "linear", ["from"] = "#ff0000", ["to"] = "#0000ff", ["angle"] = 90 },
+                ["fade"] = new Gradient { Type = "linear", From = "#ff0000", To = "#0000ff", Angle = 90 },
             })),
             [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Background = background, Height = "60pt" })])])]);
 
@@ -632,14 +701,14 @@ public class SchemaTests
     [Fact]
     public void Bookmark_goes_in_a_layout_and_directly_in_a_section()
     {
-        var bookmark = L.Bookmark(new BookmarkAttr { Label = "Methods", Level = "2", Id = "methods" });
-        Assert.Equal(new Dictionary<string, string> { ["label"] = "Methods", ["level"] = "2", ["id"] = "methods" }, bookmark.Attrs);
+        var bookmark = L.Bookmark(new BookmarkAttr { Label = "Methods", Level = 2, Id = "methods" });
+        Assert.Equal(new Dictionary<string, object> { ["label"] = "Methods", ["level"] = 2, ["id"] = "methods" }, bookmark.Attrs);
 
         var section = L.Section(new SectionAttr(Type: SectionType.Toc, TocIndentStep: "14pt"), [
             L.Bookmark(new BookmarkAttr { Label = "Contents" }),
             L.Layout(null, [bookmark, L.Text(null, ["Methods"])]),
         ]);
-        Assert.Equal(new Dictionary<string, string> { ["type"] = "toc", ["toc-indent-step"] = "14pt" }, section.Attrs);
+        Assert.Equal(new Dictionary<string, object> { ["type"] = "toc", ["toc-indent-step"] = "14pt" }, section.Attrs);
         Assert.Equal("bookmark", Assert.IsType<SectionBookmark>(section.Nodes[0]).Type);
     }
 
@@ -681,11 +750,11 @@ public class SchemaTests
         var document = L.Document(new DocumentAttr(Assets: assets));
 
         var declared = Assert.IsType<Dictionary<string, object?>>(document.Attrs["assets"]);
-        var fonts = Assert.IsType<List<Dictionary<string, string>>>(declared["fonts"]);
-        var images = Assert.IsType<List<Dictionary<string, string>>>(declared["images"]);
-        Assert.Equal(new Dictionary<string, string> { ["name"] = "heading", ["core"] = "Times-Bold" }, fonts.Single());
+        var fonts = Assert.IsType<List<Dictionary<string, object>>>(declared["fonts"]);
+        var images = Assert.IsType<List<Dictionary<string, object>>>(declared["images"]);
+        Assert.Equal(new Dictionary<string, object> { ["name"] = "heading", ["core"] = "Times-Bold" }, fonts.Single());
         Assert.Equal(
-            new Dictionary<string, string> { ["name"] = "logo", ["ref"] = "company-logo", ["src"] = "logo.png" },
+            new Dictionary<string, object> { ["name"] = "logo", ["ref"] = "company-logo", ["src"] = "logo.png" },
             images.Single());
         Assert.Same(assets, L.Assets(assets));
     }
@@ -770,14 +839,14 @@ public class SchemaTests
     [Fact]
     public void A_markdown_its_styles_its_content_and_their_rules_are_built_with_the_schema_names()
     {
-        var markdown = L.Markdown(new MarkdownAttr { Margin = "54pt", Gap = "m", Bookmarks = "2" });
+        var markdown = L.Markdown(new MarkdownAttr { Margin = "54pt", Gap = "m", Bookmarks = 2 });
         Assert.Equal("markdown", markdown.Type);
-        Assert.Equal(new Dictionary<string, string> { ["margin"] = "54pt", ["gap"] = "m", ["bookmarks"] = "2" }, markdown.Attrs);
+        Assert.Equal(new Dictionary<string, object> { ["margin"] = "54pt", ["gap"] = "m", ["bookmarks"] = 2 }, markdown.Attrs);
 
         var styles = LMarkdown.Styles(new MarkdownStylesAttr { Src = "styles.xml" }, [LMarkdown.H1(new MarkdownH1Attr { FontSize = "xl", Color = "muted" })]);
         Assert.Equal("markdown-styles", styles.Type);
         Assert.Equal("h1", styles.Rules[0].RuleType);
-        Assert.Equal(new Dictionary<string, string> { ["font-size"] = "xl", ["color"] = "muted" }, styles.Rules[0].Attrs);
+        Assert.Equal(new Dictionary<string, object> { ["font-size"] = "xl", ["color"] = "muted" }, styles.Rules[0].Attrs);
         Assert.Equal("quote", LMarkdown.Quote(new MarkdownQuoteAttr { BarColor = "primary" }).RuleType);
         Assert.Empty(LMarkdown.Em(L.NoAttr).Attrs);
         Assert.Equal(["# a"], LMarkdown.Content(L.NoAttr, ["# a"]).Text);

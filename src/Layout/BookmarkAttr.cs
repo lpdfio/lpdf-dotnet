@@ -10,7 +10,7 @@ public sealed record BookmarkAttr
     public required string Label { get; init; }
 
     /// <summary>Depth in the outline, 1 to 6. Defaults to 1. An entry nests under the closest entry before it with a lower level.</summary>
-    public string? Level { get; init; }
+    public int? Level { get; init; }
 
     /// <summary>The name links use to jump here, as href="#id". Leave it out to make it from the label: lowercase, with other characters than letters and digits turned into hyphens, and -2, -3 added when an earlier bookmark has it. Two bookmarks may not have the same id.</summary>
     public string? Id { get; init; }

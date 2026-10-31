@@ -26,10 +26,10 @@ var doc = L.Document(new() { Size = "letter" }, [
             L.Column(new() { Gap = "24pt" }, [
                 L.Row(new() { Justify = "between" }, [
                     L.Text(new() { FontSize = "8pt", Color = "#888888" }, ["ACME CORP"]),
-                    L.Text(new() { FontSize = "22pt", Bold = "true" }, ["Project Proposal"]),
+                    L.Text(new() { FontSize = "22pt", Bold = true }, ["Project Proposal"]),
                 ]),
                 L.Divider(new() { Thickness = "xs" }),
-                L.Text(new() { FontSize = "13pt", Bold = "true" }, ["Scope of Work"]),
+                L.Text(new() { FontSize = "13pt", Bold = true }, ["Scope of Work"]),
                 L.Row(new() { Gap = "12pt", Align = "start" }, [
                     L.Text(new() { Color = "#888888", Width = "24pt" }, ["01"]),
                     L.Text(new() { Width = "fill" }, ["Discovery & Research"]),

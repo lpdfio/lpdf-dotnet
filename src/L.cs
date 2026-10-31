@@ -82,7 +82,8 @@ public static class L
             if (t.Width  is not null) td["width"]  = t.Width;
             if (t.TextSize is not null) td["text-size"] = t.TextSize;
             if (t.LineHeight is not null) td["line-height"] = t.LineHeight;
-            if (t.Gradients is not null) td["gradients"] = t.Gradients;
+            if (t.Gradients is not null)
+                td["gradients"] = t.Gradients.ToDictionary(entry => entry.Key, entry => GradientAttrs(entry.Value), StringComparer.Ordinal);
             if (t.Aliases is not null) td["aliases"] = t.Aliases;
             if (t.Height is not null) td["height"] = t.Height;
             d["tokens"] = td;
@@ -117,6 +118,15 @@ public static class L
             d["attachments"] = a.Attachments.Select(file => AttrsHelper.Attrs(file)).ToList();
 
         return new PdfDocument(d, (nodes ?? []).ToList());
+    }
+
+    /// <summary>A gradient as the document tree takes it: its attributes that are set, and its stops.</summary>
+    private static Dictionary<string, object> GradientAttrs(Gradient gradient)
+    {
+        var attrs = AttrsHelper.Attrs(gradient);
+        if (gradient.Stops is { Count: > 0 } stops)
+            attrs["stops"] = stops.Select(stop => AttrsHelper.Attrs(stop)).ToList();
+        return attrs;
     }
 
     /// <summary>

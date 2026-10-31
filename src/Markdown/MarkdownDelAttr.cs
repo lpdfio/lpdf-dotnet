@@ -8,5 +8,5 @@ public sealed record MarkdownDelAttr
 {
     public string? Font { get; init; }
     public string? Color { get; init; }
-    public string? Strike { get; init; }
+    public bool? Strike { get; init; }
 }

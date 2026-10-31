@@ -10,9 +10,9 @@ public class TextContentTests
     [Fact]
     public void Text_takes_attributes_first_and_content_second()
     {
-        var node = L.Text(new TextAttr { Bold = "true" }, ["Hello"]);
+        var node = L.Text(new TextAttr { Bold = true }, ["Hello"]);
 
-        Assert.Equal("true", node.Attrs["bold"]);
+        Assert.Equal<object>(true, node.Attrs["bold"]);
         Assert.Single(node.Children);
     }
 
@@ -30,14 +30,14 @@ public class TextContentTests
     {
         var node = L.Text(L.NoAttr, [
             "Total: ",
-            L.Span(new SpanAttr { Bold = "true" }, ["$100"]),
+            L.Span(new SpanAttr { Bold = true }, ["$100"]),
             " due",
         ]);
 
         Assert.Equal(3, node.Children.Count);
         Assert.False(node.Children[0] is SpanNode);
         var span = Assert.IsType<SpanNode>(node.Children[1]);
-        Assert.Equal("true", span.Attrs["bold"]);
+        Assert.Equal<object>(true, span.Attrs["bold"]);
         Assert.False(node.Children[2] is SpanNode);
     }
 
@@ -84,7 +84,7 @@ public class TextContentTests
         var doc = L.Document(new DocumentAttr(Size: "a4"), [
             L.Section(L.NoAttr, [
                 L.Layout(L.NoAttr, [
-                    L.Text(new TextAttr { FontSize = "14pt" }, ["Total: ", L.Span(new SpanAttr { Bold = "true" }, ["$100"])]),
+                    L.Text(new TextAttr { FontSize = "14pt" }, ["Total: ", L.Span(new SpanAttr { Bold = true }, ["$100"])]),
                 ]),
             ]),
         ]);

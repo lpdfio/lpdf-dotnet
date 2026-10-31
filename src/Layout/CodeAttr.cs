@@ -22,27 +22,27 @@ public sealed record CodeAttr
     public string? Radius { get; init; }
 
     /// <summary>How opaque the box and everything in it is, from 0 to 1. The box is faded as one, so children that overlap do not show through each other, and a box inside a faded box is faded further: 0.5 inside 0.5 is drawn at 0.25. A form field in the box is not faded. Default 1.</summary>
-    public string? Opacity { get; init; }
+    public double? Opacity { get; init; }
 
     /// <summary>A hard-edged shadow: a copy of the box, moved right and down by the first two lengths (negative is left and up) and filled with the color, drawn under the box with the same radius. An opacity from 0 to 1 after the color fades the shadow alone: "2pt 3pt #000000 0.2". There is no blur. The shadow takes no room in the layout, so it can run into the margin or a neighbor, and the siblings after the box are drawn over it. A box with no background shows the shadow only outside it. The box's own opacity fades the box and its shadow together.</summary>
     public string? Shadow { get; init; }
 
     /// <summary>Where the box falls in the page flow. no: never split the box, and move it whole to the next page when it does not fit. break-before: start it on a new page. break-after: start the next sibling on a new page. keep-next: keep it on one page with the sibling that follows, moving both to the next page if that sibling would not fit and cannot start on this page: a table splits after its header and a row, and a text after a few lines, and then it stays with that first part. break-before, break-after and keep-next take effect on the children of layout; on a box inside another box they are not applied. no applies at any depth.</summary>
     public string? Paginate { get; init; }
-    public string? Debug { get; init; }
+    public bool? Debug { get; init; }
 
     /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
 
     /// <summary>How many columns a tab fills to: it moves the next character to the next multiple of this many characters from the start of the line. Default 4.</summary>
-    public string? TabSize { get; init; }
+    public int? TabSize { get; init; }
 
     /// <summary>The distance between lines, as a factor of the font size: a number above 0, such as 1.5, or a name from the line-height row of the tokens. Default 1.2, which is the token m.</summary>
-    public string? LineHeight { get; init; }
+    public LineHeight? LineHeight { get; init; }
 
     /// <summary>The fewest lines of the code that may stand alone at the top of the next page when it splits. Default 2. If fewer would be left, lines move from the first page to the next; 1 turns the protection off.</summary>
-    public string? Widows { get; init; }
+    public int? Widows { get; init; }
 
     /// <summary>The fewest lines of the code that may stand alone at the bottom of a page when it splits. Default 2. If fewer would fit, the whole code moves to the next page; 1 turns the protection off.</summary>
-    public string? Orphans { get; init; }
+    public int? Orphans { get; init; }
 }

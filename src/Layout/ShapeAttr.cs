@@ -25,6 +25,6 @@ public sealed record ShapeAttr
     public string? StrokeDash { get; init; }
 
     /// <summary>How opaque the shape is, from 0 to 1. Default 1.</summary>
-    public string? Opacity { get; init; }
-    public string? Debug { get; init; }
+    public double? Opacity { get; init; }
+    public bool? Debug { get; init; }
 }

@@ -2,7 +2,7 @@ namespace Lpdf.Layout;
 
 /// <summary>A serialised <c>region</c> node — an absolutely positioned overlay/underlay block.</summary>
 public sealed record RegionNode(
-    Dictionary<string, string> Attrs,
+    Dictionary<string, object> Attrs,
     List<Node>                 Nodes) : Node
 {
     /// <inheritdoc/>

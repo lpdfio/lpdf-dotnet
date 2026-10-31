@@ -8,6 +8,6 @@ public sealed record MarkdownAAttr
 {
     public string? Font { get; init; }
     public string? Color { get; init; }
-    public string? Bold { get; init; }
-    public string? Underline { get; init; }
+    public bool? Bold { get; init; }
+    public bool? Underline { get; init; }
 }

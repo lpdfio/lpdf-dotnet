@@ -5,7 +5,7 @@ namespace Lpdf.Kit;
 /// Produced from <see cref="L.Bookmark"/>.
 /// </summary>
 public sealed record SectionBookmark(
-    Dictionary<string, string> Attrs) : SectionContent
+    Dictionary<string, object> Attrs) : SectionContent
 {
     /// <inheritdoc/>
     public override string Type => "bookmark";
