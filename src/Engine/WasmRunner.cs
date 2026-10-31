@@ -2,7 +2,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Linq;
 using Wasmtime;
@@ -117,10 +116,16 @@ internal sealed class WasmRunner : IDisposable
         IReadOnlyDictionary<string, string>? markdownStyles = null,
         IReadOnlyDictionary<string, byte[]>? fileBytes = null)
     {
-        var fonts  = ResolveAllFonts(input, fontBytes, srcFallback, isTree);
-        var images = ResolveAllImages(input, imageBytes, srcFallback, isTree);
-        var styles = ResolveAllMarkdownStyles(input, markdownStyles, srcFallback, isTree);
-        var files  = ResolveAllFiles(input, fileBytes, srcFallback, isTree);
+        // An XML document is parsed once, for the src of every file it names.
+        var xml    = isTree ? null : ParseXml(input);
+        var fonts  = ResolveAllFonts(
+            isTree ? ExtractAssetSrcsFromJson(input, "fonts") : ExtractSrcsFromXml(xml, "assets", "font"), fontBytes, srcFallback);
+        var images = ResolveAllImages(
+            isTree ? ExtractAssetSrcsFromJson(input, "images") : ExtractSrcsFromXml(xml, "assets", "image"), imageBytes, srcFallback);
+        var styles = ResolveAllMarkdownStyles(
+            isTree ? ExtractMarkdownStylesSrcsFromJson(input) : ExtractMarkdownStylesSrcsFromXml(xml), markdownStyles, srcFallback);
+        var files  = ResolveAllFiles(
+            isTree ? ExtractFileSrcsFromJson(input) : ExtractSrcsFromXml(xml, "attachments", "file"), fileBytes, srcFallback);
 
         var fontsNode = new JsonObject();
         foreach (var (name, bytes) in fonts)
@@ -195,17 +200,15 @@ internal sealed class WasmRunner : IDisposable
     }
 
     private static IReadOnlyDictionary<string, byte[]> ResolveAllFonts(
-        string input,
+        Dictionary<string, string>           srcs,
         IReadOnlyDictionary<string, byte[]>? fontBytes,
-        Func<string, byte[]>?                srcFallback,
-        bool                                 isTree)
+        Func<string, byte[]>?                srcFallback)
     {
         if (srcFallback is null)
             return fontBytes ?? new Dictionary<string, byte[]>();
 
         var merged = new Dictionary<string, byte[]>(fontBytes ?? new Dictionary<string, byte[]>());
-        var srcPaths = isTree ? ExtractAssetSrcsFromJson(input, "fonts") : ExtractFontSrcsFromXml(input);
-        foreach (var (name, src) in srcPaths)
+        foreach (var (name, src) in srcs)
         {
             if (merged.ContainsKey(name)) continue;
             try   { merged[name] = srcFallback(src); }
@@ -215,16 +218,14 @@ internal sealed class WasmRunner : IDisposable
     }
 
     private static IReadOnlyDictionary<string, byte[]> ResolveAllImages(
-        string input,
+        Dictionary<string, string>           srcs,
         IReadOnlyDictionary<string, byte[]>? imageBytes,
-        Func<string, byte[]>?                srcFallback,
-        bool                                 isTree)
+        Func<string, byte[]>?                srcFallback)
     {
         var merged = new Dictionary<string, byte[]>(imageBytes ?? new Dictionary<string, byte[]>());
         if (srcFallback is null) return merged;
 
-        var srcPaths = isTree ? ExtractAssetSrcsFromJson(input, "images") : ExtractImageSrcsFromXml(input);
-        foreach (var (name, src) in srcPaths)
+        foreach (var (name, src) in srcs)
         {
             if (merged.ContainsKey(name)) continue;
             try   { merged[name] = srcFallback(src); }
@@ -239,14 +240,12 @@ internal sealed class WasmRunner : IDisposable
     /// error that names the file, so the engine's "no bytes" never stands for a path that was given.
     /// </summary>
     private static Dictionary<string, byte[]> ResolveAllFiles(
-        string input,
+        Dictionary<string, string>           srcs,
         IReadOnlyDictionary<string, byte[]>? fileBytes,
-        Func<string, byte[]>?                srcFallback,
-        bool                                 isTree)
+        Func<string, byte[]>?                srcFallback)
     {
         var merged = new Dictionary<string, byte[]>(fileBytes ?? new Dictionary<string, byte[]>(), StringComparer.Ordinal);
-        var srcPaths = isTree ? ExtractFileSrcsFromJson(input) : ExtractFileSrcsFromXml(input);
-        foreach (var (key, src) in srcPaths)
+        foreach (var (key, src) in srcs)
         {
             if (merged.ContainsKey(key)) continue;
             if (srcFallback is null)
@@ -266,27 +265,36 @@ internal sealed class WasmRunner : IDisposable
     }
 
     /// <summary>
-    /// The <c>ref ?? name → src</c> pairs of the <c>&lt;file&gt;</c> elements of a document's <c>&lt;attachments&gt;</c>,
-    /// read with an XML parser as the engine reads them: entities decoded, and what is in a comment or CDATA left out.
-    /// XML that doesn't parse carries no file here; the engine says what is wrong with it.
+    /// An XML document read with an XML parser, as the engine reads it, for the <c>src</c> of the files it names:
+    /// entities decoded, and what is in a comment or CDATA left out. XML that doesn't parse is <c>null</c> and names no
+    /// file here; the engine says what is wrong with it.
     /// </summary>
-    private static Dictionary<string, string> ExtractFileSrcsFromXml(string xml)
+    private static XDocument? ParseXml(string xml)
     {
-        var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        XDocument document;
         try
         {
             // The default settings refuse a DTD, so no entity of the document reaches outside it.
-            document = XDocument.Parse(xml);
+            return XDocument.Parse(xml);
         }
         catch (XmlException)
         {
-            return result;
+            return null;
         }
-        foreach (var file in document.Descendants("file").Where(f => f.Parent?.Name.LocalName == "attachments"))
+    }
+
+    /// <summary>
+    /// The <c>ref ?? name → src</c> pairs of the <paramref name="element"/> elements of each
+    /// <paramref name="parent"/> of a document: the <c>font</c> and <c>image</c> of its <c>assets</c>, or the
+    /// <c>file</c> of its <c>attachments</c>.
+    /// </summary>
+    private static Dictionary<string, string> ExtractSrcsFromXml(XDocument? document, string parent, string element)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (document is null) return result;
+        foreach (var declared in document.Descendants(element).Where(e => e.Parent?.Name.LocalName == parent))
         {
-            var key = (string?)file.Attribute("ref") ?? (string?)file.Attribute("name");
-            var src = (string?)file.Attribute("src");
+            var key = (string?)declared.Attribute("ref") ?? (string?)declared.Attribute("name");
+            var src = (string?)declared.Attribute("src");
             if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(src))
                 result[key] = src;
         }
@@ -323,15 +331,13 @@ internal sealed class WasmRunner : IDisposable
     /// <c>src</c>.
     /// </summary>
     private static Dictionary<string, string> ResolveAllMarkdownStyles(
-        string input,
+        List<string>                         srcs,
         IReadOnlyDictionary<string, string>? markdownStyles,
-        Func<string, byte[]>?                srcFallback,
-        bool                                 isTree)
+        Func<string, byte[]>?                srcFallback)
     {
         var merged = new Dictionary<string, string>(markdownStyles ?? new Dictionary<string, string>(), StringComparer.Ordinal);
         if (srcFallback is null) return merged;
 
-        var srcs = isTree ? ExtractMarkdownStylesSrcsFromJson(input) : ExtractMarkdownStylesSrcsFromXml(input);
         foreach (var src in srcs)
         {
             if (merged.ContainsKey(src)) continue;
@@ -341,15 +347,16 @@ internal sealed class WasmRunner : IDisposable
         return merged;
     }
 
-    private static List<string> ExtractMarkdownStylesSrcsFromXml(string xml)
+    /// <summary>The <c>src</c> of the <c>markdown-styles</c> of each <c>markdown</c> of a document.</summary>
+    private static List<string> ExtractMarkdownStylesSrcsFromXml(XDocument? document)
     {
-        var result = new List<string>();
-        foreach (Match m in Regex.Matches(xml, @"<markdown-styles\s[^>]*>"))
-        {
-            var src = Regex.Match(m.Value, @"\bsrc=""([^""]*)""").Groups[1].Value;
-            if (!string.IsNullOrEmpty(src)) result.Add(src);
-        }
-        return result;
+        if (document is null) return [];
+        return document.Descendants("markdown-styles")
+            .Where(e => e.Parent?.Name.LocalName == "markdown")
+            .Select(e => (string?)e.Attribute("src"))
+            .OfType<string>()
+            .Where(src => src.Length > 0)
+            .ToList();
     }
 
     /// <summary>The <c>src</c> of each <c>markdown-styles</c> in the markdown of any section of a document tree.</summary>
@@ -378,38 +385,6 @@ internal sealed class WasmRunner : IDisposable
         catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException)
         {
             // A tree that is not shaped like a document names no files of rules.
-        }
-        return result;
-    }
-
-    private static Dictionary<string, string> ExtractFontSrcsFromXml(string xml)
-    {
-        var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (Match m in Regex.Matches(xml, @"<font\s[^>]*>"))
-        {
-            var tag  = m.Value;
-            var name = Regex.Match(tag, @"\bname=""([^""]*)""").Groups[1].Value;
-            var refv = Regex.Match(tag, @"\bref=""([^""]*)""").Groups[1].Value;
-            var src  = Regex.Match(tag, @"\bsrc=""([^""]*)""").Groups[1].Value;
-            var key  = !string.IsNullOrEmpty(refv) ? refv : name;
-            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(src))
-                result[key] = src;
-        }
-        return result;
-    }
-
-    private static Dictionary<string, string> ExtractImageSrcsFromXml(string xml)
-    {
-        var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (Match m in Regex.Matches(xml, @"<image\s[^>]*>"))
-        {
-            var tag  = m.Value;
-            var name = Regex.Match(tag, @"\bname=""([^""]*)""").Groups[1].Value;
-            var refv = Regex.Match(tag, @"\bref=""([^""]*)""").Groups[1].Value;
-            var src  = Regex.Match(tag, @"\bsrc=""([^""]*)""").Groups[1].Value;
-            var key  = !string.IsNullOrEmpty(refv) ? refv : name;
-            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(src))
-                result[key] = src;
         }
         return result;
     }
