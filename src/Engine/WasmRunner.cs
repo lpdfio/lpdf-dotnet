@@ -58,8 +58,9 @@ internal sealed class WasmRunner : IDisposable
         EncryptionRequest?                   encryption = null,
         string?                              createdOn = null,
         string?                              dataJson = null,
-        IReadOnlyDictionary<string, string>? markdownStyles = null)
-        => InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, encryption, createdOn, dataJson, markdownStyles);
+        IReadOnlyDictionary<string, string>? markdownStyles = null,
+        IReadOnlyDictionary<string, byte[]>? fileBytes = null)
+        => InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, encryption, createdOn, dataJson, markdownStyles, fileBytes);
 
     /// <summary>
     /// Render an lpdf JSON document tree to raw PDF bytes.
@@ -72,8 +73,9 @@ internal sealed class WasmRunner : IDisposable
         Func<string, byte[]>?                srcFallback,
         EncryptionRequest?                   encryption = null,
         string?                              createdOn = null,
-        IReadOnlyDictionary<string, string>? markdownStyles = null)
-        => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryption, createdOn, null, markdownStyles);
+        IReadOnlyDictionary<string, string>? markdownStyles = null,
+        IReadOnlyDictionary<string, byte[]>? fileBytes = null)
+        => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryption, createdOn, null, markdownStyles, fileBytes);
 
     /// <summary>
     /// Convert a JSON kit-tree (produced by <c>LpdfKit</c>) to an lpdf XML string.
@@ -110,11 +112,13 @@ internal sealed class WasmRunner : IDisposable
         EncryptionRequest?                   encryption = null,
         string?                              createdOn = null,
         string?                              dataJson = null,
-        IReadOnlyDictionary<string, string>? markdownStyles = null)
+        IReadOnlyDictionary<string, string>? markdownStyles = null,
+        IReadOnlyDictionary<string, byte[]>? fileBytes = null)
     {
         var fonts  = ResolveAllFonts(input, fontBytes, srcFallback, isTree);
         var images = ResolveAllImages(input, imageBytes, srcFallback, isTree);
         var styles = ResolveAllMarkdownStyles(input, markdownStyles, srcFallback, isTree);
+        var files  = ResolveAllFiles(input, fileBytes, srcFallback, isTree);
 
         var fontsNode = new JsonObject();
         foreach (var (name, bytes) in fonts)
@@ -136,6 +140,14 @@ internal sealed class WasmRunner : IDisposable
             foreach (var (name, bytes) in images)
                 imagesNode[name] = Convert.ToBase64String(bytes);
             requestObj["images"] = imagesNode;
+        }
+
+        if (files.Count > 0)
+        {
+            var filesNode = new JsonObject();
+            foreach (var (name, bytes) in files)
+                filesNode[name] = Convert.ToBase64String(bytes);
+            requestObj["files"] = filesNode;
         }
 
         if (styles.Count > 0)
@@ -217,6 +229,78 @@ internal sealed class WasmRunner : IDisposable
             catch { /* skip unresolvable images */ }
         }
         return merged;
+    }
+
+    /// <summary>
+    /// The files the document carries: the ones loaded, and the ones the <paramref name="srcFallback"/> reads from the
+    /// <c>src</c> of a file that wasn't. A <c>src</c> that can't be read, or that there is no fallback to read, is an
+    /// error that names the file, so the engine's "no bytes" never stands for a path that was given.
+    /// </summary>
+    private static Dictionary<string, byte[]> ResolveAllFiles(
+        string input,
+        IReadOnlyDictionary<string, byte[]>? fileBytes,
+        Func<string, byte[]>?                srcFallback,
+        bool                                 isTree)
+    {
+        var merged = new Dictionary<string, byte[]>(fileBytes ?? new Dictionary<string, byte[]>(), StringComparer.Ordinal);
+        var srcPaths = isTree ? ExtractFileSrcsFromJson(input) : ExtractTagSrcsFromXml(input, "file");
+        foreach (var (key, src) in srcPaths)
+        {
+            if (merged.ContainsKey(key)) continue;
+            if (srcFallback is null)
+                throw new EngineException(
+                    $"file '{key}' of <attachments> has the src '{src}', and the engine has no SrcFallback to read it: " +
+                    $"create it with new EngineOptions {{ SrcFallback = File.ReadAllBytes }}, or load the file with LoadFile(\"{key}\", bytes)");
+            try
+            {
+                merged[key] = srcFallback(src);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+            {
+                throw new EngineException($"file '{key}' of <attachments>: cannot read its src '{src}': {e.Message}");
+            }
+        }
+        return merged;
+    }
+
+    /// <summary>The <c>ref ?? name → src</c> pairs of the elements named <paramref name="tag"/> in XML.</summary>
+    private static Dictionary<string, string> ExtractTagSrcsFromXml(string xml, string tag)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (Match m in Regex.Matches(xml, $@"<{tag}\s[^>]*>"))
+        {
+            var name = Regex.Match(m.Value, @"\bname=""([^""]*)""").Groups[1].Value;
+            var refv = Regex.Match(m.Value, @"\bref=""([^""]*)""").Groups[1].Value;
+            var src  = Regex.Match(m.Value, @"\bsrc=""([^""]*)""").Groups[1].Value;
+            var key  = !string.IsNullOrEmpty(refv) ? refv : name;
+            if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(src))
+                result[key] = src;
+        }
+        return result;
+    }
+
+    /// <summary>The <c>ref ?? name → src</c> pairs of the files a document tree carries in its <c>attachments</c>.</summary>
+    private static Dictionary<string, string> ExtractFileSrcsFromJson(string json)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (!doc.RootElement.TryGetProperty("attrs", out var attrs)) return result;
+            if (!attrs.TryGetProperty("attachments", out var files)) return result;
+            foreach (var file in files.EnumerateArray())
+            {
+                if (!file.TryGetProperty("src", out var srcElement) || srcElement.GetString() is not { } src) continue;
+                var name = file.GetProperty("name").GetString();
+                var key  = file.TryGetProperty("ref", out var refElement) ? refElement.GetString() ?? name : name;
+                if (key is not null) result[key] = src;
+            }
+        }
+        catch (Exception e) when (e is JsonException or InvalidOperationException or KeyNotFoundException)
+        {
+            // A tree that is not shaped like a document carries no files to read; the engine says what is wrong.
+        }
+        return result;
     }
 
     /// <summary>
