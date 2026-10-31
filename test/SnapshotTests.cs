@@ -217,6 +217,82 @@ public class EngineFeatureTests
         await Assert.ThrowsAsync<EngineException>(() => engine.Render(document));
     }
 
+    private static PdfDocument WithAttachments(params FileAttr[] files)
+        => L.Document(new DocumentAttr(Attachments: files), [L.Section(null, [L.Layout(null, [L.Text(null, ["Invoice"])])])]);
+
+    private static int EmbeddedFiles(byte[] pdf)
+        => System.Text.RegularExpressions.Regex.Matches(System.Text.Encoding.Latin1.GetString(pdf), "/Type /EmbeddedFile").Count;
+
+    [Fact]
+    public async Task Embeds_the_files_a_document_carries_from_LoadFile_or_their_src()
+    {
+        var terms = Path.GetTempFileName();
+        File.WriteAllText(terms, "Terms of sale");
+        try
+        {
+            var document = WithAttachments(
+                new FileAttr { Name = "invoice.xml", Ref = "invoice", Mime = "text/xml", Relationship = FileRelationship.Data },
+                new FileAttr { Name = "terms.txt", Src = terms, Description = "The terms" });
+            using var engine = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
+            engine.LoadFile("invoice", System.Text.Encoding.UTF8.GetBytes("<invoice/>"));
+
+            var pdf = await engine.Render(document);
+            Assert.Equal(2, EmbeddedFiles(pdf));
+            Assert.Contains("/AFRelationship /Data", System.Text.Encoding.Latin1.GetString(pdf));
+            Assert.Contains("/Subtype /text#2Fxml", System.Text.Encoding.Latin1.GetString(pdf));
+            Assert.Equal(pdf, await engine.Render(await L.ToXml(document)));
+        }
+        finally
+        {
+            File.Delete(terms);
+        }
+    }
+
+    [Fact]
+    public async Task A_file_src_without_a_SrcFallback_or_that_cannot_be_read_is_an_error_that_names_it()
+    {
+        var document = WithAttachments(new FileAttr { Name = "data.csv", Src = "/no/such/data.csv" });
+
+        using var plain = L.Engine().SetLicenseKey("test-key");
+        var noFallback = await Assert.ThrowsAsync<EngineException>(() => plain.Render(document));
+        Assert.Contains("SrcFallback", noFallback.Message);
+        Assert.Contains("data.csv", noFallback.Message);
+
+        using var reading = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
+        var unreadable = await Assert.ThrowsAsync<EngineException>(() => reading.Render(document));
+        Assert.Contains("cannot read its src '/no/such/data.csv'", unreadable.Message);
+    }
+
+    [Fact]
+    public async Task Reads_the_src_of_a_file_as_the_engine_reads_its_XML()
+    {
+        var folder = Directory.CreateTempSubdirectory("lpdf-files-");
+        try
+        {
+            File.WriteAllText(Path.Combine(folder.FullName, "R&D terms.txt"), "Terms");
+            var document = WithAttachments(
+                new FileAttr { Name = "Terms & Conditions.txt", Src = Path.Combine(folder.FullName, "R&D terms.txt"), Description = "Rows > 100" });
+            var xml = (await L.ToXml(document))
+                .Replace("<attachments>", "<attachments><!-- <file name=\"old.csv\" src=\"/no/such/old.csv\"/> -->");
+
+            using var engine = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
+            Assert.Equal(1, EmbeddedFiles(await engine.Render(xml)));
+            Assert.Equal(await engine.Render(document), await engine.Render(xml));
+        }
+        finally
+        {
+            folder.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task A_file_with_no_bytes_is_an_error_that_says_how_to_load_it()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var error = await Assert.ThrowsAsync<EngineException>(() => engine.Render(WithAttachments(new FileAttr { Name = "a.xml" })));
+        Assert.Contains("loadFile('a.xml', bytes)", error.Message);
+    }
+
     [Fact]
     public async Task LoadImage_DoesNotThrowAndProducesValidPdf()
     {

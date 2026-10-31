@@ -113,6 +113,9 @@ public static class L
             };
         }
 
+        if (a.Attachments is not null)
+            d["attachments"] = a.Attachments.Select(file => AttrsHelper.Attrs(file)).ToList();
+
         return new PdfDocument(d, (nodes ?? []).ToList());
     }
 
