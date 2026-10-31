@@ -6,6 +6,7 @@ namespace Lpdf.Kit;
 /// <summary>The words of the <c>allow</c> attribute of the output, separated by spaces: what a reader of an encrypted PDF may do.</summary>
 public static class Permission
 {
+    public const string All = "all";
     public const string Print = "print";
     public const string Modify = "modify";
     public const string Copy = "copy";

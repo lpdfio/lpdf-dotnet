@@ -142,6 +142,7 @@ public class SchemaTests
             new[] { PageScope.Each, PageScope.First, PageScope.Last, PageScope.Odd, PageScope.Even });
         Assert.Equal(new[] { "source", "data", "alternative", "supplement", "unspecified" },
             new[] { FileRelationship.Source, FileRelationship.Data, FileRelationship.Alternative, FileRelationship.Supplement, FileRelationship.Unspecified });
+        Assert.Equal("all", Permission.All);
     }
 
     [Fact]
