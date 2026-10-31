@@ -10,9 +10,10 @@ namespace Lpdf.Kit;
 /// the PDF is not encrypted.
 /// </param>
 /// <param name="Allow">
-/// What a reader may do without the owner password, separated by spaces (<see cref="Permission"/>): <c>print</c>,
-/// <c>modify</c>, <c>copy</c>, <c>annotate</c>, <c>fill-forms</c>, <c>accessibility</c>, <c>assemble</c>. Without
-/// it everything is allowed; <c>""</c> allows nothing. It needs <paramref name="Encrypt"/>.
+/// What a reader may do without the owner password, separated by spaces (<see cref="Permission"/>): <c>all</c>, or
+/// any of <c>print</c>, <c>modify</c>, <c>copy</c>, <c>annotate</c>, <c>fill-forms</c>, <c>accessibility</c>,
+/// <c>assemble</c>. A permission comes only from naming it: without it, or with <c>""</c>, nothing is allowed, and
+/// <c>all</c> allows everything. It needs <paramref name="Encrypt"/>.
 /// </param>
 /// <param name="PdfA">
 /// Writes the PDF as PDF/A, the standard for files kept for the long term: <c>"2b"</c>, or <c>"2u"</c> when its text
