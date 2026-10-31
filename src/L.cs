@@ -109,6 +109,7 @@ public static class L
             {
                 ["encrypt"] = a.Output.Encrypt,
                 ["allow"]   = a.Output.Allow,
+                ["pdfa"]    = a.Output.PdfA,
             };
         }
 
