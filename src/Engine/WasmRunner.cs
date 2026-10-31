@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
 using Wasmtime;
 using WasmEngine = Wasmtime.Engine;
 using WasmModule = Wasmtime.Module;
@@ -243,7 +245,7 @@ internal sealed class WasmRunner : IDisposable
         bool                                 isTree)
     {
         var merged = new Dictionary<string, byte[]>(fileBytes ?? new Dictionary<string, byte[]>(), StringComparer.Ordinal);
-        var srcPaths = isTree ? ExtractFileSrcsFromJson(input) : ExtractTagSrcsFromXml(input, "file");
+        var srcPaths = isTree ? ExtractFileSrcsFromJson(input) : ExtractFileSrcsFromXml(input);
         foreach (var (key, src) in srcPaths)
         {
             if (merged.ContainsKey(key)) continue;
@@ -263,16 +265,28 @@ internal sealed class WasmRunner : IDisposable
         return merged;
     }
 
-    /// <summary>The <c>ref ?? name → src</c> pairs of the elements named <paramref name="tag"/> in XML.</summary>
-    private static Dictionary<string, string> ExtractTagSrcsFromXml(string xml, string tag)
+    /// <summary>
+    /// The <c>ref ?? name → src</c> pairs of the <c>&lt;file&gt;</c> elements of a document's <c>&lt;attachments&gt;</c>,
+    /// read with an XML parser as the engine reads them: entities decoded, and what is in a comment or CDATA left out.
+    /// XML that doesn't parse carries no file here; the engine says what is wrong with it.
+    /// </summary>
+    private static Dictionary<string, string> ExtractFileSrcsFromXml(string xml)
     {
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (Match m in Regex.Matches(xml, $@"<{tag}\s[^>]*>"))
+        XDocument document;
+        try
         {
-            var name = Regex.Match(m.Value, @"\bname=""([^""]*)""").Groups[1].Value;
-            var refv = Regex.Match(m.Value, @"\bref=""([^""]*)""").Groups[1].Value;
-            var src  = Regex.Match(m.Value, @"\bsrc=""([^""]*)""").Groups[1].Value;
-            var key  = !string.IsNullOrEmpty(refv) ? refv : name;
+            // The default settings refuse a DTD, so no entity of the document reaches outside it.
+            document = XDocument.Parse(xml);
+        }
+        catch (XmlException)
+        {
+            return result;
+        }
+        foreach (var file in document.Descendants("file").Where(f => f.Parent?.Name.LocalName == "attachments"))
+        {
+            var key = (string?)file.Attribute("ref") ?? (string?)file.Attribute("name");
+            var src = (string?)file.Attribute("src");
             if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(src))
                 result[key] = src;
         }

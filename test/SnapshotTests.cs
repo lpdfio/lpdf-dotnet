@@ -239,6 +239,7 @@ public class EngineFeatureTests
             var pdf = await engine.Render(document);
             Assert.Equal(2, EmbeddedFiles(pdf));
             Assert.Contains("/AFRelationship /Data", System.Text.Encoding.Latin1.GetString(pdf));
+            Assert.Contains("/Subtype /text#2Fxml", System.Text.Encoding.Latin1.GetString(pdf));
             Assert.Equal(pdf, await engine.Render(await L.ToXml(document)));
         }
         finally
@@ -260,6 +261,28 @@ public class EngineFeatureTests
         using var reading = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
         var unreadable = await Assert.ThrowsAsync<EngineException>(() => reading.Render(document));
         Assert.Contains("cannot read its src '/no/such/data.csv'", unreadable.Message);
+    }
+
+    [Fact]
+    public async Task Reads_the_src_of_a_file_as_the_engine_reads_its_XML()
+    {
+        var folder = Directory.CreateTempSubdirectory("lpdf-files-");
+        try
+        {
+            File.WriteAllText(Path.Combine(folder.FullName, "R&D terms.txt"), "Terms");
+            var document = WithAttachments(
+                new FileAttr { Name = "Terms & Conditions.txt", Src = Path.Combine(folder.FullName, "R&D terms.txt"), Description = "Rows > 100" });
+            var xml = (await L.ToXml(document))
+                .Replace("<attachments>", "<attachments><!-- <file name=\"old.csv\" src=\"/no/such/old.csv\"/> -->");
+
+            using var engine = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
+            Assert.Equal(1, EmbeddedFiles(await engine.Render(xml)));
+            Assert.Equal(await engine.Render(document), await engine.Render(xml));
+        }
+        finally
+        {
+            folder.Delete(recursive: true);
+        }
     }
 
     [Fact]
