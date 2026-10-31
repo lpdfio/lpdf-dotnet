@@ -55,11 +55,11 @@ internal sealed class WasmRunner : IDisposable
         IReadOnlyDictionary<string, byte[]>? fontBytes,
         IReadOnlyDictionary<string, byte[]>? imageBytes,
         Func<string, byte[]>?                srcFallback,
-        string?                              encryptJson = null,
+        EncryptionRequest?                   encryption = null,
         string?                              createdOn = null,
         string?                              dataJson = null,
         IReadOnlyDictionary<string, string>? markdownStyles = null)
-        => InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, encryptJson, createdOn, dataJson, markdownStyles);
+        => InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, encryption, createdOn, dataJson, markdownStyles);
 
     /// <summary>
     /// Render an lpdf JSON document tree to raw PDF bytes.
@@ -70,10 +70,10 @@ internal sealed class WasmRunner : IDisposable
         IReadOnlyDictionary<string, byte[]>? fontBytes,
         IReadOnlyDictionary<string, byte[]>? imageBytes,
         Func<string, byte[]>?                srcFallback,
-        string?                              encryptJson = null,
+        EncryptionRequest?                   encryption = null,
         string?                              createdOn = null,
         IReadOnlyDictionary<string, string>? markdownStyles = null)
-        => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryptJson, createdOn, null, markdownStyles);
+        => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryption, createdOn, null, markdownStyles);
 
     /// <summary>
     /// Convert a JSON kit-tree (produced by <c>LpdfKit</c>) to an lpdf XML string.
@@ -107,7 +107,7 @@ internal sealed class WasmRunner : IDisposable
         IReadOnlyDictionary<string, byte[]>? imageBytes,
         Func<string, byte[]>?                srcFallback,
         bool                                 isTree,
-        string?                              encryptJson = null,
+        EncryptionRequest?                   encryption = null,
         string?                              createdOn = null,
         string?                              dataJson = null,
         IReadOnlyDictionary<string, string>? markdownStyles = null)
@@ -146,8 +146,17 @@ internal sealed class WasmRunner : IDisposable
             requestObj["markdown_styles"] = stylesNode;
         }
 
-        if (encryptJson is not null)
-            requestObj["encrypt"] = JsonNode.Parse(encryptJson);
+        if (encryption is not null)
+        {
+            if (encryption.UserPassword is not null)
+                requestObj["user_password"] = encryption.UserPassword;
+            if (encryption.OwnerPassword is not null)
+                requestObj["owner_password"] = encryption.OwnerPassword;
+            if (encryption.SkipEncryption)
+                requestObj["skip_encryption"] = true;
+            if (encryption.Entropy is not null)
+                requestObj["entropy"] = encryption.Entropy;
+        }
 
         if (createdOn is not null)
             requestObj["created_on"] = createdOn;

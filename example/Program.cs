@@ -43,39 +43,27 @@ foreach (var folder in folders)
 }
 
 // ── encrypt-permissions-only ─────────────────────────────────────────────────
-// No open password; cooperative viewers enforce Print = false, Copy = false.
+// The fixture's <output> asks for AES-256 and allows neither copying nor modifying. No open password;
+// cooperative viewers enforce its allow.
 {
     var encXml = await File.ReadAllTextAsync(Path.Combine(fixtures, "showcase-encryption.xml"));
     const string outputFile = "encrypt-permissions-only-dotnet.pdf";
 
     var encEngine = L.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
-    encEngine.SetEncryption(new EncryptOptions
-    {
-        UserPassword  = "",
-        OwnerPassword = "s3cr3t",
-        Permissions   = new EncryptPermissions { Print = false, Copy = false },
-    });
-
-    var bytes = await encEngine.Render(encXml);
+    var bytes = await encEngine.Render(encXml, new RenderOptions { OwnerPassword = "s3cr3t" });
     await File.WriteAllBytesAsync(Path.Combine(output, outputFile), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
 }
 
 // ── encrypt-open-password ────────────────────────────────────────────────────
-// Viewers prompt for "password" before displaying content.
+// Viewers prompt for "password" before displaying content. The cipher and the permissions come from the
+// fixture's <output>, the passwords from the render.
 {
     var encXml = await File.ReadAllTextAsync(Path.Combine(fixtures, "showcase-encryption.xml"));
     const string outputFile = "encrypt-open-password-dotnet.pdf";
 
     var encEngine = L.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
-    encEngine.SetEncryption(new EncryptOptions
-    {
-        UserPassword  = "password",
-        OwnerPassword = "owner",
-        Permissions   = new EncryptPermissions { Copy = false },
-    });
-
-    var bytes = await encEngine.Render(encXml);
+    var bytes = await encEngine.Render(encXml, new RenderOptions { UserPassword = "password", OwnerPassword = "owner" });
     await File.WriteAllBytesAsync(Path.Combine(output, outputFile), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
 }
