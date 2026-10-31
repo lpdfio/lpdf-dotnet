@@ -6,4 +6,5 @@ public sealed record DocumentAttr(
     string?        Background  = null, string?        Font        = null,
     string?        Debug       = null,
     DocumentTokens? Tokens     = null, DocumentMeta?  Meta        = null,
-    DocumentAssets? Assets     = null, string? FootnoteCounter = null);
+    DocumentAssets? Assets     = null, string? FootnoteCounter = null,
+    DocumentOutput? Output     = null);

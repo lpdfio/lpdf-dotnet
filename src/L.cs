@@ -103,6 +103,15 @@ public static class L
             };
         }
 
+        if (a.Output is not null)
+        {
+            d["output"] = new Dictionary<string, string?>(StringComparer.Ordinal)
+            {
+                ["encrypt"] = a.Output.Encrypt,
+                ["allow"]   = a.Output.Allow,
+            };
+        }
+
         return new PdfDocument(d, (nodes ?? []).ToList());
     }
 

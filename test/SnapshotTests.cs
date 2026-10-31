@@ -1,5 +1,6 @@
 using Lpdf;
 using Lpdf.Engine;
+using Lpdf.Kit;
 using Xunit;
 
 namespace Lpdf.Tests;
@@ -52,7 +53,8 @@ public class SnapshotTests
 
         var xml   = File.ReadAllText(Path.Combine(SnapshotHelper.Fixtures, $"{name}.xml"));
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var bytes = await engine.Render(xml);
+        // showcase-encryption asks for encryption in its output: its snapshot is the file unencrypted.
+        var bytes = await engine.Render(xml, new RenderOptions { SkipEncryption = true });
         SnapshotHelper.CompareOrUpdate(name, bytes);
     }
 }
@@ -65,48 +67,33 @@ public class EngineFeatureTests
     private static readonly string _minimalXml =
         "<lpdf version=\"1\"><document><section><layout></layout></section></document></lpdf>";
 
+    /// <summary>A document whose output has <paramref name="attributes"/>: by default, one that asks for AES-256.</summary>
+    private static string EncryptedXml(string attributes = "encrypt=\"aes-256\"")
+        => $"<lpdf version=\"1\"><document><output {attributes}/><section><layout><text>Hello</text></layout></section></document></lpdf>";
+
+    private static readonly RenderOptions _ownerPassword = new() { OwnerPassword = "s3cr3t" };
+
     [Fact]
-    public async Task SetEncryption_ProducesEncryptedPdf()
+    public async Task Encrypts_a_document_whose_output_asks_for_it_with_the_passwords_of_the_render()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        engine.SetEncryption(new EncryptOptions
-        {
-            UserPassword  = "",
-            OwnerPassword = "s3cr3t",
-        });
-        var bytes = await engine.Render(_minimalXml);
+        var bytes = await engine.Render(EncryptedXml(), new RenderOptions { UserPassword = "open", OwnerPassword = "s3cr3t" });
 
         Assert.True(
             bytes[..5].SequenceEqual(System.Text.Encoding.ASCII.GetBytes("%PDF-")),
             "Output must start with %PDF-");
-
-        // Encrypted PDFs contain the /Encrypt dictionary entry
         var text = System.Text.Encoding.Latin1.GetString(bytes);
         Assert.Contains("/Encrypt", text);
-    }
-
-    [Fact]
-    public async Task SetEncryption_EncryptsWithAes256ByDefault()
-    {
-        using var engine = L.Engine().SetLicenseKey("test-key");
-        engine.SetEncryption(new EncryptOptions { UserPassword = "open", OwnerPassword = "s3cr3t" });
-        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(_minimalXml));
-
         Assert.Contains("/V 5", text);
         Assert.Contains("/R 6", text);
         Assert.Contains("/CFM /AESV3", text);
     }
 
     [Fact]
-    public async Task SetEncryption_WithRc4WritesTheRc4Dictionary()
+    public async Task Takes_the_cipher_from_the_output()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        engine.SetEncryption(new EncryptOptions
-        {
-            OwnerPassword = "s3cr3t",
-            Algorithm     = EncryptAlgorithm.Rc4128,
-        });
-        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(_minimalXml));
+        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword));
 
         Assert.Contains("/V 2", text);
         Assert.Contains("/R 3", text);
@@ -114,31 +101,75 @@ public class EngineFeatureTests
     }
 
     [Fact]
-    public async Task SetEncryption_EveryAes256RenderGetsAFreshKey()
+    public async Task Takes_the_permissions_from_allow()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        engine.SetEncryption(new EncryptOptions { OwnerPassword = "s3cr3t" });
+        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(EncryptedXml("encrypt=\"rc4-128\" allow=\"print\""), _ownerPassword));
 
-        var first  = await engine.Render(_minimalXml);
-        var second = await engine.Render(_minimalXml);
+        // Printing, at full quality too, and nothing else.
+        Assert.Contains("/P -1852", text);
+    }
+
+    [Fact]
+    public async Task Every_aes256_render_gets_a_fresh_key()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+
+        var first  = await engine.Render(EncryptedXml(), _ownerPassword);
+        var second = await engine.Render(EncryptedXml(), _ownerPassword);
 
         Assert.False(first.SequenceEqual(second), "Two AES-256 renders must differ.");
     }
 
     [Fact]
-    public async Task SetEncryption_Rc4RendersOfOneDocumentAreIdentical()
+    public async Task Rc4_renders_of_one_document_are_identical()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        engine.SetEncryption(new EncryptOptions
-        {
-            OwnerPassword = "s3cr3t",
-            Algorithm     = EncryptAlgorithm.Rc4128,
-        });
 
-        var first  = await engine.Render(_minimalXml);
-        var second = await engine.Render(_minimalXml);
+        var first  = await engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword);
+        var second = await engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword);
 
         Assert.True(first.SequenceEqual(second));
+    }
+
+    [Fact]
+    public async Task Skip_encryption_renders_a_document_that_asks_for_encryption_unencrypted()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(EncryptedXml(), new RenderOptions { SkipEncryption = true }));
+
+        Assert.DoesNotContain("/Encrypt", text);
+    }
+
+    public static TheoryData<string, string, string?, bool, string> RefusedRenders => new()
+    {
+        { "a document that asks for encryption without the owner password", EncryptedXml(), null, false, "no owner password" },
+        { "passwords for a document that does not ask for encryption", _minimalXml, "s3cr3t", false, "does not ask for encryption" },
+        { "passwords with SkipEncryption", EncryptedXml(), "s3cr3t", true, "not both" },
+    };
+
+    [Theory]
+    [MemberData(nameof(RefusedRenders))]
+    public async Task Refuses_a_render_and_says_what_to_change(string what, string xml, string? ownerPassword, bool skip, string expected)
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var error = await Assert.ThrowsAsync<EngineException>(
+            () => engine.Render(xml, new RenderOptions { OwnerPassword = ownerPassword, SkipEncryption = skip }));
+
+        Assert.True(error.Message.Contains(expected), $"{what}: {error.Message}");
+    }
+
+    [Fact]
+    public async Task Encrypts_a_document_built_with_the_kit_as_its_output_asks()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var document = L.Document(
+            new DocumentAttr(Output: new DocumentOutput(Encrypt: Cipher.Aes256, Allow: $"{Permission.Print} {Permission.FillForms}")),
+            [L.Section(null, [L.Layout(null, [L.Text(null, ["Hello PDF"])])])]);
+        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(document, _ownerPassword));
+
+        Assert.Contains("/CFM /AESV3", text);
+        await Assert.ThrowsAsync<EngineException>(() => engine.Render(document));
     }
 
     [Fact]

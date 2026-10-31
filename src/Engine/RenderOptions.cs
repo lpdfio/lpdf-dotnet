@@ -19,4 +19,24 @@ public sealed class RenderOptions
     /// fallback content. Only applies when rendering an XML string.
     /// </summary>
     public object? Data { get; init; }
+
+    /// <summary>
+    /// The password a reader asks for before showing the PDF, for a document that asks for encryption in its
+    /// <c>output</c>. Leave it out, or pass <c>""</c>, for a PDF anyone can open, which only the <c>allow</c> of the
+    /// <c>output</c> restricts.
+    /// </summary>
+    public string? UserPassword { get; init; }
+
+    /// <summary>
+    /// The password that opens the PDF with every permission. A document that asks for encryption in its
+    /// <c>output</c> renders only with it, or with <see cref="SkipEncryption"/>; a document that doesn't ask for
+    /// encryption refuses it, so a file never goes out unencrypted while you believe it is locked.
+    /// </summary>
+    public string? OwnerPassword { get; init; }
+
+    /// <summary>
+    /// Renders a document that asks for encryption unencrypted, for a render that cannot have the passwords, such
+    /// as a preview. Not together with the passwords.
+    /// </summary>
+    public bool SkipEncryption { get; init; }
 }

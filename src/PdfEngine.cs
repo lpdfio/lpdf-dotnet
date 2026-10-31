@@ -13,7 +13,7 @@ namespace Lpdf;
 /// </summary>
 public sealed class PdfEngine : IDisposable
 {
-    /// <summary>Bytes of entropy sent with an AES-256 request: one 256-bit key's worth.</summary>
+    /// <summary>Bytes of entropy sent with a request that has a password: one 256-bit key's worth.</summary>
     private const int EntropyBytes = 32;
 
     private          string         _licenseKey = string.Empty;
@@ -23,7 +23,6 @@ public sealed class PdfEngine : IDisposable
     private readonly Dictionary<string, byte[]> _images = new();
     private readonly Dictionary<string, string> _markdownStyles = new();
     private          bool           _disposed;
-    private          EncryptOptions? _encrypt;
 
     /// <param name="options">Engine-level options (e.g. <c>SrcFallback</c>).</param>
     public PdfEngine(EngineOptions? options = null)
@@ -67,22 +66,6 @@ public sealed class PdfEngine : IDisposable
     }
 
     /// <summary>
-    /// Configure encryption for all subsequent <see cref="Render(string, RenderOptions?)"/> calls:
-    /// AES-256 unless <see cref="EncryptOptions.Algorithm"/> says otherwise.
-    /// Pass <see langword="null"/> to clear previously set encryption.
-    /// </summary>
-    public PdfEngine SetEncryption(EncryptOptions? options)
-    {
-        ThrowIfDisposed();
-        _encrypt = options;
-        return this;
-    }
-
-    /// <summary>Clear any previously set encryption. Equivalent to <c>SetEncryption(null)</c>.</summary>
-    public PdfEngine ClearEncryption()
-        => SetEncryption(null);
-
-    /// <summary>
     /// Register raw TTF/OTF bytes for a font name referenced via <c>fonts src="…"</c>.
     /// Call before <see cref="Render(string, RenderOptions?)"/>. Returns <c>this</c>.
     /// </summary>
@@ -124,24 +107,24 @@ public sealed class PdfEngine : IDisposable
 
     /// <summary>Render an lpdf XML string to PDF bytes.</summary>
     /// <param name="xml">Full lpdf XML document string.</param>
-    /// <param name="callOptions">Per-call options (data, timestamp).</param>
+    /// <param name="callOptions">Per-call options (data, timestamp, passwords).</param>
     public Task<byte[]> Render(string xml, RenderOptions? callOptions = null)
     {
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(xml);
         var fonts  = _fonts.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_fonts : null;
         var images = _images.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_images : null;
-        var encryptJson = BuildEncryptJson();
-        var dataJson    = BuildDataJson(callOptions?.Data);
+        var encryption = BuildEncryption(callOptions);
+        var dataJson   = BuildDataJson(callOptions?.Data);
         var styles = _markdownStyles.Count > 0 ? new Dictionary<string, string>(_markdownStyles) : null;
         return Task.Run(() =>
             _wasm.RenderPdf(xml, _licenseKey, fonts, images,
-                _engineOpts.SrcFallback, encryptJson, callOptions?.CreatedOn, dataJson, styles));
+                _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, dataJson, styles));
     }
 
     /// <summary>Render a <see cref="PdfDocument"/> tree to PDF bytes.</summary>
     /// <param name="document">Document tree produced by <c>Pdf.Document(…)</c>.</param>
-    /// <param name="callOptions">Per-call options (timestamp).</param>
+    /// <param name="callOptions">Per-call options (timestamp, passwords).</param>
     public Task<byte[]> Render(PdfDocument document, RenderOptions? callOptions = null)
     {
         ThrowIfDisposed();
@@ -149,40 +132,24 @@ public sealed class PdfEngine : IDisposable
         var json = JsonSerializer.Serialize(document, DocumentJson.Options);
         var fonts  = _fonts.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_fonts : null;
         var images = _images.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_images : null;
-        var encryptJson = BuildEncryptJson();
+        var encryption = BuildEncryption(callOptions);
         var styles = _markdownStyles.Count > 0 ? new Dictionary<string, string>(_markdownStyles) : null;
         return Task.Run(() =>
             _wasm.RenderTreePdf(json, _licenseKey, fonts, images,
-                _engineOpts.SrcFallback, encryptJson, callOptions?.CreatedOn, styles));
+                _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, styles));
     }
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
-    private string? BuildEncryptJson()
+    /// <summary>
+    /// The passwords and <c>skip_encryption</c> of the render, as given, and with a password, entropy for AES-256:
+    /// random bytes the engine does not make, from the operating system's secure generator, fresh for each render.
+    /// </summary>
+    private static EncryptionRequest BuildEncryption(RenderOptions? options)
     {
-        if (_encrypt is null) return null;
-        var p = _encrypt.Permissions;
-        var aes = _encrypt.Algorithm == EncryptAlgorithm.Aes256;
-        return JsonSerializer.Serialize(new
-        {
-            user_password  = _encrypt.UserPassword,
-            owner_password = _encrypt.OwnerPassword,
-            permissions    = new
-            {
-                print         = p.Print,
-                modify        = p.Modify,
-                copy          = p.Copy,
-                annotate      = p.Annotate,
-                fill_forms    = p.FillForms,
-                accessibility = p.Accessibility,
-                assemble      = p.Assemble,
-                print_hq      = p.PrintHq,
-            },
-            algorithm = aes ? "aes-256" : "rc4-128",
-            // AES-256 needs random bytes, which the engine does not make: they come from the
-            // operating system's secure generator, fresh for each render.
-            entropy = aes ? Convert.ToBase64String(RandomNumberGenerator.GetBytes(EntropyBytes)) : null,
-        });
+        var hasPassword = options?.UserPassword is not null || options?.OwnerPassword is not null;
+        var entropy = hasPassword ? Convert.ToBase64String(RandomNumberGenerator.GetBytes(EntropyBytes)) : null;
+        return new EncryptionRequest(options?.UserPassword, options?.OwnerPassword, options?.SkipEncryption ?? false, entropy);
     }
 
     private static string? BuildDataJson(object? data)
