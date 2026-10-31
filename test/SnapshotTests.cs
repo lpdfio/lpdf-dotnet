@@ -159,6 +159,51 @@ public class EngineFeatureTests
         Assert.True(error.Message.Contains(expected), $"{what}: {error.Message}");
     }
 
+    /// <summary>
+    /// A document with no text of its own that asks for PDF/A: the attribution line's name, in its embedded face, is
+    /// its one text.
+    /// </summary>
+    private static string PdfAXml(string level = "2b", string body = "<column background=\"#e8f0fc\" height=\"40pt\"/>")
+        => $"<lpdf version=\"1\"><document><output pdfa=\"{level}\"/><section><layout>{body}</layout></section></document></lpdf>";
+
+    [Fact]
+    public async Task Writes_pdfa_when_the_output_asks_for_it_dated_by_created_on()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var text = System.Text.Encoding.Latin1.GetString(
+            await engine.Render(PdfAXml("2u"), new RenderOptions { CreatedOn = "2026-10-31T09:30:00Z" }));
+
+        Assert.Contains("<pdfaid:part>2</pdfaid:part>", text);
+        Assert.Contains("<pdfaid:conformance>U</pdfaid:conformance>", text);
+        Assert.Contains("/S /GTS_PDFA1", text);
+        Assert.Contains("/ModDate (D:20261031093000Z)", text);
+    }
+
+    [Fact]
+    public async Task Takes_pdfa_from_the_output_of_a_kit_document()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var document = L.Document(
+            new DocumentAttr(Output: new DocumentOutput(PdfA: "2b")),
+            [L.Section(null, [L.Layout(null, [L.Column(new Lpdf.Layout.ColumnAttr { Background = "#e8f0fc", Height = "40pt" })])])]);
+        var text = System.Text.Encoding.Latin1.GetString(
+            await engine.Render(document, new RenderOptions { CreatedOn = "2026-10-31" }));
+
+        Assert.Contains("<pdfaid:conformance>B</pdfaid:conformance>", text);
+    }
+
+    [Fact]
+    public async Task Refuses_pdfa_without_created_on_and_text_in_a_built_in_font()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var missing = await Assert.ThrowsAsync<EngineException>(() => engine.Render(PdfAXml()));
+        Assert.Contains("created_on", missing.Message);
+
+        var builtIn = await Assert.ThrowsAsync<EngineException>(
+            () => engine.Render(PdfAXml("2b", "<text>Hello</text>"), new RenderOptions { CreatedOn = "2026-10-31" }));
+        Assert.Contains("\"Hello\" is in Helvetica", builtIn.Message);
+    }
+
     [Fact]
     public async Task Encrypts_a_document_built_with_the_kit_as_its_output_asks()
     {

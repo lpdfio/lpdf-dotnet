@@ -10,6 +10,7 @@ public sealed class RenderOptions
     /// Optional ISO 8601 creation timestamp (e.g. <c>"2024-06-01T12:00:00"</c>).
     /// When provided, written as <c>/CreationDate</c> in the PDF info dictionary.
     /// Omitting this keeps builds reproducible (no embedded timestamp).
+    /// Required for a document whose <c>output</c> asks for <c>pdfa</c>, which writes it as both dates of the file.
     /// </summary>
     public string? CreatedOn { get; init; }
 
