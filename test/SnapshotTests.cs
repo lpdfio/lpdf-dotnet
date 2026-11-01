@@ -293,6 +293,17 @@ public class EngineFeatureTests
             Assert.Contains("/S /GTS_PDFX", text);
             Assert.Contains("/BleedBox [-14.173", text);
             Assert.Equal(pdf, engine.Render(L.ToXml(document), options));
+
+            // A section without a bleed of its own takes the document's 3mm.
+            var withDocumentBleed = L.Document(
+                new DocumentAttr(
+                    Assets: new DocumentAssets(Profiles: [new ProfileAttr { Name = "press", Src = src }]),
+                    Meta: new DocumentMeta(Title: "Flyer"),
+                    Output: new DocumentOutput(PdfX: "4", Profile: "press"),
+                    Bleed: "3mm"),
+                [L.Section(null,
+                    [L.Layout(null, [L.Column(new Lpdf.Layout.ColumnAttr { Background = "#e8f0fc", Height = "40pt" })])])]);
+            Assert.Contains("/BleedBox [-8.503", System.Text.Encoding.Latin1.GetString(engine.Render(withDocumentBleed, options)));
         }
         finally
         {

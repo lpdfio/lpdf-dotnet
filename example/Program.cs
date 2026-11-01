@@ -18,9 +18,13 @@ var output   = Path.Combine(lpdf, "tmp/sdk-examples");
 Directory.CreateDirectory(output);
 
 // ── examples/ ────────────────────────────────────────────────────────────────
-// Each folder examples/<n>-<id>/ has its document.xml, its document.json if it has data, and the fonts and
-// images its <assets> name, by paths relative to the folder. A fresh engine for each example, so a font one
-// of them names does not reach the next; its SrcFallback reads those paths from the example's folder.
+// Each folder examples/<n>-<id>/ has its document.xml, its document.json if it has data, and the fonts,
+// images and color profiles its <assets> name, by paths relative to the folder. A fresh engine for each
+// example, so a font one of them names does not reach the next; its SrcFallback reads those paths from the
+// example's folder. Every render is dated the same, so the same example gives the same PDF; a PDF/X example,
+// such as the brochure, needs the date.
+
+const string createdOn = "2026-01-01T00:00:00Z";
 
 var folders = Directory.GetDirectories(examples)
     .Where(folder => Regex.IsMatch(Path.GetFileName(folder), @"^\d+-"))
@@ -34,8 +38,8 @@ foreach (var folder in folders)
 
     var engine = L.Engine(new EngineOptions { SrcFallback = src => File.ReadAllBytes(Path.Combine(folder, src)) });
     var bytes  = File.Exists(dataFile)
-        ? engine.Render(xml, new RenderOptions { Data = JsonSerializer.Deserialize<object>(await File.ReadAllTextAsync(dataFile)) })
-        : engine.Render(xml);
+        ? engine.Render(xml, new RenderOptions { CreatedOn = createdOn, Data = JsonSerializer.Deserialize<object>(await File.ReadAllTextAsync(dataFile)) })
+        : engine.Render(xml, new RenderOptions { CreatedOn = createdOn });
 
     var outputFile = $"{name}-dotnet.pdf";
     await File.WriteAllBytesAsync(Path.Combine(output, outputFile), bytes);
