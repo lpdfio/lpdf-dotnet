@@ -342,6 +342,19 @@ public class EngineFeatureTests
         Assert.Throws<EngineException>(() => engine.Render(document));
     }
 
+    [Fact]
+    public void Linearizes_a_document_built_with_the_kit_after_encrypting_it()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var document = L.Document(
+            new DocumentAttr(Output: new DocumentOutput(Encrypt: Cipher.Aes256, Linearize: true)),
+            [L.Section(null, [L.Layout(null, [L.Text(null, ["Hello PDF"])])])]);
+        var text = System.Text.Encoding.Latin1.GetString(engine.Render(document, _ownerPassword));
+
+        Assert.Contains("<< /Linearized 1 ", text);
+        Assert.Contains("/CFM /AESV3", text);
+    }
+
     private static PdfDocument WithAttachments(params FileAttr[] files)
         => L.Document(new DocumentAttr(Attachments: files), [L.Section(null, [L.Layout(null, [L.Text(null, ["Invoice"])])])]);
 

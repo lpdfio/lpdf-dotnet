@@ -107,14 +107,15 @@ public static class L
 
         if (a.Output is not null)
         {
-            d["output"] = new Dictionary<string, string?>(StringComparer.Ordinal)
+            d["output"] = new Dictionary<string, object?>(StringComparer.Ordinal)
             {
-                ["encrypt"] = a.Output.Encrypt,
-                ["allow"]   = a.Output.Allow,
-                ["pdfa"]    = a.Output.PdfA,
-                ["pdfua"]   = a.Output.PdfUa,
-                ["pdfx"]    = a.Output.PdfX,
-                ["profile"] = a.Output.Profile,
+                ["encrypt"]   = a.Output.Encrypt,
+                ["allow"]     = a.Output.Allow,
+                ["pdfa"]      = a.Output.PdfA,
+                ["pdfua"]     = a.Output.PdfUa,
+                ["pdfx"]      = a.Output.PdfX,
+                ["profile"]   = a.Output.Profile,
+                ["linearize"] = a.Output.Linearize,
             };
         }
 
