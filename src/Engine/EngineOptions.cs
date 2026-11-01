@@ -7,8 +7,9 @@ namespace Lpdf.Engine;
 public sealed class EngineOptions
 {
     /// <summary>
-    /// File-read callback for resolving the <c>src</c> paths of fonts, images and the files a document carries in its
-    /// <c>attachments</c> at render time. On the server this can be set to <c>System.IO.File.ReadAllBytes</c>.
+    /// File-read callback for resolving the <c>src</c> paths of fonts, images, color profiles and the files a document
+    /// carries in its <c>attachments</c> at render time. On the server this can be set to
+    /// <c>System.IO.File.ReadAllBytes</c>.
     /// In sandboxed environments supply all bytes via <see cref="PdfEngine.LoadFile"/> and its kin instead.
     /// </summary>
     /// <remarks>

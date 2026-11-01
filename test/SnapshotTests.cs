@@ -228,6 +228,96 @@ public class EngineFeatureTests
         Assert.Contains("add lang to <meta>", error.Message);
     }
 
+    /// <summary>
+    /// The header of an ICC printer profile in CMYK, with a description and nothing else: enough for the engine to take
+    /// it as the press profile of a PDF/X document.
+    /// </summary>
+    private static byte[] PressProfile(string description = "Test press")
+    {
+        var desc = new byte[12 + description.Length + 1 + 12];
+        System.Text.Encoding.ASCII.GetBytes("desc").CopyTo(desc, 0);
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(desc.AsSpan(8), (uint)description.Length + 1);
+        System.Text.Encoding.ASCII.GetBytes(description).CopyTo(desc, 12);
+        var bytes = new byte[128 + 16 + desc.Length];
+        System.Text.Encoding.ASCII.GetBytes("prtrCMYKLab ").CopyTo(bytes, 12);
+        System.Text.Encoding.ASCII.GetBytes("acsp").CopyTo(bytes, 36);
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(128), 1);
+        System.Text.Encoding.ASCII.GetBytes("desc").CopyTo(bytes, 132);
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(136), 144);
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(140), (uint)desc.Length);
+        desc.CopyTo(bytes, 144);
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32BigEndian(bytes.AsSpan(0), (uint)bytes.Length);
+        return bytes;
+    }
+
+    /// <summary>A titled document with no text of its own that asks for PDF/X-4 with the profile <c>press</c>.</summary>
+    private const string PdfXXml = "<lpdf version=\"1\"><assets><profile name=\"press\"/></assets>"
+        + "<document bleed=\"3mm\"><meta title=\"Flyer\"/><output pdfx=\"4\" profile=\"press\"/>"
+        + "<section><layout><column background=\"#e8f0fc\" height=\"40pt\"/></layout></section></document></lpdf>";
+
+    [Fact]
+    public void Writes_pdfx_when_the_output_asks_for_it_with_the_profile_from_LoadProfile()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key").LoadProfile("press", PressProfile("Coated press"));
+        var text = System.Text.Encoding.Latin1.GetString(
+            engine.Render(PdfXXml, new RenderOptions { CreatedOn = "2026-10-31T09:30:00Z" }));
+
+        Assert.StartsWith("%PDF-1.6", text);
+        Assert.Contains("/S /GTS_PDFX", text);
+        Assert.Contains("/Info (Coated press)", text);
+        Assert.Contains("/TrimBox", text);
+        Assert.Contains("/DefaultRGB", text);
+        Assert.Contains("<pdfxid:GTS_PDFXVersion>PDF/X-4</pdfxid:GTS_PDFXVersion>", text);
+    }
+
+    [Fact]
+    public void Takes_pdfx_profile_bleed_and_the_profiles_of_the_assets_from_a_kit_document()
+    {
+        var src = Path.GetTempFileName();
+        File.WriteAllBytes(src, PressProfile());
+        try
+        {
+            var document = L.Document(
+                new DocumentAttr(
+                    Assets: new DocumentAssets(Profiles: [new ProfileAttr { Name = "press", Src = src }]),
+                    Meta: new DocumentMeta(Title: "Flyer"),
+                    Output: new DocumentOutput(PdfX: "4", Profile: "press"),
+                    Bleed: "3mm"),
+                [L.Section(new SectionAttr(Bleed: "5mm"),
+                    [L.Layout(null, [L.Column(new Lpdf.Layout.ColumnAttr { Background = "#e8f0fc", Height = "40pt" })])])]);
+            using var engine = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
+            var options = new RenderOptions { CreatedOn = "2026-10-31" };
+            var pdf = engine.Render(document, options);
+            var text = System.Text.Encoding.Latin1.GetString(pdf);
+
+            Assert.Contains("/S /GTS_PDFX", text);
+            Assert.Contains("/BleedBox [-14.173", text);
+            Assert.Equal(pdf, engine.Render(L.ToXml(document), options));
+        }
+        finally
+        {
+            File.Delete(src);
+        }
+    }
+
+    [Fact]
+    public void A_profile_with_no_bytes_or_a_src_that_cannot_be_read_is_an_error_that_names_it()
+    {
+        var options = new RenderOptions { CreatedOn = "2026-10-31" };
+        using var plain = L.Engine().SetLicenseKey("test-key");
+        var noBytes = Assert.Throws<EngineException>(() => plain.Render(PdfXXml, options));
+        Assert.Contains("loadProfile('press', bytes)", noBytes.Message);
+
+        var withSrc = PdfXXml.Replace("<profile name=\"press\"/>", "<profile name=\"press\" src=\"/no/such/press.icc\"/>");
+        var noFallback = Assert.Throws<EngineException>(() => plain.Render(withSrc, options));
+        Assert.Contains("profile 'press' of <assets> has the src '/no/such/press.icc'", noFallback.Message);
+        Assert.Contains("LoadProfile(\"press\", bytes)", noFallback.Message);
+
+        using var reading = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
+        var unreadable = Assert.Throws<EngineException>(() => reading.Render(withSrc, options));
+        Assert.Contains("cannot read its src '/no/such/press.icc'", unreadable.Message);
+    }
+
     [Fact]
     public void Encrypts_a_document_built_with_the_kit_as_its_output_asks()
     {

@@ -22,6 +22,7 @@ public sealed class PdfEngine : IDisposable
     private readonly Dictionary<string, byte[]> _fonts  = new();
     private readonly Dictionary<string, byte[]> _images = new();
     private readonly Dictionary<string, byte[]> _files  = new();
+    private readonly Dictionary<string, byte[]> _profiles = new();
     private readonly Dictionary<string, string> _markdownStyles = new();
     private          bool           _disposed;
 
@@ -107,6 +108,20 @@ public sealed class PdfEngine : IDisposable
     }
 
     /// <summary>
+    /// Register the bytes of an ICC color profile, for the <c>&lt;profile&gt;</c> of the document's <c>&lt;assets&gt;</c>
+    /// whose <c>ref</c>, or with no ref whose name, is <paramref name="name"/>: the press profile a PDF/X document names
+    /// in its output. Call before <see cref="Render(string, RenderOptions?)"/>. Returns <c>this</c>.
+    /// </summary>
+    public PdfEngine LoadProfile(string name, byte[] bytes)
+    {
+        ThrowIfDisposed();
+        ArgumentNullException.ThrowIfNull(name);
+        ArgumentNullException.ThrowIfNull(bytes);
+        _profiles[name] = bytes;
+        return this;
+    }
+
+    /// <summary>
     /// Register the text of a file of Markdown rules, the root of which is a <c>&lt;markdown-styles&gt;</c>, for the
     /// <c>src</c> that names it in <c>&lt;markdown-styles src="…"&gt;</c>. Call before
     /// <see cref="Render(string, RenderOptions?)"/>. Returns <c>this</c>.
@@ -136,7 +151,7 @@ public sealed class PdfEngine : IDisposable
         var dataJson   = BuildDataJson(callOptions?.Data);
         var styles = _markdownStyles.Count > 0 ? _markdownStyles : null;
         return _wasm.RenderPdf(xml, _licenseKey, fonts, images,
-            _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, dataJson, styles, _files);
+            _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, dataJson, styles, _files, _profiles);
     }
 
     /// <summary>
@@ -155,7 +170,7 @@ public sealed class PdfEngine : IDisposable
         var encryption = BuildEncryption(callOptions);
         var styles = _markdownStyles.Count > 0 ? _markdownStyles : null;
         return _wasm.RenderTreePdf(json, _licenseKey, fonts, images,
-            _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, styles, _files);
+            _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, styles, _files, _profiles);
     }
 
     // ── Internals ─────────────────────────────────────────────────────────────

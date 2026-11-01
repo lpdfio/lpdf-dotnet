@@ -27,4 +27,18 @@ namespace Lpdf.Kit;
 /// lang, every image and barcode of the layout an alt, and every text a font of the assets. What PDF/UA cannot hold is
 /// an error that says what to change. It is <c>pdfua</c> in the XML.
 /// </param>
-public sealed record DocumentOutput(string? Encrypt = null, string? Allow = null, string? PdfA = null, string? PdfUa = null);
+/// <param name="PdfX">
+/// Writes the PDF as PDF/X-4, for a commercial printer: <c>"4"</c>. It needs <paramref name="Profile"/>, and combines
+/// with <paramref name="PdfUa"/>. Every page gets a TrimBox and a BleedBox, RGB is tied to sRGB, and links print as
+/// text, as PDF/X allows nothing clickable. The render needs <see cref="Lpdf.Engine.RenderOptions.CreatedOn"/>, the meta
+/// a title, and every text a font of the assets. What PDF/X cannot hold is an error that says what to change: a profile
+/// that is not a printer profile, a built-in font, a form field, a CMYK color with a profile that is not a CMYK one,
+/// <paramref name="Encrypt"/>, <paramref name="PdfA"/>, attachments. It is <c>pdfx</c> in the XML.
+/// </param>
+/// <param name="Profile">
+/// The profile of the assets that a PDF/X file is made for: the ICC profile of the printing press. It needs
+/// <paramref name="PdfX"/>.
+/// </param>
+public sealed record DocumentOutput(
+    string? Encrypt = null, string? Allow = null, string? PdfA = null, string? PdfUa = null,
+    string? PdfX = null, string? Profile = null);
