@@ -35,6 +35,11 @@
     <PackageReference Include="Wasmtime" Version="34.0.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The timeout tests run a stand-in module of their own in place of the engine. -->
+    <InternalsVisibleTo Include="Lpdf.Tests" />
+  </ItemGroup>
+
   <!-- Embed the pre-built WASI binary so callers don't need to manage a separate file -->
   <ItemGroup>
     <EmbeddedResource Include="wasm\lpdf.wasm" />

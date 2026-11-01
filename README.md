@@ -42,7 +42,7 @@ var doc = L.Document(new() { Size = "letter" }, [
 var pdf = engine.Render(doc);
 ```
 
-`Render` runs on the caller's thread. To render on another one, write `await Task.Run(() => engine.Render(doc))`.
+`Render` runs on the caller's thread. To render on another one, write `await Task.Run(() => engine.Render(doc))`. A render stops with an `EngineException` after 5 seconds; `L.Engine(new EngineOptions { Timeout = 60 })` sets another limit in seconds, and `Timeout = 0` sets none.
 
 ## Requirements
 

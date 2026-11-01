@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -18,20 +19,50 @@ namespace Lpdf.Engine;
 /// </summary>
 internal sealed class WasmRunner : IDisposable
 {
+    // One thread advances the engine's epoch at this pace, and a render's deadline is its timeout in ticks, plus one:
+    // the render starts between two ticks, and without it would stop up to a tick before its limit. The epoch belongs
+    // to the engine, not to a store, so a timer per render would stop every other render too.
+    private static readonly TimeSpan Tick = TimeSpan.FromMilliseconds(100);
+    private const ulong TicksPerSecond = 10;
+
+    // The deadline of a render with no limit. A store's deadline is 0 until it is set, which stops it at the first tick.
+    private const ulong NoDeadline = 1UL << 62;
+
     // The engine and module are expensive to create and thread-safe — share them.
     private static readonly WasmEngine   _engine;
-    private static readonly WasmModule  _module;
+    private static readonly WasmModule  _lpdfModule;
     private static readonly Linker      _linker;
 
     static WasmRunner()
     {
-        _engine = new WasmEngine();
-        _module = WasmModule.FromBytes(_engine, "lpdf", LoadWasmBytes());
+        _engine = new WasmEngine(new Config().WithEpochInterruption(true));
+        _lpdfModule = WasmModule.FromBytes(_engine, "lpdf", LoadWasmBytes());
         _linker = new Linker(_engine);
         _linker.DefineWasi();
+        new Thread(AdvanceEpoch) { IsBackground = true, Name = "lpdf-epoch" }.Start();
     }
 
+    private readonly WasmModule _module;
+    private readonly int        _timeout;
     private bool _disposed;
+
+    /// <param name="timeout">
+    /// The seconds a call may run before it stops with an <see cref="EngineException"/>, or 0 for no limit.
+    /// </param>
+    public WasmRunner(int timeout) : this(_lpdfModule, timeout) { }
+
+    private WasmRunner(WasmModule module, int timeout)
+    {
+        _module  = module;
+        _timeout = timeout;
+    }
+
+    /// <summary>
+    /// A runner of a module written in the WebAssembly text format in place of the engine, compiled on the engine's
+    /// Wasmtime engine: for the tests, a module that runs as long as they need.
+    /// </summary>
+    internal static WasmRunner ForModuleText(string wat, int timeout)
+        => new(WasmModule.FromText(_engine, "stand-in", wat), timeout);
 
     // ── Public ────────────────────────────────────────────────────────────────
 
@@ -460,14 +491,14 @@ internal sealed class WasmRunner : IDisposable
         return result;
     }
 
-    private static string Invoke(string method, string input, string key)
+    private string Invoke(string method, string input, string key)
     {
         var request = JsonSerializer.Serialize(new { method, key, input, now = NowUnix() });
         return RunWasm(Encoding.UTF8.GetBytes(request));
     }
 
     /// <summary>What this build of the engine makes of <paramref name="licenseKey"/>, as JSON.</summary>
-    public static string CheckLicense(string licenseKey)
+    public string CheckLicense(string licenseKey)
     {
         var request = JsonSerializer.Serialize(new { method = "check_license", key = licenseKey, now = NowUnix() });
         return RunWasm(Encoding.UTF8.GetBytes(request));
@@ -484,7 +515,7 @@ internal sealed class WasmRunner : IDisposable
     /// </remarks>
     private static long NowUnix() => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-    private static string RunWasm(byte[] requestBytes)
+    private string RunWasm(byte[] requestBytes)
     {
         var inputPath  = Path.GetTempFileName();
         var outputPath = Path.GetTempFileName();
@@ -499,6 +530,7 @@ internal sealed class WasmRunner : IDisposable
             using (var store = new Store(_engine))
             {
                 store.SetWasiConfiguration(wasiConfig);
+                store.SetEpochDeadline(_timeout > 0 ? (ulong)_timeout * TicksPerSecond + 1 : NoDeadline);
                 var instance = _linker.Instantiate(store, _module);
                 var start = instance.GetAction("_start")
                     ?? throw new InvalidOperationException("lpdf WASM module does not export '_start'.");
@@ -507,10 +539,32 @@ internal sealed class WasmRunner : IDisposable
 
             return File.ReadAllText(outputPath, Encoding.UTF8);
         }
+        catch (TrapException trap) when (trap.Type == TrapCode.Interrupt)
+        {
+            throw new EngineException($"The render timed out after {Seconds(_timeout)}.", trap);
+        }
         finally
         {
             try { File.Delete(inputPath); }  catch { /* best-effort cleanup */ }
             try { File.Delete(outputPath); } catch { /* best-effort cleanup */ }
+        }
+    }
+
+    private static string Seconds(int count) => count == 1 ? "1 second" : $"{count} seconds";
+
+    /// <summary>Advances the engine's epoch every <see cref="Tick"/>, for as long as the process runs.</summary>
+    private static void AdvanceEpoch()
+    {
+        // Each tick is due at a time of the clock, not a sleep after the last one, so the ticks don't drift: a sleep
+        // ends late by the timer's resolution, 15.6 ms on Windows.
+        var clock = Stopwatch.StartNew();
+        var due   = TimeSpan.Zero;
+        while (true)
+        {
+            due += Tick;
+            var wait = due - clock.Elapsed;
+            if (wait > TimeSpan.Zero) Thread.Sleep(wait);
+            _engine.IncrementEpoch();
         }
     }
 

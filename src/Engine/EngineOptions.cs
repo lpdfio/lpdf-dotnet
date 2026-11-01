@@ -6,6 +6,27 @@ namespace Lpdf.Engine;
 /// </summary>
 public sealed class EngineOptions
 {
+    /// <summary>The seconds a render may run when <see cref="Timeout"/> is left out.</summary>
+    internal const int DefaultTimeout = 5;
+
+    private readonly int _timeout = DefaultTimeout;
+
+    /// <summary>
+    /// The seconds a render may run before it stops with an <see cref="EngineException"/> that names the limit:
+    /// 5 when left out, no limit at 0. A render stopped at its limit leaves the engine as it was, so the next render
+    /// on it runs as usual.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is negative.</exception>
+    public int Timeout
+    {
+        get => _timeout;
+        init
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            _timeout = value;
+        }
+    }
+
     /// <summary>
     /// File-read callback for resolving the <c>src</c> paths of fonts, images, color profiles and the files a document
     /// carries in its <c>attachments</c> at render time. On the server this can be set to
