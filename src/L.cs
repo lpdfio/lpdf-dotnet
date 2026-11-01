@@ -68,6 +68,7 @@ public static class L
         if (a.Font        is not null) d["font"]        = a.Font;
         if (a.Debug       is not null) d["debug"]       = a.Debug;
         if (a.FootnoteCounter is not null) d["footnote-counter"] = a.FootnoteCounter;
+        if (a.Bleed       is not null) d["bleed"]       = a.Bleed;
 
         if (a.Tokens is not null)
         {
@@ -112,6 +113,8 @@ public static class L
                 ["allow"]   = a.Output.Allow,
                 ["pdfa"]    = a.Output.PdfA,
                 ["pdfua"]   = a.Output.PdfUa,
+                ["pdfx"]    = a.Output.PdfX,
+                ["profile"] = a.Output.Profile,
             };
         }
 

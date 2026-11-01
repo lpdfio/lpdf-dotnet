@@ -60,8 +60,9 @@ internal sealed class WasmRunner : IDisposable
         string?                              createdOn = null,
         string?                              dataJson = null,
         IReadOnlyDictionary<string, string>? markdownStyles = null,
-        IReadOnlyDictionary<string, byte[]>? fileBytes = null)
-        => InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, encryption, createdOn, dataJson, markdownStyles, fileBytes);
+        IReadOnlyDictionary<string, byte[]>? fileBytes = null,
+        IReadOnlyDictionary<string, byte[]>? profileBytes = null)
+        => InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, encryption, createdOn, dataJson, markdownStyles, fileBytes, profileBytes);
 
     /// <summary>
     /// Render an lpdf JSON document tree to raw PDF bytes.
@@ -75,8 +76,9 @@ internal sealed class WasmRunner : IDisposable
         EncryptionRequest?                   encryption = null,
         string?                              createdOn = null,
         IReadOnlyDictionary<string, string>? markdownStyles = null,
-        IReadOnlyDictionary<string, byte[]>? fileBytes = null)
-        => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryption, createdOn, null, markdownStyles, fileBytes);
+        IReadOnlyDictionary<string, byte[]>? fileBytes = null,
+        IReadOnlyDictionary<string, byte[]>? profileBytes = null)
+        => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryption, createdOn, null, markdownStyles, fileBytes, profileBytes);
 
     /// <summary>
     /// Convert a JSON kit-tree (produced by <c>LpdfKit</c>) to an lpdf XML string.
@@ -114,7 +116,8 @@ internal sealed class WasmRunner : IDisposable
         string?                              createdOn = null,
         string?                              dataJson = null,
         IReadOnlyDictionary<string, string>? markdownStyles = null,
-        IReadOnlyDictionary<string, byte[]>? fileBytes = null)
+        IReadOnlyDictionary<string, byte[]>? fileBytes = null,
+        IReadOnlyDictionary<string, byte[]>? profileBytes = null)
     {
         // An XML document is parsed once, for the src of every file it names.
         var xml    = isTree ? null : ParseXml(input);
@@ -126,6 +129,8 @@ internal sealed class WasmRunner : IDisposable
             isTree ? ExtractMarkdownStylesSrcsFromJson(input) : ExtractMarkdownStylesSrcsFromXml(xml), markdownStyles, srcFallback);
         var files  = ResolveAllFiles(
             isTree ? ExtractFileSrcsFromJson(input) : ExtractSrcsFromXml(xml, "attachments", "file"), fileBytes, srcFallback);
+        var profiles = ResolveAllProfiles(
+            isTree ? ExtractAssetSrcsFromJson(input, "profiles") : ExtractSrcsFromXml(xml, "assets", "profile"), profileBytes, srcFallback);
 
         var fontsNode = new JsonObject();
         foreach (var (name, bytes) in fonts)
@@ -155,6 +160,14 @@ internal sealed class WasmRunner : IDisposable
             foreach (var (name, bytes) in files)
                 filesNode[name] = Convert.ToBase64String(bytes);
             requestObj["files"] = filesNode;
+        }
+
+        if (profiles.Count > 0)
+        {
+            var profilesNode = new JsonObject();
+            foreach (var (name, bytes) in profiles)
+                profilesNode[name] = Convert.ToBase64String(bytes);
+            requestObj["profiles"] = profilesNode;
         }
 
         if (styles.Count > 0)
@@ -265,6 +278,36 @@ internal sealed class WasmRunner : IDisposable
     }
 
     /// <summary>
+    /// The color profiles the document declares: the ones loaded, and the ones the <paramref name="srcFallback"/> reads
+    /// from the <c>src</c> of a profile that wasn't. A <c>src</c> that can't be read, or that there is no fallback to
+    /// read, is an error that names the profile, as for a file the document carries.
+    /// </summary>
+    private static Dictionary<string, byte[]> ResolveAllProfiles(
+        Dictionary<string, string>           srcs,
+        IReadOnlyDictionary<string, byte[]>? profileBytes,
+        Func<string, byte[]>?                srcFallback)
+    {
+        var merged = new Dictionary<string, byte[]>(profileBytes ?? new Dictionary<string, byte[]>(), StringComparer.Ordinal);
+        foreach (var (key, src) in srcs)
+        {
+            if (merged.ContainsKey(key)) continue;
+            if (srcFallback is null)
+                throw new EngineException(
+                    $"profile '{key}' of <assets> has the src '{src}', and the engine has no SrcFallback to read it: " +
+                    $"create it with new EngineOptions {{ SrcFallback = File.ReadAllBytes }}, or load the profile with LoadProfile(\"{key}\", bytes)");
+            try
+            {
+                merged[key] = srcFallback(src);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException)
+            {
+                throw new EngineException($"profile '{key}' of <assets>: cannot read its src '{src}': {e.Message}");
+            }
+        }
+        return merged;
+    }
+
+    /// <summary>
     /// An XML document read with an XML parser, as the engine reads it, for the <c>src</c> of the files it names:
     /// entities decoded, and what is in a comment or CDATA left out. XML that doesn't parse is <c>null</c> and names no
     /// file here; the engine says what is wrong with it.
@@ -284,8 +327,8 @@ internal sealed class WasmRunner : IDisposable
 
     /// <summary>
     /// The <c>ref ?? name → src</c> pairs of the <paramref name="element"/> elements of each
-    /// <paramref name="parent"/> of a document: the <c>font</c> and <c>image</c> of its <c>assets</c>, or the
-    /// <c>file</c> of its <c>attachments</c>.
+    /// <paramref name="parent"/> of a document: the <c>font</c>, <c>image</c> and <c>profile</c> of its <c>assets</c>,
+    /// or the <c>file</c> of its <c>attachments</c>.
     /// </summary>
     private static Dictionary<string, string> ExtractSrcsFromXml(XDocument? document, string parent, string element)
     {
@@ -390,8 +433,8 @@ internal sealed class WasmRunner : IDisposable
     }
 
     /// <summary>
-    /// The <c>ref ?? name → src</c> pairs of the fonts or images a document tree declares in its
-    /// <c>assets</c>. <paramref name="kind"/> is <c>fonts</c> or <c>images</c>.
+    /// The <c>ref ?? name → src</c> pairs of the fonts, images or color profiles a document tree declares in its
+    /// <c>assets</c>. <paramref name="kind"/> is <c>fonts</c>, <c>images</c> or <c>profiles</c>.
     /// </summary>
     private static Dictionary<string, string> ExtractAssetSrcsFromJson(string json, string kind)
     {
