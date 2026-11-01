@@ -205,6 +205,30 @@ public class EngineFeatureTests
     }
 
     [Fact]
+    public void Takes_pdfua_and_lang_from_a_kit_document_and_tags_the_file()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var document = L.Document(
+            new DocumentAttr(Meta: new DocumentMeta(Title: "Report", Lang: "en-US"), Output: new DocumentOutput(PdfUa: "1")),
+            [L.Section(null, [L.Layout(null, [L.Column(new Lpdf.Layout.ColumnAttr { Background = "#e8f0fc", Height = "40pt" })])])]);
+        var text = System.Text.Encoding.Latin1.GetString(
+            engine.Render(document, new RenderOptions { CreatedOn = "2026-10-31" }));
+
+        Assert.Contains("<pdfuaid:part>1</pdfuaid:part>", text);
+        Assert.Contains("/Lang (en-US)", text);
+        Assert.Contains("/StructTreeRoot", text);
+    }
+
+    [Fact]
+    public void Refuses_pdfua_without_the_language_of_the_document()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        const string xml = "<lpdf version=\"1\"><document><meta title=\"Report\"/><output pdfua=\"1\"/><section><layout><column height=\"40pt\"/></layout></section></document></lpdf>";
+        var error = Assert.Throws<EngineException>(() => engine.Render(xml, new RenderOptions { CreatedOn = "2026-10-31" }));
+        Assert.Contains("add lang to <meta>", error.Message);
+    }
+
+    [Fact]
     public void Encrypts_a_document_built_with_the_kit_as_its_output_asks()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");

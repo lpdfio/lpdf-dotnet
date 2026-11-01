@@ -26,6 +26,9 @@ public sealed record TextAttr
     /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
 
+    /// <summary>Makes the text a heading, h1 to h6, which a PDF/UA document tags as one: a screen reader lists the headings and moves between them. A text without role is a paragraph. A PDF/UA document's headings start at h1 and go down one level at a time. It changes nothing a page shows: set the size and the weight as on any text. A document without pdfua ignores it.</summary>
+    public string? Role { get; init; }
+
     /// <summary>The fewest lines of the text that may stand alone at the top of the next page when it splits. Default 2. If fewer would be left, lines move from the first page to the next; 1 turns the protection off.</summary>
     public int? Widows { get; init; }
 
