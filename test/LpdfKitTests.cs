@@ -167,21 +167,21 @@ public class KitToXmlTests
         L.Document(nodes: [L.Section(nodes: [L.Layout(null)])]);
 
     [Fact]
-    public async Task KitToXml_ReturnsXmlDeclaration()
+    public void KitToXml_ReturnsXmlDeclaration()
     {
-        var xml = await L.ToXml(SimpleDoc());
+        var xml = L.ToXml(SimpleDoc());
         Assert.StartsWith("<?xml version=\"1.0\"", xml);
     }
 
     [Fact]
-    public async Task KitToXml_ContainsLpdfRoot()
+    public void KitToXml_ContainsLpdfRoot()
     {
-        var xml = await L.ToXml(SimpleDoc());
+        var xml = L.ToXml(SimpleDoc());
         Assert.Contains("<lpdf version=\"1\">", xml);
     }
 
     [Fact]
-    public async Task KitToXml_WritesTheAssetsUnderTheSchemaNames()
+    public void KitToXml_WritesTheAssetsUnderTheSchemaNames()
     {
         var doc = L.Document(
             attrs: new DocumentAttr(Assets: new DocumentAssets(
@@ -192,7 +192,7 @@ public class KitToXmlTests
                 ],
                 Images: [new ImageAttr { Name = "logo", Src = "logo.png" }])),
             nodes: [L.Section(nodes: [L.Layout(null)])]);
-        var xml = await L.ToXml(doc);
+        var xml = L.ToXml(doc);
 
         Assert.Contains("<font name=\"heading\" core=\"Helvetica-Bold\"/>", xml);
         Assert.Contains("<font name=\"body\" ref=\"body-font\" src=\"/fonts/MyFont.ttf\"/>", xml);
@@ -200,12 +200,12 @@ public class KitToXmlTests
     }
 
     [Fact]
-    public async Task KitToXml_WritesTheAliasesOfTheTokens()
+    public void KitToXml_WritesTheAliasesOfTheTokens()
     {
         var doc = L.Document(
             attrs: new DocumentAttr(Tokens: new DocumentTokens(Aliases: new() { ["caption"] = "xs", ["sub-title"] = "l" })),
             nodes: [L.Section(nodes: [L.Layout(null, [L.Text(new TextAttr { FontSize = "caption" }, ["Small"])])])]);
-        var xml = await L.ToXml(doc);
+        var xml = L.ToXml(doc);
 
         Assert.Contains("<aliases>", xml);
         Assert.Contains("<alias name=\"caption\" value=\"xs\"/>", xml);
@@ -214,12 +214,12 @@ public class KitToXmlTests
     }
 
     [Fact]
-    public async Task KitToXml_WritesTheHeightRowOfTheTokens()
+    public void KitToXml_WritesTheHeightRowOfTheTokens()
     {
         var doc = L.Document(
             attrs: new DocumentAttr(Tokens: new DocumentTokens(Height: new() { ["xs"] = "10pt", ["m"] = "30pt" })),
             nodes: [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Height = "m" })])])]);
-        var xml = await L.ToXml(doc);
+        var xml = L.ToXml(doc);
 
         Assert.Contains("<height ", xml);
         Assert.Contains("xs=\"10pt\"", xml);
@@ -228,7 +228,7 @@ public class KitToXmlTests
     }
 
     [Fact]
-    public async Task KitToXml_WritesTheGradientsOfTheTokens()
+    public void KitToXml_WritesTheGradientsOfTheTokens()
     {
         var doc = L.Document(
             attrs: new DocumentAttr(Tokens: new DocumentTokens(Gradients: new()
@@ -245,7 +245,7 @@ public class KitToXmlTests
                 },
             })),
             nodes: [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Background = "gradient:fade" })])])]);
-        var xml = await L.ToXml(doc);
+        var xml = L.ToXml(doc);
 
         Assert.Contains("<gradient name=\"fade\" type=\"linear\" from=\"primary\" to=\"#0f3e8a\" angle=\"90\"/>", xml);
         Assert.Contains("<gradient name=\"sunset\" type=\"radial\">", xml);
@@ -254,16 +254,16 @@ public class KitToXmlTests
     }
 
     [Fact]
-    public async Task KitToXml_ProducedXmlRendersToValidPdf()
+    public void KitToXml_ProducedXmlRendersToValidPdf()
     {
         var doc = L.Document(nodes: [
             L.Section(nodes: [L.Layout(null, [
                 L.Text(nodes: [L.Raw("Hello from KitToXml")]),
             ])]),
         ]);
-        var xml = await L.ToXml(doc);
+        var xml = L.ToXml(doc);
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var pdf = await engine.Render(xml);
+        var pdf = engine.Render(xml);
 
         Assert.True(pdf.Length > 100);
         Assert.Equal(0x25, pdf[0]); // '%'

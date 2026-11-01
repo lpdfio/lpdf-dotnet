@@ -34,8 +34,8 @@ foreach (var folder in folders)
 
     var engine = L.Engine(new EngineOptions { SrcFallback = src => File.ReadAllBytes(Path.Combine(folder, src)) });
     var bytes  = File.Exists(dataFile)
-        ? await engine.Render(xml, new RenderOptions { Data = JsonSerializer.Deserialize<object>(await File.ReadAllTextAsync(dataFile)) })
-        : await engine.Render(xml);
+        ? engine.Render(xml, new RenderOptions { Data = JsonSerializer.Deserialize<object>(await File.ReadAllTextAsync(dataFile)) })
+        : engine.Render(xml);
 
     var outputFile = $"{name}-dotnet.pdf";
     await File.WriteAllBytesAsync(Path.Combine(output, outputFile), bytes);
@@ -50,7 +50,7 @@ foreach (var folder in folders)
     const string outputFile = "encrypt-permissions-only-dotnet.pdf";
 
     var encEngine = L.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
-    var bytes = await encEngine.Render(encXml, new RenderOptions { OwnerPassword = "s3cr3t" });
+    var bytes = encEngine.Render(encXml, new RenderOptions { OwnerPassword = "s3cr3t" });
     await File.WriteAllBytesAsync(Path.Combine(output, outputFile), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
 }
@@ -63,7 +63,7 @@ foreach (var folder in folders)
     const string outputFile = "encrypt-open-password-dotnet.pdf";
 
     var encEngine = L.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
-    var bytes = await encEngine.Render(encXml, new RenderOptions { UserPassword = "password", OwnerPassword = "owner" });
+    var bytes = encEngine.Render(encXml, new RenderOptions { UserPassword = "password", OwnerPassword = "owner" });
     await File.WriteAllBytesAsync(Path.Combine(output, outputFile), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
 }
@@ -77,7 +77,7 @@ foreach (var folder in folders)
     const string outputFile = "example-data-dotnet.pdf";
 
     var dataEngine = L.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
-    var bytes = await dataEngine.Render(xml, new RenderOptions { Data = data });
+    var bytes = dataEngine.Render(xml, new RenderOptions { Data = data });
     await File.WriteAllBytesAsync(Path.Combine(output, outputFile), bytes);
     Console.WriteLine($"output: {outputFile} ({bytes.Length:N0} bytes)");
 }

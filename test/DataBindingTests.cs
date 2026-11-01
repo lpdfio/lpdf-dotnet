@@ -15,11 +15,11 @@ public class DataBindingTests
         $"""<lpdf version="1"><document><section><layout>{body}</layout></section></document></lpdf>""";
 
     [Fact]
-    public async Task DataValue_SubstitutesScalar()
+    public void DataValue_SubstitutesScalar()
     {
         var xml = Doc("""<text data-value="name">Fallback</text>""");
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var bytes = await engine.Render(xml, new RenderOptions
+        var bytes = engine.Render(xml, new RenderOptions
         {
             Data = new { name = "Acme Inc" },
         });
@@ -27,7 +27,7 @@ public class DataBindingTests
     }
 
     [Fact]
-    public async Task DataSource_ExpandsArray()
+    public void DataSource_ExpandsArray()
     {
         var xml = Doc("""
             <column data-source="items" gap="xs">
@@ -35,7 +35,7 @@ public class DataBindingTests
             </column>
             """);
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var bytes = await engine.Render(xml, new RenderOptions
+        var bytes = engine.Render(xml, new RenderOptions
         {
             Data = new
             {
@@ -51,14 +51,14 @@ public class DataBindingTests
     }
 
     [Fact]
-    public async Task DataIf_HidesNodeWhenFalse()
+    public void DataIf_HidesNodeWhenFalse()
     {
         var xml = Doc("""
             <text data-if="isPremium">Premium only</text>
             <text>Always visible</text>
             """);
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var bytes = await engine.Render(xml, new RenderOptions
+        var bytes = engine.Render(xml, new RenderOptions
         {
             Data = new { isPremium = false },
         });
@@ -66,11 +66,11 @@ public class DataBindingTests
     }
 
     [Fact]
-    public async Task NoDataOption_RendersWithFallbackContent()
+    public void NoDataOption_RendersWithFallbackContent()
     {
         var xml = Doc("""<text data-value="name">Inline fallback</text>""");
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var bytes = await engine.Render(xml);
+        var bytes = engine.Render(xml);
         Assert.StartsWith("%PDF-", System.Text.Encoding.Latin1.GetString(bytes[..5]));
     }
 }

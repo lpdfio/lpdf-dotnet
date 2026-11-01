@@ -25,7 +25,7 @@ namespace Lpdf;
 ///         ])
 ///     ])
 /// ]);
-/// var bytes = await L.Engine().SetLicenseKey("…").Render(doc);
+/// var bytes = L.Engine().SetLicenseKey("…").Render(doc);
 /// </code>
 /// </example>
 /// </summary>
@@ -46,13 +46,12 @@ public static class L
     // ── XML conversion ────────────────────────────────────────────────────────
 
     /// <summary>Convert a <see cref="PdfDocument"/> tree to an lpdf XML string without rendering it.</summary>
-    public static Task<string> ToXml(PdfDocument document)
+    public static string ToXml(PdfDocument document)
     {
         ArgumentNullException.ThrowIfNull(document);
         var json = JsonSerializer.Serialize(document, DocumentJson.Options);
-        var wasm = new WasmRunner();
-        try { return Task.FromResult(wasm.KitToXml(json)); }
-        finally { wasm.Dispose(); }
+        using var wasm = new WasmRunner();
+        return wasm.KitToXml(json);
     }
 
     // ── Document / section ────────────────────────────────────────────────────

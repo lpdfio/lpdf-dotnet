@@ -120,10 +120,13 @@ public sealed class PdfEngine : IDisposable
         return this;
     }
 
-    /// <summary>Render an lpdf XML string to PDF bytes.</summary>
+    /// <summary>
+    /// Render an lpdf XML string to PDF bytes, on the caller's thread. To render on another thread, write
+    /// <c>await Task.Run(() =&gt; engine.Render(xml))</c>.
+    /// </summary>
     /// <param name="xml">Full lpdf XML document string.</param>
     /// <param name="callOptions">Per-call options (data, timestamp, passwords).</param>
-    public Task<byte[]> Render(string xml, RenderOptions? callOptions = null)
+    public byte[] Render(string xml, RenderOptions? callOptions = null)
     {
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(xml);
@@ -131,17 +134,18 @@ public sealed class PdfEngine : IDisposable
         var images = _images.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_images : null;
         var encryption = BuildEncryption(callOptions);
         var dataJson   = BuildDataJson(callOptions?.Data);
-        var styles = _markdownStyles.Count > 0 ? new Dictionary<string, string>(_markdownStyles) : null;
-        var files  = new Dictionary<string, byte[]>(_files, StringComparer.Ordinal);
-        return Task.Run(() =>
-            _wasm.RenderPdf(xml, _licenseKey, fonts, images,
-                _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, dataJson, styles, files));
+        var styles = _markdownStyles.Count > 0 ? _markdownStyles : null;
+        return _wasm.RenderPdf(xml, _licenseKey, fonts, images,
+            _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, dataJson, styles, _files);
     }
 
-    /// <summary>Render a <see cref="PdfDocument"/> tree to PDF bytes.</summary>
+    /// <summary>
+    /// Render a <see cref="PdfDocument"/> tree to PDF bytes, on the caller's thread. To render on another thread,
+    /// write <c>await Task.Run(() =&gt; engine.Render(document))</c>.
+    /// </summary>
     /// <param name="document">Document tree produced by <c>Pdf.Document(…)</c>.</param>
     /// <param name="callOptions">Per-call options (timestamp, passwords).</param>
-    public Task<byte[]> Render(PdfDocument document, RenderOptions? callOptions = null)
+    public byte[] Render(PdfDocument document, RenderOptions? callOptions = null)
     {
         ThrowIfDisposed();
         ArgumentNullException.ThrowIfNull(document);
@@ -149,11 +153,9 @@ public sealed class PdfEngine : IDisposable
         var fonts  = _fonts.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_fonts : null;
         var images = _images.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_images : null;
         var encryption = BuildEncryption(callOptions);
-        var styles = _markdownStyles.Count > 0 ? new Dictionary<string, string>(_markdownStyles) : null;
-        var files  = new Dictionary<string, byte[]>(_files, StringComparer.Ordinal);
-        return Task.Run(() =>
-            _wasm.RenderTreePdf(json, _licenseKey, fonts, images,
-                _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, styles, files));
+        var styles = _markdownStyles.Count > 0 ? _markdownStyles : null;
+        return _wasm.RenderTreePdf(json, _licenseKey, fonts, images,
+            _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, styles, _files);
     }
 
     // ── Internals ─────────────────────────────────────────────────────────────
