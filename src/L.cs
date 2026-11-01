@@ -100,6 +100,7 @@ public static class L
                 ["subject"]  = m.Subject,
                 ["keywords"] = m.Keywords,
                 ["creator"]  = m.Creator,
+                ["lang"]     = m.Lang,
             };
         }
 
@@ -110,6 +111,7 @@ public static class L
                 ["encrypt"] = a.Output.Encrypt,
                 ["allow"]   = a.Output.Allow,
                 ["pdfa"]    = a.Output.PdfA,
+                ["pdfua"]   = a.Output.PdfUa,
             };
         }
 

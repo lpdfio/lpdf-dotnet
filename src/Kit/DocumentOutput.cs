@@ -21,4 +21,10 @@ namespace Lpdf.Kit;
 /// font of the assets. What PDF/A cannot hold is an error that says what to change: a built-in font, a CMYK color, a
 /// form field, a barcode's digits, <paramref name="Encrypt"/>. It is <c>pdfa</c> in the XML.
 /// </param>
-public sealed record DocumentOutput(string? Encrypt = null, string? Allow = null, string? PdfA = null);
+/// <param name="PdfUa">
+/// Writes the PDF as PDF/UA-1, a tagged PDF a screen reader can read: <c>"1"</c>. It combines with
+/// <paramref name="PdfA"/>. The render needs <see cref="Lpdf.Engine.RenderOptions.CreatedOn"/>, the meta a title and a
+/// lang, every image and barcode of the layout an alt, and every text a font of the assets. What PDF/UA cannot hold is
+/// an error that says what to change. It is <c>pdfua</c> in the XML.
+/// </param>
+public sealed record DocumentOutput(string? Encrypt = null, string? Allow = null, string? PdfA = null, string? PdfUa = null);

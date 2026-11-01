@@ -18,6 +18,9 @@ public sealed record BarcodeAttr
 
     /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
+
+    /// <summary>What the barcode is for, which a screen reader reads in a PDF/UA document in place of its data, which means nothing read aloud: "QR code to pay this invoice". alt="" marks it as decoration. A PDF/UA document needs it on every barcode of the layout. A document without pdfua ignores it.</summary>
+    public string? Alt { get; init; }
     public string? Paginate { get; init; }
     public bool? Debug { get; init; }
 }
