@@ -46,7 +46,7 @@ public class SnapshotTests
     [InlineData("bench_m")]
     [InlineData("bench_l")]
     [InlineData("bench_xl")]
-    public async Task FixtureMatchesStoredHash(string name)
+    public void FixtureMatchesStoredHash(string name)
     {
         if (!SnapshotHelper.HAS_FIXTURES)
             return; // Fixture files not available outside the monorepo.
@@ -54,7 +54,7 @@ public class SnapshotTests
         var xml   = File.ReadAllText(Path.Combine(SnapshotHelper.Fixtures, $"{name}.xml"));
         using var engine = L.Engine().SetLicenseKey("test-key");
         // showcase-encryption asks for encryption in its output: its snapshot is the file unencrypted.
-        var bytes = await engine.Render(xml, new RenderOptions { SkipEncryption = true });
+        var bytes = engine.Render(xml, new RenderOptions { SkipEncryption = true });
         SnapshotHelper.CompareOrUpdate(name, bytes);
     }
 }
@@ -74,10 +74,10 @@ public class EngineFeatureTests
     private static readonly RenderOptions _ownerPassword = new() { OwnerPassword = "s3cr3t" };
 
     [Fact]
-    public async Task Encrypts_a_document_whose_output_asks_for_it_with_the_passwords_of_the_render()
+    public void Encrypts_a_document_whose_output_asks_for_it_with_the_passwords_of_the_render()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var bytes = await engine.Render(EncryptedXml(), new RenderOptions { UserPassword = "open", OwnerPassword = "s3cr3t" });
+        var bytes = engine.Render(EncryptedXml(), new RenderOptions { UserPassword = "open", OwnerPassword = "s3cr3t" });
 
         Assert.True(
             bytes[..5].SequenceEqual(System.Text.Encoding.ASCII.GetBytes("%PDF-")),
@@ -90,10 +90,10 @@ public class EngineFeatureTests
     }
 
     [Fact]
-    public async Task Takes_the_cipher_from_the_output()
+    public void Takes_the_cipher_from_the_output()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword));
+        var text = System.Text.Encoding.Latin1.GetString(engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword));
 
         Assert.Contains("/V 2", text);
         Assert.Contains("/R 3", text);
@@ -101,42 +101,42 @@ public class EngineFeatureTests
     }
 
     [Fact]
-    public async Task Takes_the_permissions_from_allow()
+    public void Takes_the_permissions_from_allow()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(EncryptedXml("encrypt=\"rc4-128\" allow=\"print\""), _ownerPassword));
+        var text = System.Text.Encoding.Latin1.GetString(engine.Render(EncryptedXml("encrypt=\"rc4-128\" allow=\"print\""), _ownerPassword));
 
         // Printing, at full quality too, and nothing else.
         Assert.Contains("/P -1852", text);
     }
 
     [Fact]
-    public async Task Every_aes256_render_gets_a_fresh_key()
+    public void Every_aes256_render_gets_a_fresh_key()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
 
-        var first  = await engine.Render(EncryptedXml(), _ownerPassword);
-        var second = await engine.Render(EncryptedXml(), _ownerPassword);
+        var first  = engine.Render(EncryptedXml(), _ownerPassword);
+        var second = engine.Render(EncryptedXml(), _ownerPassword);
 
         Assert.False(first.SequenceEqual(second), "Two AES-256 renders must differ.");
     }
 
     [Fact]
-    public async Task Rc4_renders_of_one_document_are_identical()
+    public void Rc4_renders_of_one_document_are_identical()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
 
-        var first  = await engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword);
-        var second = await engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword);
+        var first  = engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword);
+        var second = engine.Render(EncryptedXml("encrypt=\"rc4-128\""), _ownerPassword);
 
         Assert.True(first.SequenceEqual(second));
     }
 
     [Fact]
-    public async Task Skip_encryption_renders_a_document_that_asks_for_encryption_unencrypted()
+    public void Skip_encryption_renders_a_document_that_asks_for_encryption_unencrypted()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(EncryptedXml(), new RenderOptions { SkipEncryption = true }));
+        var text = System.Text.Encoding.Latin1.GetString(engine.Render(EncryptedXml(), new RenderOptions { SkipEncryption = true }));
 
         Assert.DoesNotContain("/Encrypt", text);
     }
@@ -150,10 +150,10 @@ public class EngineFeatureTests
 
     [Theory]
     [MemberData(nameof(RefusedRenders))]
-    public async Task Refuses_a_render_and_says_what_to_change(string what, string xml, string? ownerPassword, bool skip, string expected)
+    public void Refuses_a_render_and_says_what_to_change(string what, string xml, string? ownerPassword, bool skip, string expected)
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var error = await Assert.ThrowsAsync<EngineException>(
+        var error = Assert.Throws<EngineException>(
             () => engine.Render(xml, new RenderOptions { OwnerPassword = ownerPassword, SkipEncryption = skip }));
 
         Assert.True(error.Message.Contains(expected), $"{what}: {error.Message}");
@@ -167,11 +167,11 @@ public class EngineFeatureTests
         => $"<lpdf version=\"1\"><document><output pdfa=\"{level}\"/><section><layout>{body}</layout></section></document></lpdf>";
 
     [Fact]
-    public async Task Writes_pdfa_when_the_output_asks_for_it_dated_by_created_on()
+    public void Writes_pdfa_when_the_output_asks_for_it_dated_by_created_on()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
         var text = System.Text.Encoding.Latin1.GetString(
-            await engine.Render(PdfAXml("2u"), new RenderOptions { CreatedOn = "2026-10-31T09:30:00Z" }));
+            engine.Render(PdfAXml("2u"), new RenderOptions { CreatedOn = "2026-10-31T09:30:00Z" }));
 
         Assert.Contains("<pdfaid:part>2</pdfaid:part>", text);
         Assert.Contains("<pdfaid:conformance>U</pdfaid:conformance>", text);
@@ -180,41 +180,41 @@ public class EngineFeatureTests
     }
 
     [Fact]
-    public async Task Takes_pdfa_from_the_output_of_a_kit_document()
+    public void Takes_pdfa_from_the_output_of_a_kit_document()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
         var document = L.Document(
             new DocumentAttr(Output: new DocumentOutput(PdfA: "2b")),
             [L.Section(null, [L.Layout(null, [L.Column(new Lpdf.Layout.ColumnAttr { Background = "#e8f0fc", Height = "40pt" })])])]);
         var text = System.Text.Encoding.Latin1.GetString(
-            await engine.Render(document, new RenderOptions { CreatedOn = "2026-10-31" }));
+            engine.Render(document, new RenderOptions { CreatedOn = "2026-10-31" }));
 
         Assert.Contains("<pdfaid:conformance>B</pdfaid:conformance>", text);
     }
 
     [Fact]
-    public async Task Refuses_pdfa_without_created_on_and_text_in_a_built_in_font()
+    public void Refuses_pdfa_without_created_on_and_text_in_a_built_in_font()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var missing = await Assert.ThrowsAsync<EngineException>(() => engine.Render(PdfAXml()));
+        var missing = Assert.Throws<EngineException>(() => engine.Render(PdfAXml()));
         Assert.Contains("created_on", missing.Message);
 
-        var builtIn = await Assert.ThrowsAsync<EngineException>(
+        var builtIn = Assert.Throws<EngineException>(
             () => engine.Render(PdfAXml("2b", "<text>Hello</text>"), new RenderOptions { CreatedOn = "2026-10-31" }));
         Assert.Contains("\"Hello\" is in Helvetica", builtIn.Message);
     }
 
     [Fact]
-    public async Task Encrypts_a_document_built_with_the_kit_as_its_output_asks()
+    public void Encrypts_a_document_built_with_the_kit_as_its_output_asks()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
         var document = L.Document(
             new DocumentAttr(Output: new DocumentOutput(Encrypt: Cipher.Aes256, Allow: $"{Permission.Print} {Permission.FillForms}")),
             [L.Section(null, [L.Layout(null, [L.Text(null, ["Hello PDF"])])])]);
-        var text = System.Text.Encoding.Latin1.GetString(await engine.Render(document, _ownerPassword));
+        var text = System.Text.Encoding.Latin1.GetString(engine.Render(document, _ownerPassword));
 
         Assert.Contains("/CFM /AESV3", text);
-        await Assert.ThrowsAsync<EngineException>(() => engine.Render(document));
+        Assert.Throws<EngineException>(() => engine.Render(document));
     }
 
     private static PdfDocument WithAttachments(params FileAttr[] files)
@@ -224,7 +224,7 @@ public class EngineFeatureTests
         => System.Text.RegularExpressions.Regex.Matches(System.Text.Encoding.Latin1.GetString(pdf), "/Type /EmbeddedFile").Count;
 
     [Fact]
-    public async Task Embeds_the_files_a_document_carries_from_LoadFile_or_their_src()
+    public void Embeds_the_files_a_document_carries_from_LoadFile_or_their_src()
     {
         var terms = Path.GetTempFileName();
         File.WriteAllText(terms, "Terms of sale");
@@ -236,11 +236,11 @@ public class EngineFeatureTests
             using var engine = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
             engine.LoadFile("invoice", System.Text.Encoding.UTF8.GetBytes("<invoice/>"));
 
-            var pdf = await engine.Render(document);
+            var pdf = engine.Render(document);
             Assert.Equal(2, EmbeddedFiles(pdf));
             Assert.Contains("/AFRelationship /Data", System.Text.Encoding.Latin1.GetString(pdf));
             Assert.Contains("/Subtype /text#2Fxml", System.Text.Encoding.Latin1.GetString(pdf));
-            Assert.Equal(pdf, await engine.Render(await L.ToXml(document)));
+            Assert.Equal(pdf, engine.Render(L.ToXml(document)));
         }
         finally
         {
@@ -249,22 +249,22 @@ public class EngineFeatureTests
     }
 
     [Fact]
-    public async Task A_file_src_without_a_SrcFallback_or_that_cannot_be_read_is_an_error_that_names_it()
+    public void A_file_src_without_a_SrcFallback_or_that_cannot_be_read_is_an_error_that_names_it()
     {
         var document = WithAttachments(new FileAttr { Name = "data.csv", Src = "/no/such/data.csv" });
 
         using var plain = L.Engine().SetLicenseKey("test-key");
-        var noFallback = await Assert.ThrowsAsync<EngineException>(() => plain.Render(document));
+        var noFallback = Assert.Throws<EngineException>(() => plain.Render(document));
         Assert.Contains("SrcFallback", noFallback.Message);
         Assert.Contains("data.csv", noFallback.Message);
 
         using var reading = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
-        var unreadable = await Assert.ThrowsAsync<EngineException>(() => reading.Render(document));
+        var unreadable = Assert.Throws<EngineException>(() => reading.Render(document));
         Assert.Contains("cannot read its src '/no/such/data.csv'", unreadable.Message);
     }
 
     [Fact]
-    public async Task Reads_the_src_of_a_file_as_the_engine_reads_its_XML()
+    public void Reads_the_src_of_a_file_as_the_engine_reads_its_XML()
     {
         var folder = Directory.CreateTempSubdirectory("lpdf-files-");
         try
@@ -272,12 +272,12 @@ public class EngineFeatureTests
             File.WriteAllText(Path.Combine(folder.FullName, "R&D terms.txt"), "Terms");
             var document = WithAttachments(
                 new FileAttr { Name = "Terms & Conditions.txt", Src = Path.Combine(folder.FullName, "R&D terms.txt"), Description = "Rows > 100" });
-            var xml = (await L.ToXml(document))
+            var xml = L.ToXml(document)
                 .Replace("<attachments>", "<attachments><!-- <file name=\"old.csv\" src=\"/no/such/old.csv\"/> -->");
 
             using var engine = L.Engine(new() { SrcFallback = File.ReadAllBytes }).SetLicenseKey("test-key");
-            Assert.Equal(1, EmbeddedFiles(await engine.Render(xml)));
-            Assert.Equal(await engine.Render(document), await engine.Render(xml));
+            Assert.Equal(1, EmbeddedFiles(engine.Render(xml)));
+            Assert.Equal(engine.Render(document), engine.Render(xml));
         }
         finally
         {
@@ -286,15 +286,15 @@ public class EngineFeatureTests
     }
 
     [Fact]
-    public async Task A_file_with_no_bytes_is_an_error_that_says_how_to_load_it()
+    public void A_file_with_no_bytes_is_an_error_that_says_how_to_load_it()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var error = await Assert.ThrowsAsync<EngineException>(() => engine.Render(WithAttachments(new FileAttr { Name = "a.xml" })));
+        var error = Assert.Throws<EngineException>(() => engine.Render(WithAttachments(new FileAttr { Name = "a.xml" })));
         Assert.Contains("loadFile('a.xml', bytes)", error.Message);
     }
 
     [Fact]
-    public async Task LoadImage_DoesNotThrowAndProducesValidPdf()
+    public void LoadImage_DoesNotThrowAndProducesValidPdf()
     {
         // A minimal 1×1 white grayscale PNG
         var png1x1 = Convert.FromHexString(
@@ -303,7 +303,7 @@ public class EngineFeatureTests
 
         using var engine = L.Engine().SetLicenseKey("test-key");
         engine.LoadImage("testimg", png1x1);
-        var bytes = await engine.Render(_minimalXml);
+        var bytes = engine.Render(_minimalXml);
 
         Assert.True(
             bytes[..5].SequenceEqual(System.Text.Encoding.ASCII.GetBytes("%PDF-")),

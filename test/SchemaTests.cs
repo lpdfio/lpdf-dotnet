@@ -31,7 +31,7 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_typed_value_renders_as_its_text_does_in_XML()
+    public void A_typed_value_renders_as_its_text_does_in_XML()
     {
         var built = InLayout(L.Grid(new GridAttr { Cols = 2, Opacity = 0.5 }, [
             L.Text(new TextAttr { Bold = true, LineHeight = 1.5 }, ["a"]),
@@ -40,21 +40,21 @@ public class SchemaTests
         const string xml = "<lpdf version=\"1\"><document><section><layout><grid cols=\"2\" opacity=\"0.5\">"
             + "<text bold=\"true\" line-height=\"1.5\">a</text><text line-height=\"l\">b</text></grid></layout></section></document></lpdf>";
 
-        Assert.Equal(await Render(xml), await Render(built));
+        Assert.Equal(Render(xml), Render(built));
     }
 
     /// <summary>C# refuses a wrong type when it compiles; a node built around the classes reaches the engine, which refuses it.</summary>
     [Fact]
-    public async Task The_engine_refuses_a_value_of_the_wrong_type()
+    public void The_engine_refuses_a_value_of_the_wrong_type()
     {
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(new TextNode(new() { ["bold"] = "true" }, []))));
+        var error = Assert.Throws<EngineException>(() => Render(InLayout(new TextNode(new() { ["bold"] = "true" }, []))));
         Assert.Contains("text: bold must be true or false, not \"true\"", error.Message);
     }
 
     [Fact]
-    public async Task The_engine_refuses_an_attribute_the_element_does_not_have()
+    public void The_engine_refuses_an_attribute_the_element_does_not_have()
     {
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(new TextNode(new() { ["colr"] = "red" }, []))));
+        var error = Assert.Throws<EngineException>(() => Render(InLayout(new TextNode(new() { ["colr"] = "red" }, []))));
         Assert.Contains("text: unknown attribute 'colr' — expected font-size, font, bold, color,", error.Message);
     }
 
@@ -62,9 +62,9 @@ public class SchemaTests
     [Theory]
     [InlineData(double.NaN, "NaN")]
     [InlineData(double.PositiveInfinity, "Infinity")]
-    public async Task The_engine_refuses_a_number_that_is_not_finite(double opacity, string text)
+    public void The_engine_refuses_a_number_that_is_not_finite(double opacity, string text)
     {
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(InLayout(L.Column(new ColumnAttr { Opacity = opacity }))));
+        var error = Assert.Throws<EngineException>(() => Render(InLayout(L.Column(new ColumnAttr { Opacity = opacity }))));
         Assert.Contains($"column: opacity must be a number from 0 to 1, not \"{text}\"", error.Message);
     }
 
@@ -242,7 +242,7 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_layer_shape_is_drawn()
+    public void A_layer_shape_is_drawn()
     {
         var empty = L.Document(new DocumentAttr(Size: "a4"), [L.Section(null, [L.Layer(null, [])])]);
         var drawn = L.Document(new DocumentAttr(Size: "a4"), [
@@ -251,11 +251,11 @@ public class SchemaTests
             ]),
         ]);
 
-        Assert.NotEqual(await Render(empty), await Render(drawn));
+        Assert.NotEqual(Render(empty), Render(drawn));
     }
 
     [Fact]
-    public async Task Layers_go_directly_in_a_section_before_and_after_its_layout()
+    public void Layers_go_directly_in_a_section_before_and_after_its_layout()
     {
         var section = L.Section(null, [
             L.Layer(new LayerAttr { Page = PageScope.First }, [L.Rect(new RectAttr { Width = "10pt", Height = "10pt" })]),
@@ -264,7 +264,7 @@ public class SchemaTests
         ]);
         Assert.Equal(["layer", "layout", "layer"], section.Nodes.Select(n => n.Type));
 
-        var xml = await L.ToXml(L.Document(null, [section]));
+        var xml = L.ToXml(L.Document(null, [section]));
         var under = xml.IndexOf("<layer page=\"first\">", StringComparison.Ordinal);
         var layout = xml.IndexOf("<layout>", StringComparison.Ordinal);
         var over = xml.IndexOf("<layer page=\"last\">", StringComparison.Ordinal);
@@ -273,13 +273,13 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_section_with_two_layouts_is_rejected()
+    public void A_section_with_two_layouts_is_rejected()
     {
         var doc = L.Document(null, [
             L.Section(null, [L.Layout(null, [L.Text(null, ["a"])]), L.Layout(null, [L.Text(null, ["b"])])]),
         ]);
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
+        var error = Assert.Throws<EngineException>(() => Render(doc));
         Assert.Contains("at most one <layout>", error.Message);
     }
 
@@ -313,13 +313,13 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_text_at_is_written_under_its_element_name_with_its_content()
+    public void A_text_at_is_written_under_its_element_name_with_its_content()
     {
         var doc = L.Document(null, [L.Section(null, [L.Layer(null, [
             L.TextAt(new TextAtAttr { X = "10pt", Y = "20pt", MaxLines = 2, Width = "80pt" }, ["Page {page} of {pages}"]),
         ])])]);
 
-        var xml = await L.ToXml(doc);
+        var xml = L.ToXml(doc);
         Assert.Contains("<text-at ", xml);
         Assert.Contains("max-lines=\"2\"", xml);
         Assert.Contains(">Page {page} of {pages}</text-at>", xml);
@@ -346,31 +346,31 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_circle_is_written_with_x_and_y_and_drawn_where_its_box_is()
+    public void A_circle_is_written_with_x_and_y_and_drawn_where_its_box_is()
     {
         var circleAt = (string x) => L.Document(new DocumentAttr(Size: "a4"), [
             L.Section(null, [L.Layer(null, [L.Circle(new CircleAttr { X = x, Y = "20pt", R = "10pt", Fill = "#ff0000" })])]),
         ]);
 
-        var xml = await L.ToXml(circleAt("20pt"));
+        var xml = L.ToXml(circleAt("20pt"));
         Assert.Contains("<circle ", xml);
         Assert.Contains("x=\"20pt\"", xml);
         Assert.DoesNotContain("cx=", xml);
-        Assert.NotEqual(await Render(circleAt("20pt")), await Render(circleAt("120pt")));
+        Assert.NotEqual(Render(circleAt("20pt")), Render(circleAt("120pt")));
     }
 
     [Fact]
-    public async Task The_margin_is_written_on_the_layout()
+    public void The_margin_is_written_on_the_layout()
     {
         var doc = L.Document(null, [L.Section(null, [L.Layout(new() { Margin = "48pt" }, [L.Text(null, ["Body"])])])]);
 
-        Assert.Contains("<layout margin=\"48pt\">", await L.ToXml(doc));
+        Assert.Contains("<layout margin=\"48pt\">", L.ToXml(doc));
     }
 
     // -- Rendering ---------------------------------------------------------------------------------
 
     [Fact]
-    public async Task A_built_document_renders_the_same_as_its_xml()
+    public void A_built_document_renders_the_same_as_its_xml()
     {
         var built = L.Document(new DocumentAttr(Size: "a4"), [
             L.Section(null, [
@@ -390,63 +390,63 @@ public class SchemaTests
             ]),
         ]);
 
-        Assert.Equal(await Render(built), await Render(await L.ToXml(built)));
+        Assert.Equal(Render(built), Render(L.ToXml(built)));
     }
 
     [Fact]
-    public async Task An_alias_is_the_slot_it_names_and_renders_the_same_from_the_builder_and_its_XML()
+    public void An_alias_is_the_slot_it_names_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(string size) => L.Document(
             new DocumentAttr(Tokens: new DocumentTokens(Aliases: new() { ["caption"] = "xs", ["heading"] = "xl" })),
             [L.Section(nodes: [L.Layout(null, [L.Text(new TextAttr { FontSize = size }, ["Sized"])])])]);
 
         var caption = Build("caption");
-        var pdf = await Render(caption);
+        var pdf = Render(caption);
 
-        Assert.Equal(pdf, await Render(await L.ToXml(caption)));
-        Assert.Equal(pdf, await Render(Build("xs")));
-        Assert.NotEqual(pdf, await Render(Build("heading")));
+        Assert.Equal(pdf, Render(L.ToXml(caption)));
+        Assert.Equal(pdf, Render(Build("xs")));
+        Assert.NotEqual(pdf, Render(Build("heading")));
     }
 
     [Fact]
-    public async Task A_name_that_is_neither_a_slot_nor_an_alias_is_rejected()
+    public void A_name_that_is_neither_a_slot_nor_an_alias_is_rejected()
     {
         var doc = L.Document(
             new DocumentAttr(Tokens: new DocumentTokens(Aliases: new() { ["caption"] = "xs" })),
             [L.Section(nodes: [L.Layout(null, [L.Text(new TextAttr { FontSize = "medum" }, ["Sized"])])])]);
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
+        var error = Assert.Throws<EngineException>(() => Render(doc));
         Assert.Contains("invalid text size: 'medum': expected a slot from xs to xxl, an alias (caption)", error.Message);
     }
 
     [Fact]
-    public async Task A_height_is_the_slot_it_names_and_renders_the_same_from_the_builder_and_its_XML()
+    public void A_height_is_the_slot_it_names_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(string height, Dictionary<string, string>? row = null) => L.Document(
             new DocumentAttr(Tokens: row is null ? null : new DocumentTokens(Height: row)),
             [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Background = "#cccccc", Height = height })])])]);
 
         var slot = Build("m");
-        var pdf = await Render(slot);
+        var pdf = Render(slot);
 
-        Assert.Equal(pdf, await Render(await L.ToXml(slot)));
-        Assert.Equal(pdf, await Render(Build("32pt")));
-        Assert.NotEqual(pdf, await Render(Build("xl")));
+        Assert.Equal(pdf, Render(L.ToXml(slot)));
+        Assert.Equal(pdf, Render(Build("32pt")));
+        Assert.NotEqual(pdf, Render(Build("xl")));
 
         var row = new Dictionary<string, string>
         {
             ["xs"] = "10pt", ["s"] = "20pt", ["m"] = "50pt", ["l"] = "60pt", ["xl"] = "70pt", ["xxl"] = "80pt",
         };
-        Assert.Equal(await Render(Build("50pt")), await Render(Build("m", row)));
+        Assert.Equal(Render(Build("50pt")), Render(Build("m", row)));
     }
 
     [Fact]
-    public async Task A_height_that_is_not_a_slot_a_length_fill_or_full_is_rejected()
+    public void A_height_that_is_not_a_slot_a_length_fill_or_full_is_rejected()
     {
         var doc = L.Document(
             nodes: [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Height = "medum" })])])]);
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
+        var error = Assert.Throws<EngineException>(() => Render(doc));
         Assert.Contains("invalid height value: 'medum' — expected full, fill, a slot from xs to xxl or a pt value", error.Message);
     }
 
@@ -471,12 +471,12 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_shape_of_each_type_is_drawn_and_renders_the_same_from_the_builder_and_its_XML()
+    public void A_shape_of_each_type_is_drawn_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(params Node[] shapes) => L.Document(
             nodes: [L.Section(nodes: [L.Layout(null, [L.Row(new RowAttr { Align = "center" }, [.. shapes, L.Text(null, ["After"])])])])]);
 
-        var without = await Render(Build());
+        var without = Render(Build());
         foreach (var shape in new Node[]
         {
             L.Shape(new ShapeAttr { Type = "rect", Width = "60pt", Height = "12pt", Fill = "#00aa00" }),
@@ -485,13 +485,13 @@ public class SchemaTests
         })
         {
             var document = Build(shape);
-            Assert.NotEqual(without, await Render(document));
-            Assert.Equal(await Render(document), await Render(await L.ToXml(document)));
+            Assert.NotEqual(without, Render(document));
+            Assert.Equal(Render(document), Render(L.ToXml(document)));
         }
     }
 
     [Fact]
-    public async Task A_kept_table_row_moves_on_with_the_row_after_it_and_renders_the_same_from_the_builder_and_its_XML()
+    public void A_kept_table_row_moves_on_with_the_row_after_it_and_renders_the_same_from_the_builder_and_its_XML()
     {
         // The table starts 30pt above the foot of the page, so rows A and B fit and C does not.
         PdfDocument Build(TrAttr? keep) => L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
@@ -506,12 +506,12 @@ public class SchemaTests
         var kept = Build(new TrAttr { Keep = "with-next" });
 
         Assert.Equal("with-next", L.Tr(new TrAttr { Keep = "with-next" }).Attrs["keep"]);
-        Assert.NotEqual(await Render(Build(null)), await Render(kept));
-        Assert.Equal(await Render(kept), await Render(await L.ToXml(kept)));
+        Assert.NotEqual(Render(Build(null)), Render(kept));
+        Assert.Equal(Render(kept), Render(L.ToXml(kept)));
     }
 
     [Fact]
-    public async Task A_table_cell_that_spans_columns_moves_the_cells_after_it_and_renders_the_same_from_the_builder_and_its_XML()
+    public void A_table_cell_that_spans_columns_moves_the_cells_after_it_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(TdAttr? first) => L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
             L.Table(new TableAttr { Cols = "1fr 1fr 1fr" }, [
@@ -522,15 +522,15 @@ public class SchemaTests
         var spanning = Build(new TdAttr { Colspan = 2 });
 
         Assert.Equal<object>(2, L.Td(new TdAttr { Colspan = 2 }).Attrs["colspan"]);
-        Assert.NotEqual(await Render(Build(null)), await Render(spanning));
-        Assert.Equal(await Render(spanning), await Render(await L.ToXml(spanning)));
+        Assert.NotEqual(Render(Build(null)), Render(spanning));
+        Assert.Equal(Render(spanning), Render(L.ToXml(spanning)));
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new TdAttr { Colspan = 3 })));
+        var error = Assert.Throws<EngineException>(() => Render(Build(new TdAttr { Colspan = 3 })));
         Assert.Contains("span 4 columns, but the table has 3", error.Message);
     }
 
     [Fact]
-    public async Task A_table_cell_that_spans_rows_moves_the_cells_under_it_and_renders_the_same_from_the_builder_and_its_XML()
+    public void A_table_cell_that_spans_rows_moves_the_cells_under_it_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(TdAttr? first) => L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
             L.Table(new TableAttr { Cols = "1fr 1fr" }, [
@@ -542,22 +542,22 @@ public class SchemaTests
         var spanning = Build(new TdAttr { Rowspan = 2 });
 
         Assert.Equal<object>(2, L.Td(new TdAttr { Rowspan = 2 }).Attrs["rowspan"]);
-        Assert.NotEqual(await Render(Build(null)), await Render(spanning));
-        Assert.Equal(await Render(spanning), await Render(await L.ToXml(spanning)));
+        Assert.NotEqual(Render(Build(null)), Render(spanning));
+        Assert.Equal(Render(spanning), Render(L.ToXml(spanning)));
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new TdAttr { Rowspan = 3 })));
+        var error = Assert.Throws<EngineException>(() => Render(Build(new TdAttr { Rowspan = 3 })));
         Assert.Contains("a rowspan that runs 1 row past the last row of the table", error.Message);
     }
 
     [Fact]
-    public async Task A_footnote_is_an_fn_child_of_a_text_and_the_counter_is_an_attribute_of_the_document_and_a_section()
+    public void A_footnote_is_an_fn_child_of_a_text_and_the_counter_is_an_attribute_of_the_document_and_a_section()
     {
         var text = L.Text(L.NoAttr, ["Total", L.Fn(L.NoAttr, ["See ", L.Span(new SpanAttr { Bold = true }, ["this"]), "."]), " here"]);
         var document = L.Document(
             new DocumentAttr(FootnoteCounter: FootnoteCounter.Document),
             [L.Section(new SectionAttr(FootnoteCounter: FootnoteCounter.Page), [L.Layout(null, [text])])]);
 
-        var xml = await L.ToXml(document);
+        var xml = L.ToXml(document);
         Assert.Matches("<document [^>]*footnote-counter=\"document\"", xml);
         Assert.Matches("<section [^>]*footnote-counter=\"page\"", xml);
         Assert.Contains("<text>Total<fn>See <span bold=\"true\">this</span>.</fn> here</text>", xml);
@@ -566,15 +566,15 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_footnote_is_drawn_and_renders_the_same_from_the_builder_and_its_XML_and_one_in_a_table_is_rejected()
+    public void A_footnote_is_drawn_and_renders_the_same_from_the_builder_and_its_XML_and_one_in_a_table_is_rejected()
     {
         PdfDocument Build(params TextContent[] nodes) => L.Document(
             nodes: [L.Section(nodes: [L.Layout(null, [L.Text(null, ["Total", .. nodes, " here"])])])]);
 
-        var without = await Render(Build());
+        var without = Render(Build());
         var noted = Build(L.Fn(L.NoAttr, ["The note."]));
-        Assert.NotEqual(without, await Render(noted));
-        Assert.Equal(await Render(noted), await Render(await L.ToXml(noted)));
+        Assert.NotEqual(without, Render(noted));
+        Assert.Equal(Render(noted), Render(L.ToXml(noted)));
 
         PdfDocument Counted(string counter) => L.Document(
             new DocumentAttr(FootnoteCounter: counter),
@@ -582,51 +582,51 @@ public class SchemaTests
                 L.Section(nodes: [L.Layout(null, [L.Text(null, ["One", L.Fn(L.NoAttr, ["A."])])])]),
                 L.Section(nodes: [L.Layout(null, [L.Text(null, ["Two", L.Fn(L.NoAttr, ["B."])])])]),
             ]);
-        Assert.NotEqual(await Render(Counted(FootnoteCounter.Document)), await Render(Counted(FootnoteCounter.Section)));
+        Assert.NotEqual(Render(Counted(FootnoteCounter.Document)), Render(Counted(FootnoteCounter.Section)));
 
         var table = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
             L.Table(new TableAttr { Cols = "1fr" }, [L.Tr(null, [L.Td(null, [L.Text(null, ["x", L.Fn(L.NoAttr, ["y"])])])])])])])]);
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(table));
+        var error = Assert.Throws<EngineException>(() => Render(table));
         Assert.Contains("<fn> is not supported in a table", error.Message);
-        var bad = await Assert.ThrowsAsync<EngineException>(() => Render(Counted("book")));
+        var bad = Assert.Throws<EngineException>(() => Render(Counted("book")));
         Assert.Contains("invalid footnote-counter 'book'", bad.Message);
     }
 
     [Fact]
-    public async Task A_code_and_a_code_span_are_written_as_their_elements_and_render_the_same_from_the_builder_and_its_XML()
+    public void A_code_and_a_code_span_are_written_as_their_elements_and_render_the_same_from_the_builder_and_its_XML()
     {
         var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
             L.Code(new CodeAttr { TabSize = 2 }, ["\nfn a() {\n\tb(", L.Span(new SpanAttr { Color = "#c0392b" }, ["x"]), ");\n}\n"]),
             L.Text(null, ["Run ", L.CodeSpan(new CodeSpanAttr { Background = "#ffff00" }, ["cargo test"]), " now"]),
         ])])]);
 
-        var xml = await L.ToXml(document);
+        var xml = L.ToXml(document);
         Assert.Contains("<code tab-size=\"2\">\nfn a() {\n\tb(<span color=\"#c0392b\">x</span>);\n}\n</code>", xml);
         Assert.Contains("Run <code-span background=\"#ffff00\">cargo test</code-span> now", xml);
         Assert.Equal("code", L.Code().Type);
         Assert.Equal("code-span", L.CodeSpan().Type);
-        Assert.Equal(await Render(document), await Render(xml));
+        Assert.Equal(Render(document), Render(xml));
     }
 
     [Fact]
-    public async Task A_code_keeps_its_spaces_and_one_longer_than_a_page_goes_on_in_the_next_and_a_bad_tab_size_is_rejected()
+    public void A_code_keeps_its_spaces_and_one_longer_than_a_page_goes_on_in_the_next_and_a_bad_tab_size_is_rejected()
     {
         PdfDocument Build(params TextContent[] nodes) => L.Document(
             nodes: [L.Section(nodes: [L.Layout(null, [L.Code(null, nodes)])])]);
 
-        Assert.NotEqual(await Render(Build("a    b")), await Render(Build("a b")));
+        Assert.NotEqual(Render(Build("a    b")), Render(Build("a b")));
 
         var lines = string.Join("\n", Enumerable.Range(1, 150).Select(i => $"line {i}"));
-        var pdf = await Render(Build(lines));
+        var pdf = Render(Build(lines));
         Assert.True(System.Text.RegularExpressions.Regex.Matches(pdf, @"/Type\s*/Page[^s]").Count >= 2, "the code splits across pages");
 
         var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [L.Code(new CodeAttr { TabSize = 0 }, ["x"])])])]);
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(document));
+        var error = Assert.Throws<EngineException>(() => Render(document));
         Assert.Contains("tab-size must be a whole number from 1 to 16, not 0", error.Message);
     }
 
     [Fact]
-    public async Task A_list_is_written_with_its_items_and_renders_the_same_from_the_builder_and_its_XML()
+    public void A_list_is_written_with_its_items_and_renders_the_same_from_the_builder_and_its_XML()
     {
         var document = L.Document(nodes: [L.Section(nodes: [L.Layout(null, [
             L.List(new ListAttr { Type = "number", Format = "lower-alpha", Suffix = ")" }, [
@@ -635,42 +635,42 @@ public class SchemaTests
             ]),
         ])])]);
 
-        var xml = await L.ToXml(document);
+        var xml = L.ToXml(document);
         Assert.Matches("<list format=\"lower-alpha\" suffix=\"\\)\" type=\"number\">\\s*<li>\\s*<text>One</text>\\s*</li>", xml);
         Assert.Matches("<list bullet=\"dash\">\\s*<li>\\s*<text>Nested</text>", xml);
         Assert.Equal("list", L.List().Type);
         Assert.Equal("li", L.Li().Type);
-        Assert.Equal(await Render(document), await Render(xml));
+        Assert.Equal(Render(document), Render(xml));
     }
 
     [Fact]
-    public async Task A_number_list_writes_its_numbers_and_a_bullet_list_refuses_what_numbers_them()
+    public void A_number_list_writes_its_numbers_and_a_bullet_list_refuses_what_numbers_them()
     {
         Node[] Items() => [L.Li(null, [L.Text(null, ["A"])]), L.Li(null, [L.Text(null, ["B"])])];
         PdfDocument Build(ListAttr? attrs) => L.Document(nodes: [L.Section(nodes: [L.Layout(null, [L.List(attrs, Items())])])]);
 
-        var bullets = await Render(Build(null));
-        var numbers = await Render(Build(new ListAttr { Type = "number" }));
-        var roman   = await Render(Build(new ListAttr { Type = "number", Format = "lower-roman", Start = 3 }));
+        var bullets = Render(Build(null));
+        var numbers = Render(Build(new ListAttr { Type = "number" }));
+        var roman   = Render(Build(new ListAttr { Type = "number", Format = "lower-roman", Start = 3 }));
         Assert.NotEqual(bullets, numbers);
         Assert.NotEqual(numbers, roman);
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(Build(new ListAttr { Format = "lower-alpha" })));
+        var error = Assert.Throws<EngineException>(() => Render(Build(new ListAttr { Format = "lower-alpha" })));
         Assert.Contains("numbers the items of a list", error.Message);
     }
 
     [Fact]
-    public async Task A_circle_without_r_is_rejected_and_says_so()
+    public void A_circle_without_r_is_rejected_and_says_so()
     {
         var doc = L.Document(
             nodes: [L.Section(nodes: [L.Layout(null, [L.Shape(new ShapeAttr { Type = "circle" })])])]);
 
-        var error = await Assert.ThrowsAsync<EngineException>(() => Render(doc));
+        var error = Assert.Throws<EngineException>(() => Render(doc));
         Assert.Contains("a circle needs 'r'", error.Message);
     }
 
     [Fact]
-    public async Task A_gradient_of_the_tokens_fills_a_box_and_renders_the_same_from_the_builder_and_its_XML()
+    public void A_gradient_of_the_tokens_fills_a_box_and_renders_the_same_from_the_builder_and_its_XML()
     {
         PdfDocument Build(string background) => L.Document(
             new DocumentAttr(Tokens: new DocumentTokens(Gradients: new()
@@ -680,21 +680,21 @@ public class SchemaTests
             [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Background = background, Height = "60pt" })])])]);
 
         var gradient = Build("gradient:fade");
-        var pdf = await Render(gradient);
+        var pdf = Render(gradient);
 
-        Assert.Equal(pdf, await Render(await L.ToXml(gradient)));
-        Assert.NotEqual(pdf, await Render(Build("#336699")));
+        Assert.Equal(pdf, Render(L.ToXml(gradient)));
+        Assert.NotEqual(pdf, Render(Build("#336699")));
         Assert.Contains("/ShadingType 2", pdf);
     }
 
     [Fact]
-    public async Task Bold_text_is_the_bold_face_of_the_font()
+    public void Bold_text_is_the_bold_face_of_the_font()
     {
         static string Doc(string attrs) =>
             $"<lpdf version=\"1\"><document><section><layout><text {attrs}>Hello</text></layout></section></document></lpdf>";
 
-        Assert.Equal(await Render(Doc("bold=\"true\"")), await Render(Doc("font=\"Helvetica-Bold\"")));
-        Assert.NotEqual(await Render(Doc("bold=\"true\"")), await Render(Doc("")));
+        Assert.Equal(Render(Doc("bold=\"true\"")), Render(Doc("font=\"Helvetica-Bold\"")));
+        Assert.NotEqual(Render(Doc("bold=\"true\"")), Render(Doc("")));
     }
 
     // -- Bookmarks and the table of contents -------------------------------------------------------
@@ -714,7 +714,7 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task Bookmarks_fill_the_outline_and_render_like_their_xml()
+    public void Bookmarks_fill_the_outline_and_render_like_their_xml()
     {
         var built = L.Document(null, [
             L.Section(null, [L.Bookmark(new BookmarkAttr { Label = "Cover" }), L.Layout(null, [L.Text(null, ["Cover"])])]),
@@ -726,12 +726,12 @@ public class SchemaTests
                 ]),
             ]),
         ]);
-        var pdf = await Render(built);
+        var pdf = Render(built);
 
         Assert.Contains("/Title (Cover)", pdf);
         Assert.Contains("/Title (Methods)", pdf);
         Assert.Contains("/D /methods", pdf);
-        Assert.Equal(pdf, await Render(await L.ToXml(built)));
+        Assert.Equal(pdf, Render(L.ToXml(built)));
     }
 
     // -- Assets ------------------------------------------------------------------------------------
@@ -769,19 +769,19 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_font_declared_in_the_assets_is_the_font_the_text_is_set_in()
+    public void A_font_declared_in_the_assets_is_the_font_the_text_is_set_in()
     {
         var built = DocumentWithAssets(
             new DocumentAssets(Fonts: [new FontAttr { Name = "heading", Core = BuiltinFont.TimesBold }]),
             L.Text(new TextAttr { Font = "heading" }, ["Hello"]));
         using var engine = L.Engine().SetLicenseKey("test-key");
 
-        Assert.Contains("/BaseFont /Times-Bold", Encoding.Latin1.GetString(await engine.Render(built)));
-        Assert.Equal(await Render(built), await Render(await L.ToXml(built)));
+        Assert.Contains("/BaseFont /Times-Bold", Encoding.Latin1.GetString(engine.Render(built)));
+        Assert.Equal(Render(built), Render(L.ToXml(built)));
     }
 
     [Fact]
-    public async Task An_image_declared_in_the_assets_can_be_used_and_renders_the_same_as_its_xml()
+    public void An_image_declared_in_the_assets_can_be_used_and_renders_the_same_as_its_xml()
     {
         var built = DocumentWithAssets(
             new DocumentAssets(Images: [new ImageAttr { Name = "logo" }]),
@@ -789,29 +789,29 @@ public class SchemaTests
         using var engine = L.Engine().SetLicenseKey("test-key").LoadImage("logo", Pixel);
 
         Assert.Equal(
-            Normalised(await engine.Render(built)),
-            Normalised(await engine.Render(await L.ToXml(built))));
+            Normalised(engine.Render(built)),
+            Normalised(engine.Render(L.ToXml(built))));
     }
 
     [Fact]
-    public async Task An_image_used_but_not_declared_in_the_assets_is_an_error_that_names_it()
+    public void An_image_used_but_not_declared_in_the_assets_is_an_error_that_names_it()
     {
         var built = DocumentWithAssets(null, L.Img(new ImgAttr { Name = "ghost" }));
         using var engine = L.Engine().SetLicenseKey("test-key").LoadImage("ghost", Pixel);
 
-        var error = await Assert.ThrowsAnyAsync<Exception>(() => engine.Render(built));
+        var error = Assert.ThrowsAny<Exception>(() => engine.Render(built));
         Assert.Contains("ghost", error.Message);
     }
 
     [Fact]
-    public async Task An_image_declared_with_a_src_is_read_through_the_src_fallback()
+    public void An_image_declared_with_a_src_is_read_through_the_src_fallback()
     {
         var built = DocumentWithAssets(
             new DocumentAssets(Images: [new ImageAttr { Name = "logo", Src = "logo.png" }]),
             L.Img(new ImgAttr { Name = "logo", Width = "40pt" }));
         using var engine = L.Engine(new EngineOptions { SrcFallback = _ => Pixel }).SetLicenseKey("test-key");
 
-        var pdf = await engine.Render(built);
+        var pdf = engine.Render(built);
 
         Assert.Equal("%PDF-", Encoding.ASCII.GetString(pdf, 0, 5));
     }
@@ -854,83 +854,83 @@ public class SchemaTests
     }
 
     [Fact]
-    public async Task A_markdown_is_written_as_XML_with_its_Markdown_as_it_is_and_renders_the_same_from_the_builder_and_its_XML()
+    public void A_markdown_is_written_as_XML_with_its_Markdown_as_it_is_and_renders_the_same_from_the_builder_and_its_XML()
     {
         var document = MarkdownDocument(
             new MarkdownAttr { Gap = "8pt" },
             LMarkdown.Styles(L.NoAttr, [LMarkdown.H1(new MarkdownH1Attr { Color = "#ff0000" })]),
             "a < b & c ]]> d\n\n    code\n");
 
-        var xml = await L.ToXml(document);
+        var xml = L.ToXml(document);
         Assert.Contains("<markdown gap=\"8pt\">", xml);
         Assert.Matches("<markdown-styles>\\s*<h1 color=\"#ff0000\"\\s*/>\\s*</markdown-styles>", xml);
         Assert.Contains("<markdown-content><![CDATA[a < b & c ]]]]><![CDATA[> d", xml);
-        Assert.Equal(await Render(document), await Render(xml));
+        Assert.Equal(Render(document), Render(xml));
     }
 
     [Fact]
-    public async Task A_markdown_renders_the_text_it_is_given_and_a_rule_that_sets_a_color_changes_the_page()
+    public void A_markdown_renders_the_text_it_is_given_and_a_rule_that_sets_a_color_changes_the_page()
     {
-        var plain = await Render(MarkdownDocument());
+        var plain = Render(MarkdownDocument());
         Assert.StartsWith("%PDF-", plain);
-        Assert.NotEqual(plain, await Render(MarkdownDocument(styles: LMarkdown.Styles(L.NoAttr, [LMarkdown.H1(new MarkdownH1Attr { Color = "#ff0000" })]))));
-        Assert.NotEqual(plain, await Render(MarkdownDocument(text: "# Another title")));
+        Assert.NotEqual(plain, Render(MarkdownDocument(styles: LMarkdown.Styles(L.NoAttr, [LMarkdown.H1(new MarkdownH1Attr { Color = "#ff0000" })]))));
+        Assert.NotEqual(plain, Render(MarkdownDocument(text: "# Another title")));
     }
 
     [Fact]
-    public async Task A_file_of_rules_is_read_from_the_src_of_its_styles_or_loaded_by_name()
+    public void A_file_of_rules_is_read_from_the_src_of_its_styles_or_loaded_by_name()
     {
-        var inline = await Render(MarkdownDocument(styles: LMarkdown.Styles(L.NoAttr, [LMarkdown.H1(new MarkdownH1Attr { Color = "#ff0000" })])));
+        var inline = Render(MarkdownDocument(styles: LMarkdown.Styles(L.NoAttr, [LMarkdown.H1(new MarkdownH1Attr { Color = "#ff0000" })])));
         var fromSrc = MarkdownDocument(styles: LMarkdown.Styles(new MarkdownStylesAttr { Src = "styles.xml" }));
         const string File = "<markdown-styles><h1 color=\"#ff0000\"/></markdown-styles>";
 
         using (var engine = L.Engine(new EngineOptions { SrcFallback = _ => Encoding.UTF8.GetBytes(File) }).SetLicenseKey("test-key"))
         {
-            Assert.Equal(inline, Normalised(await engine.Render(fromSrc)));
-            Assert.Equal(inline, Normalised(await engine.Render(await L.ToXml(fromSrc))));
+            Assert.Equal(inline, Normalised(engine.Render(fromSrc)));
+            Assert.Equal(inline, Normalised(engine.Render(L.ToXml(fromSrc))));
         }
         using (var engine = L.Engine().SetLicenseKey("test-key").LoadMarkdownStyles("styles.xml", File))
         {
-            Assert.Equal(inline, Normalised(await engine.Render(fromSrc)));
+            Assert.Equal(inline, Normalised(engine.Render(fromSrc)));
         }
     }
 
     [Fact]
-    public async Task A_file_of_rules_that_is_not_there_is_an_error_that_names_the_src()
+    public void A_file_of_rules_that_is_not_there_is_an_error_that_names_the_src()
     {
-        var missing = await Assert.ThrowsAsync<EngineException>(() => Render(MarkdownDocument(styles: LMarkdown.Styles(new MarkdownStylesAttr { Src = "missing-styles.xml" }))));
+        var missing = Assert.Throws<EngineException>(() => Render(MarkdownDocument(styles: LMarkdown.Styles(new MarkdownStylesAttr { Src = "missing-styles.xml" }))));
         Assert.Contains("missing-styles.xml", missing.Message);
     }
 
     [Fact]
-    public async Task Raw_HTML_is_left_out_of_the_Markdown_and_the_words_in_it_are_kept()
+    public void Raw_HTML_is_left_out_of_the_Markdown_and_the_words_in_it_are_kept()
     {
-        var withHtml = await Render(MarkdownDocument(text: "fine\n\n<div>kept</div>\n"));
-        Assert.Equal(await Render(MarkdownDocument(text: "fine\n\nkept\n")), withHtml);
+        var withHtml = Render(MarkdownDocument(text: "fine\n\n<div>kept</div>\n"));
+        Assert.Equal(Render(MarkdownDocument(text: "fine\n\nkept\n")), withHtml);
     }
 
     [Fact]
-    public async Task The_Markdown_comes_from_the_data_of_an_XML_document_or_the_text_written_in_it()
+    public void The_Markdown_comes_from_the_data_of_an_XML_document_or_the_text_written_in_it()
     {
         const string xml = "<lpdf version=\"1\"><document><section><markdown><markdown-content data-value=\"body\"><![CDATA[# From the text]]></markdown-content></markdown></section></document></lpdf>";
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var fromData = Normalised(await engine.Render(xml, new RenderOptions { Data = new Dictionary<string, object?> { ["body"] = "# From the data" } }));
-        var fromText = Normalised(await engine.Render(xml));
+        var fromData = Normalised(engine.Render(xml, new RenderOptions { Data = new Dictionary<string, object?> { ["body"] = "# From the data" } }));
+        var fromText = Normalised(engine.Render(xml));
         Assert.NotEqual(fromData, fromText);
     }
 
     // -- Helpers -----------------------------------------------------------------------------------
 
-    private static async Task<string> Render(PdfDocument document)
+    private static string Render(PdfDocument document)
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        return Normalised(await engine.Render(document));
+        return Normalised(engine.Render(document));
     }
 
-    private static async Task<string> Render(string xml)
+    private static string Render(string xml)
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
-        return Normalised(await engine.Render(xml));
+        return Normalised(engine.Render(xml));
     }
 
     /// <summary>A PDF as text, with the parts that vary left out.</summary>

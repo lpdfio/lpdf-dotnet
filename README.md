@@ -39,8 +39,10 @@ var doc = L.Document(new() { Size = "letter" }, [
     ]),
 ]);
 
-var pdf = await engine.Render(doc);
+var pdf = engine.Render(doc);
 ```
+
+`Render` runs on the caller's thread. To render on another one, write `await Task.Run(() => engine.Render(doc))`.
 
 ## Requirements
 

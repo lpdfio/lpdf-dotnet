@@ -51,13 +51,13 @@ public class XmlSrcTests
     [InlineData("<font name=\"brand\" ref=\"R&amp;D Sans\" src=\"R&amp;D Sans.ttf\"/>", "R&D Sans.ttf", "R&D Sans")]
     [InlineData("<font name=\"brand\" ref=\"rows > 1000\" src=\"brand.ttf\"/>", "brand.ttf", "rows > 1000")]
     [InlineData("<font name='brand' src='brand.ttf'/>", "brand.ttf", "brand")]
-    public async Task A_font_is_read_from_its_src_and_loaded_under_its_ref_or_name(string font, string src, string key)
+    public void A_font_is_read_from_its_src_and_loaded_under_its_ref_or_name(string font, string src, string key)
     {
         var files = new RecordingFiles(new() { [src] = "not a font"u8.ToArray() });
         using var engine = Engine(files);
 
         // The bytes are not a font, so the engine says which font it was given them for.
-        var error = await Assert.ThrowsAsync<EngineException>(
+        var error = Assert.Throws<EngineException>(
             () => engine.Render(Xml(assets: font, section: "<layout><text font=\"brand\">x</text></layout>")));
 
         Assert.Equal(new[] { src }, files.Asked);
@@ -68,13 +68,13 @@ public class XmlSrcTests
     [InlineData("<image name=\"logo\" ref=\"R&amp;D logo\" src=\"R&amp;D logo.png\"/>", "R&D logo.png")]
     [InlineData("<image name=\"logo\" ref=\"rows > 1000\" src=\"logo.png\"/>", "logo.png")]
     [InlineData("<image name='logo' src='logo.png'/>", "logo.png")]
-    public async Task An_image_is_read_from_its_src_and_loaded_under_its_ref_or_name(string image, string src)
+    public void An_image_is_read_from_its_src_and_loaded_under_its_ref_or_name(string image, string src)
     {
         var files = new RecordingFiles(new() { [src] = Pixel });
         using var engine = Engine(files);
 
         // The engine refuses an image it has no bytes for under its ref, or with no ref its name.
-        var pdf = await engine.Render(Xml(assets: image, section: "<layout><img name=\"logo\" width=\"40pt\"/></layout>"));
+        var pdf = engine.Render(Xml(assets: image, section: "<layout><img name=\"logo\" width=\"40pt\"/></layout>"));
 
         Assert.Equal(new[] { src }, files.Asked);
         Assert.Equal("%PDF-", Encoding.ASCII.GetString(pdf, 0, 5));
@@ -84,13 +84,13 @@ public class XmlSrcTests
     [InlineData("<file name=\"R&amp;D.csv\" src=\"R&amp;D.csv\"/>", "R&D.csv")]
     [InlineData("<file name=\"rows.csv\" description=\"rows > 1000\" src=\"rows.csv\"/>", "rows.csv")]
     [InlineData("<file name='rows.csv' src='rows.csv'/>", "rows.csv")]
-    public async Task A_file_is_read_from_its_src_and_loaded_under_its_ref_or_name(string file, string src)
+    public void A_file_is_read_from_its_src_and_loaded_under_its_ref_or_name(string file, string src)
     {
         var files = new RecordingFiles(new() { [src] = "a,b"u8.ToArray() });
         using var engine = Engine(files);
 
         // The engine refuses a file it has no bytes for under its ref, or with no ref its name.
-        var pdf = await engine.Render(Xml(attachments: file));
+        var pdf = engine.Render(Xml(attachments: file));
 
         Assert.Equal(new[] { src }, files.Asked);
         Assert.Single(Regex.Matches(Encoding.Latin1.GetString(pdf), "/Type /EmbeddedFile"));
@@ -100,14 +100,14 @@ public class XmlSrcTests
     [InlineData("<markdown-styles src=\"R&amp;D styles.xml\"/>", "R&D styles.xml")]
     [InlineData("<markdown-styles xmlns:rows=\"urn:rows>1000\" src=\"styles.xml\"/>", "styles.xml")]
     [InlineData("<markdown-styles src='styles.xml'/>", "styles.xml")]
-    public async Task A_file_of_rules_is_read_from_the_src_of_its_styles(string styles, string src)
+    public void A_file_of_rules_is_read_from_the_src_of_its_styles(string styles, string src)
     {
         var files = new RecordingFiles(new() { [src] = Encoding.UTF8.GetBytes(RedTitles) });
         using var engine = Engine(files);
-        var inline = await engine.Render(MarkdownXml(RedTitles));
+        var inline = engine.Render(MarkdownXml(RedTitles));
 
         // The engine refuses a src whose file was not loaded.
-        var fromSrc = await engine.Render(MarkdownXml(styles));
+        var fromSrc = engine.Render(MarkdownXml(styles));
 
         Assert.Equal(new[] { src }, files.Asked);
         Assert.Equal(Normalised(inline), Normalised(fromSrc));
@@ -118,12 +118,12 @@ public class XmlSrcTests
     [InlineData("<assets><image name=\"logo\" src=\"hidden.png\"/></assets>")]
     [InlineData("<attachments><file name=\"rows.csv\" src=\"hidden.csv\"/></attachments>")]
     [InlineData("<markdown><markdown-styles src=\"hidden.xml\"/></markdown>")]
-    public async Task A_src_in_a_comment_or_a_CDATA_section_is_text_and_is_not_read(string declaration)
+    public void A_src_in_a_comment_or_a_CDATA_section_is_text_and_is_not_read(string declaration)
     {
         var files = new RecordingFiles(new());
         using var engine = Engine(files);
 
-        var pdf = await engine.Render(Xml(section: $"<layout><!-- {declaration} --><code><![CDATA[{declaration}]]></code></layout>"));
+        var pdf = engine.Render(Xml(section: $"<layout><!-- {declaration} --><code><![CDATA[{declaration}]]></code></layout>"));
 
         Assert.Empty(files.Asked);
         Assert.Equal("%PDF-", Encoding.ASCII.GetString(pdf, 0, 5));

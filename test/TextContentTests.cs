@@ -79,7 +79,7 @@ public class TextContentTests
     }
 
     [Fact]
-    public async Task Text_with_plain_strings_renders_to_a_pdf()
+    public void Text_with_plain_strings_renders_to_a_pdf()
     {
         var doc = L.Document(new DocumentAttr(Size: "a4"), [
             L.Section(L.NoAttr, [
@@ -89,9 +89,9 @@ public class TextContentTests
             ]),
         ]);
 
-        var xml = await L.ToXml(doc);
+        var xml = L.ToXml(doc);
         using var engine = L.Engine().SetLicenseKey("test-key");
-        var pdf = await engine.Render(xml);
+        var pdf = engine.Render(xml);
 
         Assert.StartsWith("%PDF", System.Text.Encoding.ASCII.GetString(pdf, 0, 4));
     }
