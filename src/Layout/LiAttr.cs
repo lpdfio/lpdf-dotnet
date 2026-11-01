@@ -32,6 +32,9 @@ public sealed record LiAttr
     public string? Paginate { get; init; }
     public bool? Debug { get; init; }
 
+    /// <summary>Puts the element, and everything in it, in an optional content group, which the viewer shows or hides. print: printed, and not shown on screen. screen: shown on screen, and not printed. The element keeps its room either way, so nothing moves. An element with a group inside an element with another shows only where both show. Acrobat, Chrome and Firefox switch the groups; Preview and Safari show everything, on screen and in print. Hidden content is still in the file, where it can be selected and copied: it is not a way to keep anything secret. A link in print content is drawn and does nothing, and a form field can't be in print content: use a frame with a border for a box filled in by hand. With pdfa, pdfua or pdfx on the output, everything shows.</summary>
+    public string? Ocg { get; init; }
+
     /// <summary>Makes the item's marker a checkbox in place of the bullet or the number: an outline in the line color, with a tick in the color of the item's words when this is true, and empty when it is false. The words start where those of a bullet do, and an item of a number list still takes its number. An item without it keeps its bullet or number. A task item of a Markdown, - [ ] or - [x], is one.</summary>
     public bool? Checked { get; init; }
 }

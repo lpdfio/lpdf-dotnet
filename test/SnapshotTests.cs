@@ -205,6 +205,21 @@ public class EngineFeatureTests
     }
 
     [Fact]
+    public void Puts_kit_elements_in_print_and_screen_content()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var document = L.Document(null, [L.Section(null, [L.Layout(null, [
+            L.Text(new Lpdf.Layout.TextAttr { Ocg = "print" }, ["Printed"]),
+            L.Column(new Lpdf.Layout.ColumnAttr { Ocg = "screen" }, [L.Text(null, ["On screen"])]),
+        ])])]);
+        var text = System.Text.Encoding.Latin1.GetString(engine.Render(document));
+
+        Assert.Contains("/OCProperties", text);
+        Assert.Contains("(Print only)", text);
+        Assert.Contains("(Screen only)", text);
+    }
+
+    [Fact]
     public void Takes_pdfua_and_lang_from_a_kit_document_and_tags_the_file()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");
