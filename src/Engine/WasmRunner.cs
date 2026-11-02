@@ -28,6 +28,12 @@ internal sealed class WasmRunner : IDisposable
     // The deadline of a render with no limit. A store's deadline is 0 until it is set, which stops it at the first tick.
     private const ulong NoDeadline = 1UL << 62;
 
+    /// <summary>
+    /// How a document tree's JSON is read for the files it names: as deep as the engine reads it. A document nests 100
+    /// levels at most, and each level is an object and the array of its nodes.
+    /// </summary>
+    private static readonly JsonDocumentOptions TreeJson = new() { MaxDepth = Shared.DocumentJson.MaxDepth };
+
     // The engine and module are expensive to create and thread-safe — share them.
     private static readonly WasmEngine   _engine;
     private static readonly WasmModule  _lpdfModule;
@@ -44,25 +50,28 @@ internal sealed class WasmRunner : IDisposable
 
     private readonly WasmModule _module;
     private readonly int        _timeout;
+    private readonly int        _maxMemoryMb;
     private bool _disposed;
 
     /// <param name="timeout">
     /// The seconds a call may run before it stops with an <see cref="EngineException"/>, or 0 for no limit.
     /// </param>
-    public WasmRunner(int timeout) : this(_lpdfModule, timeout) { }
+    /// <param name="maxMemoryMb">The megabytes a render may allocate.</param>
+    public WasmRunner(int timeout, int maxMemoryMb) : this(_lpdfModule, timeout, maxMemoryMb) { }
 
-    private WasmRunner(WasmModule module, int timeout)
+    private WasmRunner(WasmModule module, int timeout, int maxMemoryMb)
     {
-        _module  = module;
-        _timeout = timeout;
+        _module      = module;
+        _timeout     = timeout;
+        _maxMemoryMb = maxMemoryMb;
     }
 
     /// <summary>
     /// A runner of a module written in the WebAssembly text format in place of the engine, compiled on the engine's
-    /// Wasmtime engine: for the tests, a module that runs as long as they need.
+    /// Wasmtime engine: for the tests, a module that runs as long as they need, or crashes.
     /// </summary>
     internal static WasmRunner ForModuleText(string wat, int timeout)
-        => new(WasmModule.FromText(_engine, "stand-in", wat), timeout);
+        => new(WasmModule.FromText(_engine, "stand-in", wat), timeout, EngineOptions.DefaultMaxMemoryMb);
 
     // ── Public ────────────────────────────────────────────────────────────────
 
@@ -175,6 +184,7 @@ internal sealed class WasmRunner : IDisposable
             ["fonts"]   = fontsNode,
             // See NowUnix: without it the engine cannot check the key's expiry at all.
             ["now"]     = NowUnix(),
+            ["max_memory_mb"] = _maxMemoryMb,
         };
 
         if (images is { Count: > 0 })
@@ -381,7 +391,7 @@ internal sealed class WasmRunner : IDisposable
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
         try
         {
-            using var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json, TreeJson);
             if (!doc.RootElement.TryGetProperty("attrs", out var attrs)) return result;
             if (!attrs.TryGetProperty("attachments", out var files)) return result;
             foreach (var file in files.EnumerateArray())
@@ -439,7 +449,7 @@ internal sealed class WasmRunner : IDisposable
         var result = new List<string>();
         try
         {
-            using var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json, TreeJson);
             if (!doc.RootElement.TryGetProperty("nodes", out var sections)) return result;
             foreach (var section in sections.EnumerateArray())
             {
@@ -472,7 +482,7 @@ internal sealed class WasmRunner : IDisposable
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
         try
         {
-            using var doc = JsonDocument.Parse(json);
+            using var doc = JsonDocument.Parse(json, TreeJson);
             if (!doc.RootElement.TryGetProperty("attrs", out var attrs)) return result;
             if (!attrs.TryGetProperty("assets", out var assets)) return result;
             if (!assets.TryGetProperty(kind, out var declared)) return result;
@@ -493,7 +503,7 @@ internal sealed class WasmRunner : IDisposable
 
     private string Invoke(string method, string input, string key)
     {
-        var request = JsonSerializer.Serialize(new { method, key, input, now = NowUnix() });
+        var request = JsonSerializer.Serialize(new { method, key, input, now = NowUnix(), max_memory_mb = _maxMemoryMb });
         return RunWasm(Encoding.UTF8.GetBytes(request));
     }
 
@@ -542,6 +552,12 @@ internal sealed class WasmRunner : IDisposable
         catch (TrapException trap) when (trap.Type == TrapCode.Interrupt)
         {
             throw new EngineException($"The render timed out after {Seconds(_timeout)}.", trap);
+        }
+        catch (TrapException trap)
+        {
+            // Any other trap is a crash: a bug, a stack that ran out, or memory that did before the cap stopped the
+            // render. Each render has a store of its own, so the next one starts on a fresh engine.
+            throw new EngineException(EngineException.Crashed, trap);
         }
         finally
         {
