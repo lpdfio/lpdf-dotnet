@@ -116,6 +116,7 @@ public static class L
                 ["pdfx"]      = a.Output.PdfX,
                 ["profile"]   = a.Output.Profile,
                 ["linearize"] = a.Output.Linearize,
+                ["facturx-strict"] = a.Output.FacturXStrict,
             };
         }
 
