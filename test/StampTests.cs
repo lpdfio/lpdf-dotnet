@@ -74,7 +74,7 @@ public class StampTests
     }
 
     [Fact]
-    public void Without_a_license_key_each_stamp_gets_the_attribution_line_linked_to_lpdf_io()
+    public void Without_a_license_key_each_stamped_page_gets_the_attribution_line_linked_to_lpdf_io()
     {
         var input = Pdf(1);
         using var engine = L.Engine();

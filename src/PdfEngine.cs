@@ -195,8 +195,9 @@ public sealed class PdfEngine : IDisposable
     /// <remarks>
     /// The output is the input, byte for byte, with an incremental update after it, so an owner password and its
     /// permissions stay, and so does a digital signature, for the revision it signed. A PDF/A file stays PDF/A. Without
-    /// a license key each stamp gets the attribution line beside its box. A stamp covers what is under it and does not
-    /// remove it: the text under an image can still be selected and found, so a stamp is not a redaction.
+    /// a license key each stamped page gets the attribution line in its top-right corner. A stamp covers what is under
+    /// it and does not remove it: the text under an image can still be selected and found, so a stamp is not a
+    /// redaction.
     /// </remarks>
     /// <param name="pdf">The bytes of the PDF to stamp.</param>
     /// <param name="stamps">The stamps, drawn in this order.</param>
