@@ -237,9 +237,58 @@ internal sealed class WasmRunner : IDisposable
         if (dataJson is not null)
             requestObj["data"] = JsonNode.Parse(dataJson);
 
-        var requestBytes = Encoding.UTF8.GetBytes(requestObj.ToJsonString());
-        var responseJson = RunWasm(requestBytes);
+        return PdfOf(RunWasm(Encoding.UTF8.GetBytes(requestObj.ToJsonString())));
+    }
 
+    /// <summary>
+    /// Draw <paramref name="stamps"/> over the pages of <paramref name="pdf"/>: the engine's <c>stamp</c> request, with
+    /// each PNG once among the request's images, under a name its stamps give.
+    /// </summary>
+    public byte[] Stamp(byte[] pdf, IReadOnlyList<StampAttr> stamps, string licenseKey)
+    {
+        var images = new JsonObject();
+        var names  = new Dictionary<byte[], string>(ReferenceEqualityComparer.Instance);
+        var list   = new JsonArray();
+        for (var i = 0; i < stamps.Count; i++)
+        {
+            var stamp = stamps[i] ?? throw new ArgumentException($"stamp {i + 1} is null.", nameof(stamps));
+            var image = stamp.Image ?? throw new ArgumentException($"stamp {i + 1}: Image must be the PNG's bytes.", nameof(stamps));
+            if (!names.TryGetValue(image, out var name))
+            {
+                name = $"stamp-{names.Count}";
+                names[image] = name;
+                images[name] = Convert.ToBase64String(image);
+            }
+            var node = new JsonObject { ["image"] = name };
+            foreach (var (key, value) in new[]
+            {
+                ("page", stamp.Page), ("x", stamp.X), ("y", stamp.Y), ("anchor", stamp.Anchor), ("width", stamp.Width),
+                ("height", stamp.Height), ("align", stamp.Align), ("justify", stamp.Justify), ("scale", stamp.Scale),
+            })
+            {
+                if (value is not null) node[key] = value;
+            }
+            if (stamp.MaxGrow is { } grow) node["max-grow"] = grow;
+            list.Add(node);
+        }
+
+        var request = new JsonObject
+        {
+            ["method"] = "stamp",
+            ["key"]    = licenseKey,
+            // See NowUnix: without it the engine cannot check the key's expiry at all.
+            ["now"]    = NowUnix(),
+            ["max_memory_mb"] = _maxMemoryMb,
+            ["pdf"]    = Convert.ToBase64String(pdf),
+            ["images"] = images,
+            ["stamps"] = list,
+        };
+        return PdfOf(RunWasm(Encoding.UTF8.GetBytes(request.ToJsonString())));
+    }
+
+    /// <summary>The PDF of the engine's answer, or its error as an <see cref="EngineException"/>.</summary>
+    private static byte[] PdfOf(string responseJson)
+    {
         using var doc = JsonDocument.Parse(responseJson);
         var root = doc.RootElement;
 
@@ -247,10 +296,10 @@ internal sealed class WasmRunner : IDisposable
             throw new EngineException(errEl.GetString() ?? "Unknown render error.");
 
         if (!root.TryGetProperty("pdf", out var pdfEl))
-            throw new InvalidOperationException("WASM render_pdf response missing 'pdf' field.");
+            throw new InvalidOperationException("WASM response missing 'pdf' field.");
 
         return Convert.FromBase64String(pdfEl.GetString()
-            ?? throw new InvalidOperationException("WASM render_pdf 'pdf' field is null."));
+            ?? throw new InvalidOperationException("WASM 'pdf' field is null."));
     }
 
     private static IReadOnlyDictionary<string, byte[]> ResolveAllFonts(
