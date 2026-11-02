@@ -311,8 +311,15 @@ internal sealed class SectionNodeConverter : JsonConverter<SectionNode>
 
 internal static class DocumentJson
 {
+    /// <summary>
+    /// The deepest a document tree's JSON may nest, as deep as the engine reads it: a document nests 100 levels at
+    /// most, and each level is an object and the array of its nodes. The default of 64 stopped a tree at 32 levels.
+    /// </summary>
+    internal const int MaxDepth = 256;
+
     internal static readonly JsonSerializerOptions Options = new()
     {
+        MaxDepth = MaxDepth,
         DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
         Converters =
         {

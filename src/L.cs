@@ -50,7 +50,7 @@ public static class L
     {
         ArgumentNullException.ThrowIfNull(document);
         var json = JsonSerializer.Serialize(document, DocumentJson.Options);
-        using var wasm = new WasmRunner(EngineOptions.DefaultTimeout);
+        using var wasm = new WasmRunner(EngineOptions.DefaultTimeout, EngineOptions.DefaultMaxMemoryMb);
         return wasm.KitToXml(json);
     }
 

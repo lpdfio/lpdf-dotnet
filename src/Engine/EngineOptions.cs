@@ -9,7 +9,14 @@ public sealed class EngineOptions
     /// <summary>The seconds a render may run when <see cref="Timeout"/> is left out.</summary>
     internal const int DefaultTimeout = 5;
 
+    /// <summary>The megabytes a render may allocate when <see cref="MaxMemoryMb"/> is left out.</summary>
+    internal const int DefaultMaxMemoryMb = 1024;
+
+    /// <summary>The most <see cref="MaxMemoryMb"/> may be: 32-bit WebAssembly addresses 4 GB at most.</summary>
+    private const int MostMemoryMb = 4096;
+
     private readonly int _timeout = DefaultTimeout;
+    private readonly int _maxMemoryMb = DefaultMaxMemoryMb;
 
     /// <summary>
     /// The seconds a render may run before it stops with an <see cref="EngineException"/> that names the limit:
@@ -24,6 +31,23 @@ public sealed class EngineOptions
         {
             ArgumentOutOfRangeException.ThrowIfNegative(value);
             _timeout = value;
+        }
+    }
+
+    /// <summary>
+    /// The megabytes of memory a render may allocate, its data and the fonts, images and files sent with it included:
+    /// 1024 when left out, from 1 to 4096. A render that needs more stops with an <see cref="EngineException"/> that
+    /// names the cap.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">The value is below 1 or above 4096.</exception>
+    public int MaxMemoryMb
+    {
+        get => _maxMemoryMb;
+        init
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, 1);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(value, MostMemoryMb);
+            _maxMemoryMb = value;
         }
     }
 

@@ -26,11 +26,11 @@ public sealed class PdfEngine : IDisposable
     private readonly Dictionary<string, string> _markdownStyles = new();
     private          bool           _disposed;
 
-    /// <param name="options">Engine-level options (e.g. <c>SrcFallback</c>, <c>Timeout</c>).</param>
+    /// <param name="options">Engine-level options (e.g. <c>SrcFallback</c>, <c>Timeout</c>, <c>MaxMemoryMb</c>).</param>
     public PdfEngine(EngineOptions? options = null)
     {
         _engineOpts = options ?? new EngineOptions();
-        _wasm       = new WasmRunner(_engineOpts.Timeout);
+        _wasm       = new WasmRunner(_engineOpts.Timeout, _engineOpts.MaxMemoryMb);
     }
 
     /// <summary>An engine that runs <paramref name="wasm"/> in place of the engine's own, for the tests.</summary>
@@ -149,7 +149,8 @@ public sealed class PdfEngine : IDisposable
     /// <param name="xml">Full lpdf XML document string.</param>
     /// <param name="callOptions">Per-call options (data, timestamp, passwords).</param>
     /// <exception cref="EngineException">
-    /// The engine refused the document, or the render ran past <see cref="EngineOptions.Timeout"/>.
+    /// The engine refused the document, the render ran past <see cref="EngineOptions.Timeout"/> or needed more than
+    /// <see cref="EngineOptions.MaxMemoryMb"/>, or the engine crashed.
     /// </exception>
     public byte[] Render(string xml, RenderOptions? callOptions = null)
     {
@@ -171,7 +172,8 @@ public sealed class PdfEngine : IDisposable
     /// <param name="document">Document tree produced by <c>Pdf.Document(…)</c>.</param>
     /// <param name="callOptions">Per-call options (timestamp, passwords).</param>
     /// <exception cref="EngineException">
-    /// The engine refused the document, or the render ran past <see cref="EngineOptions.Timeout"/>.
+    /// The engine refused the document, the render ran past <see cref="EngineOptions.Timeout"/> or needed more than
+    /// <see cref="EngineOptions.MaxMemoryMb"/>, or the engine crashed.
     /// </exception>
     public byte[] Render(PdfDocument document, RenderOptions? callOptions = null)
     {
