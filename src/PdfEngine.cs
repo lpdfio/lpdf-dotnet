@@ -188,6 +188,31 @@ public sealed class PdfEngine : IDisposable
             _engineOpts.SrcFallback, encryption, callOptions?.CreatedOn, styles, _files, _profiles);
     }
 
+    /// <summary>
+    /// Draw PNG images over the pages of an existing PDF, and return the PDF with them, on the caller's thread. Nothing
+    /// is laid out: each image is drawn in its stamp's box, over the pages its <see cref="StampAttr.Page"/> names.
+    /// </summary>
+    /// <remarks>
+    /// The output is the input, byte for byte, with an incremental update after it, so an owner password and its
+    /// permissions stay, and so does a digital signature, for the revision it signed. A PDF/A file stays PDF/A. Without
+    /// a license key each stamp gets the attribution line beside its box. A stamp covers what is under it and does not
+    /// remove it: the text under an image can still be selected and found, so a stamp is not a redaction.
+    /// </remarks>
+    /// <param name="pdf">The bytes of the PDF to stamp.</param>
+    /// <param name="stamps">The stamps, drawn in this order.</param>
+    /// <exception cref="EngineException">
+    /// The input is not a PDF, needs a password to open, or doesn't have a page a stamp names; an image is not a PNG or
+    /// a stamp's options are wrong; or the stamp ran past <see cref="EngineOptions.Timeout"/> or needed more than
+    /// <see cref="EngineOptions.MaxMemoryMb"/>, or the engine crashed.
+    /// </exception>
+    public byte[] Stamp(byte[] pdf, IEnumerable<StampAttr> stamps)
+    {
+        ThrowIfDisposed();
+        ArgumentNullException.ThrowIfNull(pdf);
+        ArgumentNullException.ThrowIfNull(stamps);
+        return _wasm.Stamp(pdf, stamps.ToList(), _licenseKey);
+    }
+
     // ── Internals ─────────────────────────────────────────────────────────────
 
     /// <summary>
