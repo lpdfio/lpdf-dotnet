@@ -755,6 +755,35 @@ public class SchemaTests
         Assert.Equal(pdf, Render(L.ToXml(built)));
     }
 
+    [Fact]
+    public void A_cross_reference_links_to_its_bookmark_a_ref_only_bookmark_stays_out_of_the_outline_and_both_render_like_their_xml()
+    {
+        var built = L.Document(null, [
+            L.Section(null, [
+                L.Layout(null, [
+                    L.Text(null, ["See ", L.Span(new SpanAttr { BookmarkRef = "prices" }, ["{bookmark-label} on page {bookmark-page}"])]),
+                    L.Bookmark(new BookmarkAttr { Label = "Methods" }),
+                    L.Text(null, ["Methods"]),
+                    L.Bookmark(new BookmarkAttr { Label = "Table 3", Id = "prices", RefOnly = true }),
+                    L.Text(null, ["Prices"]),
+                ]),
+            ]),
+        ]);
+        var xml = L.ToXml(built);
+        Assert.Contains("<span bookmark-ref=\"prices\">", xml);
+        Assert.Matches("<bookmark [^>]*ref-only=\"true\"", xml);
+
+        var pdf = Render(built);
+        Assert.Contains("/D /prices", pdf);
+        Assert.Contains("/Title (Methods)", pdf);
+        Assert.DoesNotContain("/Title (Table 3)", pdf);
+        Assert.Equal(pdf, Render(xml));
+
+        var nowhere = L.Document(null, [L.Section(null, [L.Layout(null, [L.Text(null, [L.Span(new SpanAttr { BookmarkRef = "nowhere" }, ["{bookmark-page}"])])])])]);
+        var error = Assert.Throws<EngineException>(() => Render(nowhere));
+        Assert.Contains("bookmark-ref 'nowhere' names no bookmark", error.Message);
+    }
+
     // -- Assets ------------------------------------------------------------------------------------
 
     private static readonly byte[] Pixel = Convert.FromBase64String(
