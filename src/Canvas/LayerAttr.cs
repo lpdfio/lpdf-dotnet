@@ -6,6 +6,7 @@ namespace Lpdf.Canvas;
 /// <summary>Draws shapes, text, images and barcodes at exact positions on the page, independent of the flowing layout: watermarks, stamps, page furniture. Coordinates start at the top left corner of the whole page, not inside the layout's margin, and y grows downward. A layer before the section's layout paints under it, and one after paints over it. It sets what applies to all of its content: which pages it appears on, opacity, transform and clip, and the font, size and color of its text. Layers cannot be nested.</summary>
 public sealed record LayerAttr
 {
+    /// <summary>Which pages of the section show the layer: each, first, last, odd, even, or a range such as 2-last. odd and even follow the number printed on the page, so in a section that starts on page 4 even shows on its first page. first, last and ranges count the section's own pages, whatever their numbers. Defaults to each.</summary>
     public string? Page { get; init; }
 
     /// <summary>How opaque everything in the layer is, from 0 to 1. To fade one element, put it in a layer of its own.</summary>
