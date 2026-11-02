@@ -15,10 +15,10 @@ public sealed record FileAttr
     /// <summary>The key the file was loaded under on the engine, when that is not its name.</summary>
     public string? Ref { get; init; }
 
-    /// <summary>The type of the file, such as text/xml, application/pdf or text/csv. Defaults to application/octet-stream, which says only that it is a file.</summary>
+    /// <summary>The type of the file, such as text/xml, application/pdf or text/csv. Defaults to application/octet-stream, which says only that it is a file, and to text/xml for the invoice of a Factur-X e-invoice.</summary>
     public string? Mime { get; init; }
 
-    /// <summary>How the file relates to the document: source, data, alternative, supplement or unspecified, the default. An e-invoice's XML is data.</summary>
+    /// <summary>How the file relates to the document: source, data, alternative, supplement or unspecified, the default. The invoice of a Factur-X e-invoice defaults to data for the MINIMUM and BASIC WL profiles, and to alternative for the others, as the Factur-X spec asks.</summary>
     public string? Relationship { get; init; }
 
     /// <summary>A line about the file, which a reader shows beside its name.</summary>

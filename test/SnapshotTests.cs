@@ -192,6 +192,40 @@ public class EngineFeatureTests
         Assert.Contains("<pdfaid:conformance>B</pdfaid:conformance>", text);
     }
 
+    /// <summary>The XML of a Factur-X invoice of the EN 16931 profile, as little of it as the engine reads: its BT-24.</summary>
+    private const string CiiInvoice =
+        "<rsm:CrossIndustryInvoice xmlns:rsm=\"urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100\""
+        + " xmlns:ram=\"urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100\">"
+        + "<rsm:ExchangedDocumentContext><ram:GuidelineSpecifiedDocumentContextParameter><ram:ID>urn:cen.eu:en16931:2017</ram:ID>"
+        + "</ram:GuidelineSpecifiedDocumentContextParameter></rsm:ExchangedDocumentContext></rsm:CrossIndustryInvoice>";
+
+    private static PdfDocument Invoice(DocumentOutput output, params FileAttr[] files) => L.Document(
+        new DocumentAttr(Output: output, Attachments: files),
+        [L.Section(null, [L.Layout(null, [L.Column(new Lpdf.Layout.ColumnAttr { Background = "#e8f0fc", Height = "40pt" })])])]);
+
+    [Fact]
+    public void Makes_a_factur_x_invoice_of_a_kit_document_with_pdfa_3b_and_factur_x_xml()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        engine.LoadFile("factur-x.xml", System.Text.Encoding.UTF8.GetBytes(CiiInvoice));
+        var options = new RenderOptions { CreatedOn = "2026-10-31" };
+        var text = System.Text.Encoding.Latin1.GetString(
+            engine.Render(Invoice(new DocumentOutput(PdfA: "3b"), new FileAttr { Name = "factur-x.xml" }), options));
+
+        Assert.Contains("<pdfaid:part>3</pdfaid:part>", text);
+        Assert.Contains("<fx:ConformanceLevel>EN 16931</fx:ConformanceLevel>", text);
+        Assert.Contains("/AFRelationship /Alternative", text);
+        Assert.Contains("/Subtype /text#2Fxml", text);
+
+        var typed = new FileAttr { Name = "factur-x.xml", Mime = "application/xml" };
+        engine.Render(Invoice(new DocumentOutput(PdfA: "3u"), typed), options);
+        var strict = Invoice(new DocumentOutput(PdfA: "3u", FacturXStrict: true), typed);
+        var error = Assert.Throws<EngineException>(() => engine.Render(strict, options));
+        Assert.Contains("facturx-strict=\"true\"", error.Message);
+        Assert.Contains("mime 'application/xml'", error.Message);
+        Assert.Contains("facturx-strict=\"true\"", L.ToXml(strict));
+    }
+
     [Fact]
     public void Refuses_pdfa_without_created_on_and_text_in_a_built_in_font()
     {
