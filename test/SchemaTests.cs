@@ -566,6 +566,27 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_sections_page_numbering_is_written_under_its_schema_names_renders_as_its_XML_does_and_labels_the_pages()
+    {
+        var footer = L.Region(new RegionAttr { Pin = Pin.Bottom }, [L.Text(null, ["Page {page} of {pages}"])]);
+        var document = L.Document(nodes: [
+            L.Section(new SectionAttr(PageFormat: "lower-roman"), [L.Layout(null, [L.Text(null, ["Front"]), footer])]),
+            L.Section(new SectionAttr(PageStart: 1, PageFormat: "decimal", PagePrefix: "A-"), [L.Layout(null, [L.Text(null, ["Body"]), footer])]),
+        ]);
+
+        var xml = L.ToXml(document);
+        Assert.Contains("<section page-format=\"lower-roman\">", xml);
+        Assert.Contains("<section page-format=\"decimal\" page-prefix=\"A-\" page-start=\"1\">", xml);
+        var pdf = Render(document);
+        Assert.Equal(pdf, Render(xml));
+        Assert.Contains("/PageLabels << /Nums [0 << /S /r >> 1 << /S /D /P (A-) >>] >>", Regex.Replace(pdf, @"\s+", " "));
+
+        var zero = L.Document(nodes: [L.Section(new SectionAttr(PageStart: 0), [L.Layout(null, [])])]);
+        var error = Assert.Throws<EngineException>(() => Render(zero));
+        Assert.Contains("page-start must be a whole number from 1 to 2147483647, not 0", error.Message);
+    }
+
+    [Fact]
     public void A_footnote_is_drawn_and_renders_the_same_from_the_builder_and_its_XML_and_one_in_a_table_is_rejected()
     {
         PdfDocument Build(params TextContent[] nodes) => L.Document(
