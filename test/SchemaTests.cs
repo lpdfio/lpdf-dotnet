@@ -566,6 +566,26 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_section_in_columns_and_an_inset_are_written_under_their_schema_names_render_as_their_XML_and_an_inset_past_the_columns_is_rejected()
+    {
+        PdfDocument Build(int col) => L.Document(nodes: [
+            L.Section(new SectionAttr(Columns: 3, ColumnGap: "m", ColumnRule: "0.5pt #cccccc", ColumnFill: ColumnFill.Balance), [L.Layout(null, [
+                L.Region(new RegionAttr { Pin = Pin.Inset, Col = col, Colspan = 2, Top = "50pt", Height = "100pt" }, [L.Text(null, ["Inset"])]),
+                L.Text(null, ["One"]),
+                L.Text(new TextAttr { Paginate = "break-before" }, ["Two"]),
+            ])]),
+        ]);
+
+        var xml = L.ToXml(Build(2));
+        Assert.Contains("<section column-fill=\"balance\" column-gap=\"m\" column-rule=\"0.5pt #cccccc\" columns=\"3\">", xml);
+        Assert.Contains("<region col=\"2\" colspan=\"2\" height=\"100pt\" pin=\"inset\" top=\"50pt\">", xml);
+        Assert.Equal(Render(Build(2)), Render(xml));
+
+        var error = Assert.Throws<EngineException>(() => Render(Build(3)));
+        Assert.Contains("col 3 and colspan 2 reach column 4, past the section's 3 columns", error.Message);
+    }
+
+    [Fact]
     public void A_sections_page_numbering_is_written_under_its_schema_names_renders_as_its_XML_does_and_labels_the_pages()
     {
         var footer = L.Region(new RegionAttr { Pin = Pin.Bottom }, [L.Text(null, ["Page {page} of {pages}"])]);

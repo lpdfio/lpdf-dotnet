@@ -10,4 +10,5 @@ public static class Pin
     public const string Bottom = "bottom";
     public const string Left = "left";
     public const string Right = "right";
+    public const string Inset = "inset";
 }
