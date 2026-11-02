@@ -124,6 +124,26 @@ public class MemoryTests
         Assert.StartsWith("the node 'text'", tree.Message);
     }
 
+    [Fact]
+    public void A_tree_nested_100_levels_deep_reads_the_src_of_the_file_it_carries()
+    {
+        var terms = Path.GetTempFileName();
+        File.WriteAllText(terms, "Terms of sale");
+        try
+        {
+            var document = NestedTree(100, new DocumentAttr(Attachments: [new FileAttr { Name = "terms.txt", Src = terms }]));
+            using var engine = L.Engine(new EngineOptions { SrcFallback = File.ReadAllBytes });
+
+            var pdf = engine.Render(document);
+
+            Assert.Single(Regex.Matches(Encoding.Latin1.GetString(pdf), "/Type /EmbeddedFile"));
+        }
+        finally
+        {
+            File.Delete(terms);
+        }
+    }
+
     /// <summary>
     /// A stand-in module that traps in place of the engine, as the engine does when its memory runs out: Rust aborts,
     /// which is WebAssembly's <c>unreachable</c>.
@@ -164,12 +184,12 @@ public class MemoryTests
             + "</layout></section></document></lpdf>";
     }
 
-    /// <summary>The tree of <see cref="NestedXml"/>.</summary>
-    private static PdfDocument NestedTree(int depth)
+    /// <summary>The tree of <see cref="NestedXml"/>, with the document's <paramref name="attrs"/>.</summary>
+    private static PdfDocument NestedTree(int depth, DocumentAttr? attrs = null)
     {
         Node node = L.Text(null, ["deep"]);
         for (var i = 0; i < depth - 5; i++) node = L.Column(null, [node]);
-        return L.Document(null, [L.Section(null, [L.Layout(null, [node])])]);
+        return L.Document(attrs, [L.Section(null, [L.Layout(null, [node])])]);
     }
 
     /// <summary>The number of pages of a PDF: its page objects, which the engine writes uncompressed.</summary>

@@ -35,8 +35,9 @@ public sealed class EngineOptions
     }
 
     /// <summary>
-    /// The megabytes of memory a render may allocate, its data included: 1024 when left out, from 1 to 4096. A render
-    /// that needs more stops with an <see cref="EngineException"/> that names the cap.
+    /// The megabytes of memory a render may allocate, its data and the fonts, images and files sent with it included:
+    /// 1024 when left out, from 1 to 4096. A render that needs more stops with an <see cref="EngineException"/> that
+    /// names the cap.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">The value is below 1 or above 4096.</exception>
     public int MaxMemoryMb
