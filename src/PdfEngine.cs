@@ -26,11 +26,18 @@ public sealed class PdfEngine : IDisposable
     private readonly Dictionary<string, string> _markdownStyles = new();
     private          bool           _disposed;
 
-    /// <param name="options">Engine-level options (e.g. <c>SrcFallback</c>).</param>
+    /// <param name="options">Engine-level options (e.g. <c>SrcFallback</c>, <c>Timeout</c>).</param>
     public PdfEngine(EngineOptions? options = null)
     {
         _engineOpts = options ?? new EngineOptions();
-        _wasm       = new WasmRunner();
+        _wasm       = new WasmRunner(_engineOpts.Timeout);
+    }
+
+    /// <summary>An engine that runs <paramref name="wasm"/> in place of the engine's own, for the tests.</summary>
+    internal PdfEngine(EngineOptions options, WasmRunner wasm)
+    {
+        _engineOpts = options;
+        _wasm       = wasm;
     }
 
     // ── Public API ────────────────────────────────────────────────────────────
@@ -62,7 +69,7 @@ public sealed class PdfEngine : IDisposable
     public LicenseCheck CheckLicenseKey(string? key = null)
     {
         ThrowIfDisposed();
-        var json = WasmRunner.CheckLicense(key ?? _licenseKey);
+        var json = _wasm.CheckLicense(key ?? _licenseKey);
         return JsonSerializer.Deserialize<LicenseCheck>(json)
             ?? throw new InvalidOperationException("The engine returned no license report.");
     }
@@ -141,6 +148,9 @@ public sealed class PdfEngine : IDisposable
     /// </summary>
     /// <param name="xml">Full lpdf XML document string.</param>
     /// <param name="callOptions">Per-call options (data, timestamp, passwords).</param>
+    /// <exception cref="EngineException">
+    /// The engine refused the document, or the render ran past <see cref="EngineOptions.Timeout"/>.
+    /// </exception>
     public byte[] Render(string xml, RenderOptions? callOptions = null)
     {
         ThrowIfDisposed();
@@ -160,6 +170,9 @@ public sealed class PdfEngine : IDisposable
     /// </summary>
     /// <param name="document">Document tree produced by <c>Pdf.Document(…)</c>.</param>
     /// <param name="callOptions">Per-call options (timestamp, passwords).</param>
+    /// <exception cref="EngineException">
+    /// The engine refused the document, or the render ran past <see cref="EngineOptions.Timeout"/>.
+    /// </exception>
     public byte[] Render(PdfDocument document, RenderOptions? callOptions = null)
     {
         ThrowIfDisposed();
