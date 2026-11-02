@@ -180,6 +180,19 @@ public class EngineFeatureTests
     }
 
     [Fact]
+    public void Writes_pdfa_level_a_tagged_without_pdfua_when_the_output_asks_for_2a()
+    {
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        var text = System.Text.Encoding.Latin1.GetString(
+            engine.Render(PdfAXml("2a"), new RenderOptions { CreatedOn = "2026-10-31" }));
+
+        Assert.Contains("<pdfaid:conformance>A</pdfaid:conformance>", text);
+        Assert.Contains("/StructTreeRoot", text);
+        Assert.Contains("/Marked true", text);
+        Assert.DoesNotContain("pdfuaid", text);
+    }
+
+    [Fact]
     public void Takes_pdfa_from_the_output_of_a_kit_document()
     {
         using var engine = L.Engine().SetLicenseKey("test-key");

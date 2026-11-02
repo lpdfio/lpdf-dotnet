@@ -8,7 +8,7 @@ public sealed record ImgAttr
 {
     public required string Name { get; init; }
 
-    /// <summary>What the image shows, which a screen reader reads in a PDF/UA document; alt="" marks it as decoration, which a reader skips. A PDF/UA document needs it on every image of the layout. A document without pdfua ignores it.</summary>
+    /// <summary>What the image shows, which a screen reader reads in a tagged document, one with pdfua or a pdfa of level a; alt="" marks it as decoration, which a reader skips. A PDF/UA document needs it on every image of the layout; at PDF/A level a without pdfua, an image without it is decoration. A document that is not tagged ignores it.</summary>
     public string? Alt { get; init; }
     public string? Height { get; init; }
 
