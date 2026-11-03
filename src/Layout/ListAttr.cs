@@ -58,4 +58,7 @@ public sealed record ListAttr
 
     /// <summary>Width of the element. A length fixes it. fill, in a row, takes the width its line leaves after the other children, shared equally if several on the line use fill, and never moves to the next line; in a column it takes the full width.</summary>
     public string? Width { get; init; }
+
+    /// <summary>true lays out the items that the li with data-source repeats one page at a time, straight from the data, for logs and lists of tens of thousands of items and more. The pages are the ones the same list would have without bulk, but where a page would end inside an item, between its texts or inside a text of four lines or more: without bulk the item splits there, and with bulk it moves whole to the next page. A number list numbers the items as it does without bulk. The list has one level, and its items follow rules: an li holds texts only, a text holds plain words with no span, link, bookmark, footnote or reference, and sets no widows or orphans, a text without max-lines holds one line and ends in an ellipsis, and nothing in an item has data-source. The list sits directly in the layout, has no data-source of its own and one li with it, has no height, and neither it nor anything in it has paginate. Its document has no table of contents, no reference to a bookmark, no pdfua and no pdfa of level a, and its section's columns are not balanced. Breaking a rule is an error that names it. Default false.</summary>
+    public bool? Bulk { get; init; }
 }
