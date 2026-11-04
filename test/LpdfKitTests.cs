@@ -81,6 +81,37 @@ public class LpdfKitTypesTests
     }
 
     [Fact]
+    public void Document_RulingsAreATokenRowOfNamedRulingsWithTheirLinesUnderTheSchemaNames()
+    {
+        var doc = L.Document(attrs: new DocumentAttr(
+            Tokens: new DocumentTokens(Rulings: new()
+            {
+                ["graph"] = new Ruling
+                {
+                    Origin = "margin",
+                    Edges = false,
+                    Lines = [new RulingLines { Step = "5mm" }, new RulingLines { CountX = 12, StepY = "25mm" }],
+                },
+            })
+        ));
+
+        var tokens = Assert.IsType<Dictionary<string, object?>>(doc.Attrs["tokens"]);
+        var rulings = Assert.IsType<Dictionary<string, Dictionary<string, object>>>(tokens["rulings"]);
+        Assert.Equal("margin", rulings["graph"]["origin"]);
+        Assert.Equal<object>(false, rulings["graph"]["edges"]);
+        var lines = Assert.IsType<List<Dictionary<string, object>>>(rulings["graph"]["lines"]);
+        Assert.Equal("5mm", lines[0]["step"]);
+        Assert.Equal<object>(12, lines[1]["count-x"]);
+        Assert.Equal("25mm", lines[1]["step-y"]);
+    }
+
+    [Fact]
+    public void Section_RulingAppearsInAttrs()
+    {
+        Assert.Equal("graph", L.Section(new SectionAttr(Ruling: "graph")).Attrs["ruling"]);
+    }
+
+    [Fact]
     public void Text_LineHeightIsATokenOrAFactorUnderItsSchemaName()
     {
         Assert.Equal("l",   L.Text(new TextAttr { LineHeight = "l" },   ["A token"]).Attrs["line-height"]);
@@ -251,6 +282,28 @@ public class KitToXmlTests
         Assert.Contains("<gradient name=\"sunset\" type=\"radial\">", xml);
         Assert.Contains("offset=\"0%\"", xml);
         Assert.Contains("<column background=\"gradient:fade\"", xml);
+    }
+
+    [Fact]
+    public void KitToXml_WritesTheRulingsOfTheTokensAndTheSectionThatNamesOne()
+    {
+        var doc = L.Document(
+            attrs: new DocumentAttr(Tokens: new DocumentTokens(Rulings: new()
+            {
+                ["graph"] = new Ruling
+                {
+                    Origin = "margin",
+                    Lines = [new RulingLines { Step = "5mm" }, new RulingLines { CountX = 12, StepY = "25mm" }],
+                },
+            })),
+            nodes: [L.Section(new SectionAttr(Ruling: "graph"), [L.Layout(null, [L.Text(nodes: [L.Raw("On paper")])])])]);
+        var xml = L.ToXml(doc);
+
+        Assert.Contains("<ruling name=\"graph\" origin=\"margin\">", xml);
+        Assert.Contains("<lines step=\"5mm\"/>", xml);
+        Assert.Contains("count-x=\"12\"", xml);
+        Assert.Contains("step-y=\"25mm\"", xml);
+        Assert.Contains("<section ruling=\"graph\">", xml);
     }
 
     [Fact]

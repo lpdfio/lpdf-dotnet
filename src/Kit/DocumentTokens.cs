@@ -7,6 +7,9 @@ namespace Lpdf.Kit;
 /// one as <c>gradient:name</c>. <c>LineHeight</c> is the row of factors, each a number above 0. <c>Aliases</c> maps a name to the slot of the scale it stands for: <c>["caption"] = "xs"</c>
 /// lets <c>FontSize = "caption"</c> mean the text size <c>xs</c>, and <c>Gap = "caption"</c> the space <c>xs</c>.
 /// <c>Height</c> is the row of heights that <c>Height = "m"</c> names, from <c>xs</c> to <c>xxl</c>.
+/// <c>Rulings</c> maps the name of each ruling to a <see cref="Ruling"/>: its <c>Lines</c>, a list of
+/// <see cref="RulingLines"/> each cut by a step or a count in x, in y or both, and its <c>Origin</c>, <c>Edges</c> and
+/// <c>Ocg</c>. A section draws one on every page with <c>Ruling = "name"</c>.
 /// </summary>
 public sealed record DocumentTokens(
     Dictionary<string, string>?   Colors = null,
@@ -19,4 +22,5 @@ public sealed record DocumentTokens(
     Dictionary<string, double>?   LineHeight = null,
     Dictionary<string, Gradient>? Gradients = null,
     Dictionary<string, string>?   Aliases = null,
-    Dictionary<string, string>?   Height = null);
+    Dictionary<string, string>?   Height = null,
+    Dictionary<string, Ruling>?   Rulings = null);

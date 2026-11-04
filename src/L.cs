@@ -86,6 +86,8 @@ public static class L
                 td["gradients"] = t.Gradients.ToDictionary(entry => entry.Key, entry => GradientAttrs(entry.Value), StringComparer.Ordinal);
             if (t.Aliases is not null) td["aliases"] = t.Aliases;
             if (t.Height is not null) td["height"] = t.Height;
+            if (t.Rulings is not null)
+                td["rulings"] = t.Rulings.ToDictionary(entry => entry.Key, entry => RulingAttrs(entry.Value), StringComparer.Ordinal);
             d["tokens"] = td;
         }
 
@@ -132,6 +134,17 @@ public static class L
         var attrs = AttrsHelper.Attrs(gradient);
         if (gradient.Stops is { Count: > 0 } stops)
             attrs["stops"] = stops.Select(stop => AttrsHelper.Attrs(stop)).ToList();
+        return attrs;
+    }
+
+    /// <summary>
+    /// A ruling as the document tree takes it: its attributes that are set, and its sets of lines, each by the schema's
+    /// names, so <c>StepX</c> is <c>step-x</c>.
+    /// </summary>
+    private static Dictionary<string, object> RulingAttrs(Ruling ruling)
+    {
+        var attrs = AttrsHelper.Attrs(ruling);
+        attrs["lines"] = ruling.Lines.Select(lines => AttrsHelper.Attrs(lines)).ToList();
         return attrs;
     }
 

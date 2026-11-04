@@ -753,6 +753,22 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_ruling_of_the_tokens_is_drawn_once_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        var doc = L.Document(
+            new DocumentAttr(Tokens: new DocumentTokens(Rulings: new()
+            {
+                ["notes"] = new Ruling { Edges = false, Lines = [new RulingLines { StepY = "8mm", Color = "#c9d6e8" }] },
+            })),
+            [L.Section(new SectionAttr(Ruling: "notes"), [L.Layout(null, [L.Text(nodes: [L.Raw("On ruled paper")])])])]);
+
+        var pdf = Render(doc);
+
+        Assert.Equal(pdf, Render(L.ToXml(doc)));
+        Assert.Single(System.Text.RegularExpressions.Regex.Matches(pdf, "/Subtype /Form"));
+    }
+
+    [Fact]
     public void Bold_text_is_the_bold_face_of_the_font()
     {
         static string Doc(string attrs) =>
