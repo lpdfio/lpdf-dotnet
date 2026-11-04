@@ -586,6 +586,30 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_bulk_table_renders_from_data_as_the_table_without_bulk_and_one_built_with_L_which_has_no_data_is_rejected()
+    {
+        string Xml(string bulk) => "<lpdf version=\"1\"><document size=\"a4\"><section><layout margin=\"36pt\">"
+            + $"<table cols=\"1fr 2fr\"{bulk}><thead><td><text bold=\"true\">Date</text></td><td><text bold=\"true\">Amount</text></td></thead>"
+            + "<tr data-source=\"entries\"><td><text data-value=\"date\">-</text></td><td><text data-value=\"amount\">-</text></td></tr></table>"
+            + "<region pin=\"bottom\"><text align=\"right\">Page {page} of {pages}</text></region></layout></section></document></lpdf>";
+        var entries = Enumerable.Range(0, 2000).Select(i => new { date = $"2026-01-{i % 28 + 1:00}", amount = $"${i}.00" }).ToList();
+        using var engine = L.Engine().SetLicenseKey("test-key");
+        string RenderWithData(string xml) => Normalised(engine.Render(xml, new RenderOptions { Data = new { entries } }));
+
+        var pdf = RenderWithData(Xml(" bulk=\"true\""));
+        Assert.Equal(pdf, RenderWithData(Xml("")));
+        var pages = int.Parse(Regex.Match(pdf, @"/Type /Pages[^>]*/Count (\d+)").Groups[1].Value);
+        Assert.True(pages > 20, $"the rows run over {pages} pages");
+
+        var built = L.Document(nodes: [L.Section(null, [L.Layout(null, [
+            L.Table(new TableAttr { Cols = "1fr", Bulk = true }, [L.Tr(null, [L.Td(null, [L.Text(null, ["A"])])])]),
+        ])])]);
+        Assert.Contains("<table bulk=\"true\" cols=\"1fr\">", L.ToXml(built));
+        var error = Assert.Throws<EngineException>(() => Render(built));
+        Assert.Contains("a bulk table repeats one tr with data-source: it has none", error.Message);
+    }
+
+    [Fact]
     public void A_sections_page_numbering_is_written_under_its_schema_names_renders_as_its_XML_does_and_labels_the_pages()
     {
         var footer = L.Region(new RegionAttr { Pin = Pin.Bottom }, [L.Text(null, ["Page {page} of {pages}"])]);
