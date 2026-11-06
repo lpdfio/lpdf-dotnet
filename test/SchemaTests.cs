@@ -447,7 +447,7 @@ public class SchemaTests
             nodes: [L.Section(nodes: [L.Layout(null, [L.Column(new ColumnAttr { Height = "medum" })])])]);
 
         var error = Assert.Throws<EngineException>(() => Render(doc));
-        Assert.Contains("invalid height value: 'medum' — expected full, fill, a slot from xs to xxl or a pt value", error.Message);
+        Assert.Contains("invalid height value: 'medum' — expected full, fill, a slot from xs to xxl or a length in pt, mm or in", error.Message);
     }
 
     [Fact]
