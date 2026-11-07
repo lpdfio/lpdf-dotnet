@@ -54,6 +54,7 @@ public sealed class NoAttributes
     public static implicit operator MarkdownCodeAttr?(NoAttributes _) => null;
     public static implicit operator MarkdownQuoteAttr?(NoAttributes _) => null;
     public static implicit operator MarkdownLiAttr?(NoAttributes _) => null;
+    public static implicit operator MarkdownHrAttr?(NoAttributes _) => null;
     public static implicit operator MarkdownAAttr?(NoAttributes _) => null;
     public static implicit operator MarkdownStrongAttr?(NoAttributes _) => null;
     public static implicit operator MarkdownEmAttr?(NoAttributes _) => null;

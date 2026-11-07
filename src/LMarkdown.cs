@@ -63,6 +63,9 @@ public static class LMarkdown
     /// <summary>Build the rule of an item of a bullet or a numbered list.</summary>
     public static MarkdownRule Li(MarkdownLiAttr? attrs = null) => Rule("li", attrs);
 
+    /// <summary>Build the rule of a thematic break, written --- in Markdown.</summary>
+    public static MarkdownRule Hr(MarkdownHrAttr? attrs = null) => Rule("hr", attrs);
+
     /// <summary>Build the rule of a link.</summary>
     public static MarkdownRule A(MarkdownAAttr? attrs = null) => Rule("a", attrs);
 
