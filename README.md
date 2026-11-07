@@ -2,7 +2,7 @@
 
 # Lpdfio.Lpdf
 
-**.NET SDK for [Lpdf](https://lpdf.io?utm_campaign=sdk-dotnet&utm_medium=referral&utm_source=readme) — PDF as Code on every platform**
+**C# SDK for [Lpdf](https://lpdf.io?utm_campaign=sdk-dotnet&utm_medium=referral&utm_source=readme) — PDF as Code on every platform**
 
 You describe a document as code or XML. Lpdf renders a compact, pixel-perfect PDF — identical across platforms.
 
