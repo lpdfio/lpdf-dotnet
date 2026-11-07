@@ -959,6 +959,10 @@ public class SchemaTests
         Assert.Equal("h1", styles.Rules[0].RuleType);
         Assert.Equal(new Dictionary<string, object> { ["font-size"] = "xl", ["color"] = "muted" }, styles.Rules[0].Attrs);
         Assert.Equal("quote", LMarkdown.Quote(new MarkdownQuoteAttr { BarColor = "primary" }).RuleType);
+        var rule = LMarkdown.Hr(new MarkdownHrAttr { Color = "muted", Thickness = "xs" });
+        Assert.Equal("hr", rule.RuleType);
+        Assert.Equal(new Dictionary<string, object> { ["color"] = "muted", ["thickness"] = "xs" }, rule.Attrs);
+        Assert.Empty(LMarkdown.Hr(L.NoAttr).Attrs);
         Assert.Empty(LMarkdown.Em(L.NoAttr).Attrs);
         Assert.Equal(["# a"], LMarkdown.Content(L.NoAttr, ["# a"]).Text);
     }
