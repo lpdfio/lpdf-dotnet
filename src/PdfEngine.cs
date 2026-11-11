@@ -88,7 +88,7 @@ public sealed class PdfEngine : IDisposable
     }
 
     /// <summary>
-    /// Register raw PNG or JPEG bytes for an image name referenced via <c>&lt;img name="…"&gt;</c>.
+    /// Register raw image bytes (JPEG, PNG, WebP, GIF, TIFF or BMP) for an image name referenced via <c>&lt;img name="…"&gt;</c>.
     /// Call before <see cref="Render(string, RenderOptions?)"/>. Returns <c>this</c>.
     /// </summary>
     public PdfEngine LoadImage(string name, byte[] bytes)
