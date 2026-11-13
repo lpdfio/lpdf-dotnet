@@ -9,6 +9,6 @@ public sealed record GradientStop
     /// <summary>Where the color is reached along the gradient, from 0% (the start) to 100% (the end). Stops go in increasing order.</summary>
     public required string Offset { get; init; }
 
-    /// <summary>The color at the stop: hex, cmyk(), rgb(), hsl() or a color token. The stops of a gradient are all CMYK or all RGB.</summary>
+    /// <summary>The color at the stop: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of it. The stops of a gradient are all CMYK, all RGB, or all tints of one spot color.</summary>
     public required string Color { get; init; }
 }

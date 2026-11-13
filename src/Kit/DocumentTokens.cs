@@ -10,6 +10,9 @@ namespace Lpdf.Kit;
 /// <c>Rulings</c> maps the name of each ruling to a <see cref="Ruling"/>: its <c>Lines</c>, a list of
 /// <see cref="RulingLines"/> each cut by a step or a count in x, in y or both, and its <c>Origin</c>, <c>Edges</c> and
 /// <c>Ocg</c>. A section draws one on every page with <c>Ruling = "name"</c>.
+/// <c>Spots</c> maps the name of each spot color to a <see cref="Spot"/>: its <c>Ink</c>, the ink's name as the printer
+/// knows it, its <c>Value</c>, the color that stands in for it on a screen or a proof, and whether it <c>Overprint</c>s.
+/// A color takes the name, or a tint of the ink after a space: <c>Background = "brand 30%"</c>.
 /// </summary>
 public sealed record DocumentTokens(
     Dictionary<string, string>?   Colors = null,
@@ -23,4 +26,5 @@ public sealed record DocumentTokens(
     Dictionary<string, Gradient>? Gradients = null,
     Dictionary<string, string>?   Aliases = null,
     Dictionary<string, string>?   Height = null,
-    Dictionary<string, Ruling>?   Rulings = null);
+    Dictionary<string, Ruling>?   Rulings = null,
+    Dictionary<string, Spot>?     Spots = null);

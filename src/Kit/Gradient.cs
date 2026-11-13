@@ -9,10 +9,10 @@ public sealed record Gradient
     /// <summary>linear runs along a line across the box. radial runs from the center out to the farthest corner.</summary>
     public required string Type { get; init; }
 
-    /// <summary>The first color: hex, cmyk(), rgb(), hsl() or a color token, CMYK if to is and RGB if it is not. Used with to, when there are no stop children. For a radial gradient it is the center.</summary>
+    /// <summary>The first color: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of it: CMYK if to is and RGB if it is not, or the same spot color as to. Used with to, when there are no stop children. For a radial gradient it is the center.</summary>
     public string? From { get; init; }
 
-    /// <summary>The last color: hex, cmyk(), rgb(), hsl() or a color token. Used with from, when there are no stop children. For a radial gradient it is the edge.</summary>
+    /// <summary>The last color: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of it. Used with from, when there are no stop children. For a radial gradient it is the edge.</summary>
     public string? To { get; init; }
 
     /// <summary>The direction of a linear gradient, in degrees: 0 runs from the top to the bottom, 90 from the left to the right, 180 from the bottom to the top. Default 0. A radial gradient has no direction.</summary>
