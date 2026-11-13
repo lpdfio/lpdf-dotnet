@@ -75,6 +75,8 @@ public static class L
             var t = a.Tokens;
             var td = new Dictionary<string, object?>(StringComparer.Ordinal);
             if (t.Colors is not null) td["colors"] = t.Colors;
+            if (t.Spots is not null)
+                td["spots"] = t.Spots.ToDictionary(entry => entry.Key, entry => AttrsHelper.Attrs(entry.Value), StringComparer.Ordinal);
             if (t.Space  is not null) td["space"]  = t.Space;
             if (t.Grid   is not null) td["grid"]   = t.Grid;
             if (t.Border is not null) td["border"] = t.Border;

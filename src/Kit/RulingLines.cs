@@ -24,7 +24,7 @@ public sealed record RulingLines
     /// <summary>Cuts the space into this many equal rows, from 1 to 100.</summary>
     public int? CountY { get; init; }
 
-    /// <summary>The color of the lines: hex, cmyk(), rgb(), hsl() or a color token. Defaults to line-muted.</summary>
+    /// <summary>The color of the lines: hex, cmyk(), rgb(), hsl(), a color token, or a spot color or a tint of it. Defaults to line-muted.</summary>
     public string? Color { get; init; }
 
     /// <summary>The thickness of the lines, a length or a name from the border row of the tokens. Defaults to 0.4pt.</summary>

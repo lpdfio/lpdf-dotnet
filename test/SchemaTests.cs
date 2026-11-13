@@ -753,6 +753,27 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_spot_color_of_the_tokens_is_its_ink_and_renders_the_same_from_the_builder_and_its_XML()
+    {
+        var doc = L.Document(
+            new DocumentAttr(Tokens: new DocumentTokens(Spots: new()
+            {
+                ["brand"] = new Spot { Ink = "PANTONE 1665 C", Value = "cmyk(0, 85, 100, 0)" },
+                ["die"] = new Spot { Ink = "Dieline", Value = "#ff00ff", Overprint = true },
+            })),
+            [L.Section(null, [L.Layout(null, [
+                L.Column(new ColumnAttr { Background = "brand 30%", Border = "s die" }, [L.Text(new TextAttr { Color = "brand" }, [L.Raw("Spot")])]),
+            ])])]);
+
+        var pdf = Render(doc);
+
+        Assert.Equal(pdf, Render(L.ToXml(doc)));
+        Assert.Contains("/Separation /PANTONE#201665#20C /DeviceCMYK", pdf);
+        Assert.Contains("/Separation /Dieline /DeviceRGB", pdf);
+        Assert.Contains("<spot name=\"die\" ink=\"Dieline\" value=\"#ff00ff\" overprint=\"true\"/>", L.ToXml(doc));
+    }
+
+    [Fact]
     public void A_ruling_of_the_tokens_is_drawn_once_and_renders_the_same_from_the_builder_and_its_XML()
     {
         var doc = L.Document(
