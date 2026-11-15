@@ -49,6 +49,7 @@
   <ItemGroup>
     <None Include="LICENSE" Pack="true" PackagePath="" />
     <None Include="THIRD_PARTY_LICENSES" Pack="true" PackagePath="" />
+    <None Include="wasm\THIRD_PARTY_LICENSES_ENGINE.txt" Pack="true" PackagePath="" />
     <None Include="README.md" Pack="true" PackagePath="" />
     <None Include="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>

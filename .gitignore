@@ -5,3 +5,4 @@ var
 
 # Generated WASM artifacts
 wasm/lpdf.wasm
+wasm/THIRD_PARTY_LICENSES_ENGINE.txt
