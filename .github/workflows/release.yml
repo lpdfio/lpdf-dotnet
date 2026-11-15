@@ -85,6 +85,7 @@ jobs:
             gh release download "$CORE_TAG" \
               --repo lpdfio/lpdf \
               --pattern "lpdf-wasi.wasm" \
+              --pattern "THIRD_PARTY_LICENSES_ENGINE.txt" \
               --dir wasm \
               --clobber && DOWNLOADED=1 && break
             echo "Attempt $attempt failed — retrying in 10s..."
@@ -135,6 +136,9 @@ jobs:
       # ── Pack and publish ──────────────────────────────────────────────────────
       - name: Pack
         run: dotnet pack Lpdf.csproj -c Release --no-build -o nupkg
+
+      - name: Check the package carries the engine's licenses
+        run: sh scripts/check-package.sh
 
       # Trusted publishing: nuget.org trades the job's OIDC token for a key that
       # works for an hour, under the policy that names this repo and release.yml.

@@ -45,6 +45,7 @@ jobs:
             gh release download "$CORE_TAG" \
               --repo lpdfio/lpdf \
               --pattern "lpdf-wasi.wasm" \
+              --pattern "THIRD_PARTY_LICENSES_ENGINE.txt" \
               --dir wasm \
               --clobber && DOWNLOADED=1 && break
             echo "Attempt $attempt failed — retrying in 10s..."
@@ -98,6 +99,14 @@ jobs:
 
       - name: Test
         run: dotnet test Lpdf.sln --no-build -c Release
+
+      # ── Pack ─────────────────────────────────────────────────────────────────
+      # The package is what users install: it must carry the licenses of the crates the engine links.
+      - name: Pack
+        run: dotnet pack Lpdf.csproj -c Release --no-build -o nupkg
+
+      - name: Check the package carries the engine's licenses
+        run: sh scripts/check-package.sh
 
       # ── Check the code the code generator writes ─────────────────────────────
       # For every fixture of core, and a document for every attribute of the schema, the code the generator writes for
