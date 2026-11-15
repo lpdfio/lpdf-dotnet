@@ -286,6 +286,39 @@ internal sealed class WasmRunner : IDisposable
         return PdfOf(RunWasm(Encoding.UTF8.GetBytes(request.ToJsonString())));
     }
 
+    /// <summary>
+    /// Merge <paramref name="sources"/> into one PDF made for printing: the engine's <c>merge</c> request, with each
+    /// file as base64 under its name, and the options by the names the engine reads them by.
+    /// </summary>
+    public byte[] Merge(IReadOnlyList<MergeSource> sources, MergeOptions options, string licenseKey)
+    {
+        var list = new JsonArray();
+        for (var i = 0; i < sources.Count; i++)
+        {
+            var source = sources[i] ?? throw new ArgumentException($"source {i + 1} is null.", nameof(sources));
+            var name = source.Name ?? throw new ArgumentException($"source {i + 1}: Name must be the file's name.", nameof(sources));
+            var pdf = source.Pdf ?? throw new ArgumentException($"source {i + 1} ({name}): Pdf must be the PDF's bytes.", nameof(sources));
+            list.Add(new JsonObject { ["name"] = name, ["pdf"] = Convert.ToBase64String(pdf) });
+        }
+
+        var request = new JsonObject
+        {
+            ["method"] = "merge",
+            ["key"] = licenseKey,
+            // See NowUnix: without it the engine cannot check the key's expiry at all.
+            ["now"] = NowUnix(),
+            ["max_memory_mb"] = _maxMemoryMb,
+            ["sources"] = list,
+            ["options"] = new JsonObject
+            {
+                ["allow-signed"] = options.AllowSigned,
+                ["allow-restricted"] = options.AllowRestricted,
+                ["double-sided"] = options.DoubleSided,
+            },
+        };
+        return PdfOf(RunWasm(Encoding.UTF8.GetBytes(request.ToJsonString())));
+    }
+
     /// <summary>The PDF of the engine's answer, or its error as an <see cref="EngineException"/>.</summary>
     private static byte[] PdfOf(string responseJson)
     {
