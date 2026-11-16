@@ -214,6 +214,33 @@ public sealed class PdfEngine : IDisposable
         return _wasm.Stamp(pdf, stamps.ToList(), _licenseKey);
     }
 
+    /// <summary>
+    /// Merge existing PDFs into one PDF made for printing, and return it, on the caller's thread. Nothing is laid out:
+    /// each source page is drawn on a page of the size it has as a viewer shows it, in the order of the sources, with the
+    /// annotations that print flattened from their stored appearances, so forms, links and bookmarks are gone and what
+    /// prints is what the page looked like. Layers cross over, each on or off by default as it prints in its source. The
+    /// output is made for printing, not for reading on screen, and its version is the highest among the sources'.
+    /// </summary>
+    /// <remarks>
+    /// Each source opens without a password. Without a license key each merged page gets the attribution line in its
+    /// top-right corner, with no link.
+    /// </remarks>
+    /// <param name="sources">The files to merge, in the order of their pages.</param>
+    /// <param name="options">What the merge does beyond its defaults, or <see langword="null"/> for none of it.</param>
+    /// <exception cref="EngineException">
+    /// No file was given; a file is not a PDF, can't be read, or needs a password to open; a file's owner password
+    /// restricts printing or copying and <see cref="MergeOptions.AllowRestricted"/> is not set; a file is signed and
+    /// <see cref="MergeOptions.AllowSigned"/> is not set; a form field has a value and no stored appearance, which would
+    /// print blank; or the merge ran past <see cref="EngineOptions.Timeout"/> or needed more than
+    /// <see cref="EngineOptions.MaxMemoryMb"/>, or the engine crashed. The message of an error about a file names it.
+    /// </exception>
+    public byte[] Merge(IEnumerable<MergeSource> sources, MergeOptions? options = null)
+    {
+        ThrowIfDisposed();
+        ArgumentNullException.ThrowIfNull(sources);
+        return _wasm.Merge(sources.ToList(), options ?? new MergeOptions(), _licenseKey);
+    }
+
     // ── Internals ─────────────────────────────────────────────────────────────
 
     /// <summary>
