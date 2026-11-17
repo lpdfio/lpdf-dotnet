@@ -13,6 +13,9 @@ namespace Lpdf.Kit;
 /// in the middle of each gap, as a border, such as <c>"0.5pt #ccc"</c>, and <c>ColumnFill</c> how the last page's
 /// columns fill: <c>ColumnFill.Auto</c>, in order, the default, or <c>ColumnFill.Balance</c>, levelled.
 /// <c>Ruling</c> names a ruling of the tokens, whose lines are drawn on every page of the section, under everything else.
+/// <c>Grow</c> is the sizes the page grows in to fit the content, <c>"width"</c>, <c>"height"</c> or
+/// <c>"width height"</c>, where it would start a new page or squeeze the content: <c>Size</c> is then the starting size,
+/// the smallest the page can be.
 /// </summary>
 public sealed record SectionAttr(
     string? Size        = null, string? Orientation = null,
@@ -21,4 +24,4 @@ public sealed record SectionAttr(
     string? Bleed       = null,
     int?    PageStart   = null, string? PageFormat  = null, string? PagePrefix = null,
     int?    Columns     = null, string? ColumnGap   = null, string? ColumnRule = null, string? ColumnFill = null,
-    string? Ruling      = null);
+    string? Ruling      = null, string? Grow        = null);

@@ -586,6 +586,24 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_section_that_grows_is_written_under_its_schema_name_renders_as_its_XML_on_one_page_and_grow_with_columns_is_rejected()
+    {
+        PdfDocument Build(int? columns) => L.Document(nodes: [
+            L.Section(new SectionAttr(Size: "80mm 40mm", Grow: "height", Columns: columns),
+                [L.Layout(null, [.. Enumerable.Range(1, 40).Select(n => L.Text(null, [$"Line {n}"]))])]),
+        ]);
+
+        var xml = L.ToXml(Build(null));
+        Assert.Contains("<section grow=\"height\" size=\"80mm 40mm\">", xml);
+        var pdf = Render(Build(null));
+        Assert.Equal(pdf, Render(xml));
+        Assert.Single(Regex.Matches(pdf, "/Contents "));
+
+        var error = Assert.Throws<EngineException>(() => Render(Build(2)));
+        Assert.Contains("grow doesn't work with columns or an inset, in section 1", error.Message);
+    }
+
+    [Fact]
     public void A_bulk_table_renders_from_data_as_the_table_without_bulk_and_one_built_with_L_which_has_no_data_is_rejected()
     {
         string Xml(string bulk) => "<lpdf version=\"1\"><document size=\"a4\"><section><layout margin=\"36pt\">"
