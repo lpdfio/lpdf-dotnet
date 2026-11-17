@@ -589,12 +589,13 @@ public class SchemaTests
     public void A_section_that_grows_is_written_under_its_schema_name_renders_as_its_XML_on_one_page_and_grow_with_columns_is_rejected()
     {
         PdfDocument Build(int? columns) => L.Document(nodes: [
-            L.Section(new SectionAttr(Size: "80mm 40mm", Grow: "height", Columns: columns),
+            L.Section(new SectionAttr(Size: "80mm 40mm", Grow: Grow.Height, Columns: columns),
                 [L.Layout(null, [.. Enumerable.Range(1, 40).Select(n => L.Text(null, [$"Line {n}"]))])]),
         ]);
 
         var xml = L.ToXml(Build(null));
         Assert.Contains("<section grow=\"height\" size=\"80mm 40mm\">", xml);
+        Assert.Equal("width height", Grow.WidthHeight);
         var pdf = Render(Build(null));
         Assert.Equal(pdf, Render(xml));
         Assert.Single(Regex.Matches(pdf, "/Contents "));
