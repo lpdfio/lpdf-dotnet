@@ -243,6 +243,29 @@ public sealed class PdfEngine : IDisposable
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
+    /// <summary><see cref="LCrossIndustryInvoice.GeneratePdf(PdfEngine, string, GeneratePdfOptions)"/>: a render of a template with an invoice.</summary>
+    internal byte[] RenderInvoice(string template, byte[] invoiceXml, string? invoiceMap, string invoiceData, object? data, string createdOn)
+    {
+        ThrowIfDisposed();
+        var fonts  = _fonts.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_fonts : null;
+        var images = _images.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_images : null;
+        var styles = _markdownStyles.Count > 0 ? _markdownStyles : null;
+        return _wasm.RenderInvoicePdf(template, _licenseKey, fonts, images, _engineOpts.SrcFallback, createdOn,
+            BuildDataJson(data), invoiceXml, invoiceMap, invoiceData, styles, _files, _profiles);
+    }
+
+    /// <summary><see cref="LCrossIndustryInvoice.GeneratePdf(PdfEngine, PdfDocument, GeneratePdfOptions)"/>: a render of a document built in code with an invoice.</summary>
+    internal byte[] RenderInvoice(PdfDocument document, byte[] invoiceXml, string createdOn)
+    {
+        ThrowIfDisposed();
+        var json = JsonSerializer.Serialize(document, DocumentJson.Options);
+        var fonts  = _fonts.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_fonts : null;
+        var images = _images.Count > 0 ? (IReadOnlyDictionary<string, byte[]>)_images : null;
+        var styles = _markdownStyles.Count > 0 ? _markdownStyles : null;
+        return _wasm.RenderInvoiceTreePdf(json, _licenseKey, fonts, images, _engineOpts.SrcFallback, createdOn, invoiceXml,
+            styles, _files, _profiles);
+    }
+
     /// <summary>
     /// The passwords and <c>skip_encryption</c> of the render, as given, and with a password, entropy for AES-256:
     /// random bytes the engine does not make, from the operating system's secure generator, fresh for each render.
