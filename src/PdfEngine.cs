@@ -243,6 +243,17 @@ public sealed class PdfEngine : IDisposable
 
     // ── Internals ─────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// The engine's answer to <c>extract_invoice_data</c> for the invoice of
+    /// <see cref="LCrossIndustryInvoice.GeneratePdf(PdfEngine, string, GeneratePdfOptions)"/>, read under this engine's
+    /// timeout and memory cap, which the caller set for the whole call.
+    /// </summary>
+    internal string ExtractInvoiceData(byte[] invoiceXml, string? invoiceMap)
+    {
+        ThrowIfDisposed();
+        return _wasm.ExtractInvoiceData(invoiceXml, invoiceMap);
+    }
+
     /// <summary><see cref="LCrossIndustryInvoice.GeneratePdf(PdfEngine, string, GeneratePdfOptions)"/>: a render of a template with an invoice.</summary>
     internal byte[] RenderInvoice(string template, byte[] invoiceXml, string? invoiceMap, string invoiceData, object? data, string createdOn)
     {

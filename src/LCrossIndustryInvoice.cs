@@ -25,8 +25,8 @@ namespace Lpdf;
 public static class LCrossIndustryInvoice
 {
     /// <summary>
-    /// The engine that reads invoices with no engine of the caller's: it uses no fonts and no key, under the default
-    /// time and memory limits.
+    /// The engine that reads invoices for the calls that take no engine of the caller's, <c>ExtractInvoiceData</c> and
+    /// <c>DefaultInvoiceMap</c>: it uses no fonts and no key, under the default time and memory limits.
     /// </summary>
     private static readonly Lazy<WasmRunner> Reader =
         new(() => new WasmRunner(EngineOptions.DefaultTimeout, EngineOptions.DefaultMaxMemoryMb));
@@ -36,7 +36,8 @@ public static class LCrossIndustryInvoice
     /// of the invoice, which it binds under the map's prefix (<c>invoice:seller.name</c>) beside
     /// <see cref="GeneratePdfOptions.Data"/>. The file is PDF/A-3, 3b unless the template sets 3a or 3u, and carries the
     /// XML as <c>factur-x.xml</c>, or <c>xrechnung.xml</c> for XRECHNUNG. The template says only how the invoice looks: it
-    /// declares no invoice file.
+    /// declares no invoice file. The invoice is read and the template rendered on <paramref name="engine"/>, each under
+    /// its <see cref="EngineOptions.Timeout"/> and <see cref="EngineOptions.MaxMemoryMb"/>.
     /// </summary>
     /// <param name="engine">The engine, which carries the fonts, the license key and the limits.</param>
     /// <param name="template">The template: how the invoice looks, as lpdf XML.</param>
@@ -44,14 +45,15 @@ public static class LCrossIndustryInvoice
     /// <exception cref="EngineException">
     /// The engine refuses the map or the invoice, as <see cref="ExtractInvoiceData(byte[], ExtractInvoiceDataOptions?)"/>
     /// says, or a template path under the prefix that the map lacks, a PDF/A level other than 3a, 3b or 3u,
-    /// <c>encrypt</c>, <c>pdfx</c>, or a template that declares the invoice file.
+    /// <c>encrypt</c>, <c>pdfx</c>, or a template that declares the invoice file; or the read or the render ran past the
+    /// engine's timeout or needed more than its memory cap.
     /// </exception>
     public static byte[] GeneratePdf(PdfEngine engine, string template, GeneratePdfOptions options)
     {
         ArgumentNullException.ThrowIfNull(engine);
         ArgumentNullException.ThrowIfNull(template);
         Check(options);
-        var values = Read(options.InvoiceXml, options.InvoiceMap, options.Format);
+        var values = Values(engine.ExtractInvoiceData(options.InvoiceXml, options.InvoiceMap), options.Format);
         return engine.RenderInvoice(template, options.InvoiceXml, options.InvoiceMap, values.ToJsonString(), options.Data, options.CreatedOn);
     }
 
@@ -90,7 +92,7 @@ public static class LCrossIndustryInvoice
     public static JsonObject ExtractInvoiceData(byte[] invoiceXml, ExtractInvoiceDataOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(invoiceXml);
-        return Read(invoiceXml, options?.InvoiceMap, options?.Format);
+        return Values(Reader.Value.ExtractInvoiceData(invoiceXml, options?.InvoiceMap), options?.Format);
     }
 
     /// <inheritdoc cref="ExtractInvoiceData(byte[], ExtractInvoiceDataOptions?)"/>
@@ -110,10 +112,13 @@ public static class LCrossIndustryInvoice
         if (options.CreatedOn is null) throw new ArgumentException("GeneratePdf needs CreatedOn, which PDF/A requires.", nameof(options));
     }
 
-    /// <summary>The values of an invoice, read by the engine, with the format function of each typed one applied.</summary>
-    private static JsonObject Read(byte[] invoiceXml, string? invoiceMap, InvoiceFormat? format)
+    /// <summary>
+    /// The values of an invoice, from the engine's answer to <c>extract_invoice_data</c>, with the format function of
+    /// each typed one applied.
+    /// </summary>
+    private static JsonObject Values(string extracted, InvoiceFormat? format)
     {
-        var answer = JsonNode.Parse(Reader.Value.ExtractInvoiceData(invoiceXml, invoiceMap))!.AsObject();
+        var answer = JsonNode.Parse(extracted)!.AsObject();
         var data = answer["data"]!.AsObject();
         answer.Remove("data");
         foreach (var typed in answer["typed"]!.AsArray())

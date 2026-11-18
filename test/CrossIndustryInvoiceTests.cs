@@ -162,6 +162,22 @@ public class CrossIndustryInvoiceTests
         Assert.Equal(fromTemplate, fromCode);
     }
 
+    /// <summary>
+    /// The read of the invoice runs on the engine given, under its limits: a stand-in module that never finishes, in
+    /// place of the engine, stops it at the engine's timeout. The invoice is MINIMUM, which a read on any other engine
+    /// refuses at once. A memory cap can't show it with the real engine: the render of an invoice needs more memory
+    /// than its read, so a cap that stops the read would stop the render too.
+    /// </summary>
+    [Fact]
+    public void Reads_the_invoice_on_the_engine_given_under_its_timeout()
+    {
+        const string spinForever = """(module (func (export "_start") (loop $spin (br $spin))))""";
+        using var engine = new PdfEngine(new EngineOptions { Timeout = 1 }, WasmRunner.ForModuleText(spinForever, timeout: 1));
+        var error = Assert.Throws<EngineException>(() =>
+            LCrossIndustryInvoice.GeneratePdf(engine, Template(), new() { InvoiceXml = Invoice("minimum.xml"), CreatedOn = CreatedOn }));
+        Assert.Equal("The render timed out after 1 second.", error.Message);
+    }
+
     [Fact]
     public void Extracts_the_values_core_reads_and_formats_them_by_type_and_entry_name()
     {
