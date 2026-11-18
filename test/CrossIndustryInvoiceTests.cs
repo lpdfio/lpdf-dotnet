@@ -208,6 +208,15 @@ public class CrossIndustryInvoiceTests
     }
 
     [Fact]
+    public void Refuses_a_format_function_that_returns_null_naming_it_and_the_entry()
+    {
+        var format = new InvoiceFormat { Code = (value, entryName) => entryName == "lines.unit" ? null! : value };
+        var error = Assert.Throws<InvalidOperationException>(() =>
+            LCrossIndustryInvoice.ExtractInvoiceData(Invoice("en16931.xml"), new() { Format = format }));
+        Assert.Equal("Format.Code returned null for 'lines.unit': return the text to bind, or the value as it came.", error.Message);
+    }
+
+    [Fact]
     public void Reads_through_a_map_given_under_its_own_names()
     {
         var xml = File.ReadAllText(Path.Combine(Facturx, "en16931.xml"));

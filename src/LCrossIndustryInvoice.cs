@@ -54,6 +54,7 @@ public static class LCrossIndustryInvoice
     /// <c>encrypt</c>, <c>pdfx</c>, or a template that declares the invoice file; or the read or the render ran past the
     /// engine's timeout or needed more than its memory cap.
     /// </exception>
+    /// <exception cref="InvalidOperationException">A format function returned <see langword="null"/>.</exception>
     public static byte[] GeneratePdf(PdfEngine engine, string template, GeneratePdfOptions options)
     {
         ArgumentNullException.ThrowIfNull(engine);
@@ -95,6 +96,7 @@ public static class LCrossIndustryInvoice
     /// The map is not one or doesn't fit the schema, the invoice is not a Cross Industry Invoice or is MINIMUM or
     /// BASIC WL, or lacks a value the map marks required.
     /// </exception>
+    /// <exception cref="InvalidOperationException">A format function returned <see langword="null"/>.</exception>
     public static JsonObject ExtractInvoiceData(byte[] invoiceXml, ExtractInvoiceDataOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(invoiceXml);
@@ -131,12 +133,12 @@ public static class LCrossIndustryInvoice
         foreach (var typed in Field(answer, "typed", ExtractAnswer).AsArray())
         {
             var entry = typed as JsonObject ?? throw new InvalidOperationException($"{TypedEntry} is not a JSON object.");
-            var fn = Field(entry, "type", TypedEntry).GetValue<string>() switch
+            var (fn, fnName) = Field(entry, "type", TypedEntry).GetValue<string>() switch
             {
-                "date" => format?.Date,
-                "amount" => format?.Amount,
-                "code" => format?.Code,
-                _ => null,
+                "date" => (format?.Date, nameof(InvoiceFormat.Date)),
+                "amount" => (format?.Amount, nameof(InvoiceFormat.Amount)),
+                "code" => (format?.Code, nameof(InvoiceFormat.Code)),
+                _ => (null, null),
             };
             if (fn is null) continue;
             var name = Field(entry, "name", TypedEntry).GetValue<string>();
@@ -145,7 +147,10 @@ public static class LCrossIndustryInvoice
             for (var i = 0; i < at.Count - 1; i++) holder = Step(holder, Place(at, i, name), name);
             var last = Place(at, at.Count - 1, name);
             var value = Step(holder, last, name).GetValue<string>();
-            var written = JsonValue.Create(fn(value, name));
+            // The functions are typed to return text, but a caller's code can still return null, which would bind
+            // nothing where the invoice has a value.
+            var written = JsonValue.Create(fn(value, name)) ?? throw new InvalidOperationException(
+                $"Format.{fnName} returned null for '{name}': return the text to bind, or the value as it came.");
             if (last.GetValueKind() == JsonValueKind.Number) holder.AsArray()[last.GetValue<int>()] = written;
             else holder.AsObject()[last.GetValue<string>()] = written;
         }

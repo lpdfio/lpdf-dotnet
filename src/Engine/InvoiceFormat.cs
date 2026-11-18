@@ -3,8 +3,8 @@ namespace Lpdf.Engine;
 /// <summary>
 /// How the values of each type are written on the page, for <see cref="LCrossIndustryInvoice"/>: each function takes
 /// the value in its normal form and the full name of its entry in the map, without the prefix or an item number
-/// (<c>seller.country</c>, <c>lines.unit</c>), and returns the text to bind. A type without a function is bound as the
-/// invoice has it.
+/// (<c>seller.country</c>, <c>lines.unit</c>), and returns the text to bind, never <see langword="null"/>: return the
+/// value as it came to keep it. A type without a function is bound as the invoice has it.
 /// </summary>
 public sealed class InvoiceFormat
 {
