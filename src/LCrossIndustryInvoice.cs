@@ -112,8 +112,9 @@ public static class LCrossIndustryInvoice
     }
 
     /// <summary>
-    /// Lpdf's default invoice map, as XML text: the values EN 16931 numbers but a party's identifiers, what a line may
-    /// hold several of, and an attached file's content. The start of a map of your own.
+    /// Lpdf's default invoice map, as XML text: the values EN 16931 numbers but the parties' identifiers BT-29,
+    /// BT-46, BT-60 and BT-71, what a line may hold several of, and an attached file's content. The start of a map
+    /// of your own.
     /// </summary>
     public static string DefaultInvoiceMap() => Reader.Value.DefaultInvoiceMap();
 
