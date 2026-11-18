@@ -26,6 +26,18 @@ public class CrossIndustryInvoiceTests
 
     private static byte[] Invoice(string name) => File.ReadAllBytes(Path.Combine(Facturx, name));
 
+    /// <summary><c>en16931.xml</c> with <paramref name="count"/> copies of its first line in place of its lines.</summary>
+    private static byte[] InvoiceWithLines(int count)
+    {
+        const string open = "<ram:IncludedSupplyChainTradeLineItem>";
+        const string close = "</ram:IncludedSupplyChainTradeLineItem>";
+        var xml = Encoding.UTF8.GetString(Invoice("en16931.xml"));
+        var start = xml.IndexOf(open, StringComparison.Ordinal);
+        var line = xml[start..(xml.IndexOf(close, start, StringComparison.Ordinal) + close.Length)];
+        var end = xml.LastIndexOf(close, StringComparison.Ordinal) + close.Length;
+        return Encoding.UTF8.GetBytes(xml[..start] + string.Concat(Enumerable.Repeat(line, count)) + xml[end..]);
+    }
+
     /// <summary>The template, core's <c>showcase-cross-industry-invoice</c> fixture, which binds under the default map.</summary>
     private static string Template() =>
         File.ReadAllText(Path.Combine(SnapshotHelper.Fixtures, "showcase-cross-industry-invoice.xml"));
@@ -37,9 +49,9 @@ public class CrossIndustryInvoiceTests
         $"<text data-value=\"{path}\">0000</text>" +
         "</layout></section></document></lpdf>";
 
-    /// <summary>An unlicensed engine with the template's font loaded under its name.</summary>
-    private static PdfEngine Engine() =>
-        L.Engine().LoadFont("body", File.ReadAllBytes(Path.Combine(SnapshotHelper.Root, "test", "assets", "fonts", "SourceSans3-Regular.otf")));
+    /// <summary>An unlicensed engine with <paramref name="options"/> and the template's font loaded under its name.</summary>
+    private static PdfEngine Engine(EngineOptions? options = null) =>
+        L.Engine(options).LoadFont("body", File.ReadAllBytes(Path.Combine(SnapshotHelper.Root, "test", "assets", "fonts", "SourceSans3-Regular.otf")));
 
     /// <summary>How values are written on the page: the language's own formatters, and the words for the codes.</summary>
     private static readonly InvoiceFormat Format = new()
@@ -179,10 +191,9 @@ public class CrossIndustryInvoiceTests
     }
 
     /// <summary>
-    /// The read of the invoice runs on the engine given, under its limits: a stand-in module that never finishes, in
+    /// The read of the invoice runs on the engine given, under its timeout: a stand-in module that never finishes, in
     /// place of the engine, stops it at the engine's timeout. The invoice is MINIMUM, which a read on any other engine
-    /// refuses at once. A memory cap can't show it with the real engine: the render of an invoice needs more memory
-    /// than its read, so a cap that stops the read would stop the render too.
+    /// refuses at once.
     /// </summary>
     [Fact]
     public void Reads_the_invoice_on_the_engine_given_under_its_timeout()
@@ -192,6 +203,26 @@ public class CrossIndustryInvoiceTests
         var error = Assert.Throws<EngineException>(() =>
             LCrossIndustryInvoice.GeneratePdf(engine, Template(), new() { InvoiceXml = Invoice("minimum.xml"), CreatedOn = CreatedOn }));
         Assert.Equal("The render timed out after 1 second.", error.Message);
+    }
+
+    /// <summary>
+    /// The read of the invoice runs on the engine given, under its memory cap: the read past the cap fails with its
+    /// own error, which the render's doesn't share, while <c>ExtractInvoiceData</c> reads the same invoice under the
+    /// default cap.
+    /// </summary>
+    [Fact]
+    public void Reads_the_invoice_on_the_engine_given_under_its_memory_cap()
+    {
+        // 1.2 MB of XML: more than the cap of 1 MB on its own, and small enough to read well within the default timeout.
+        var invoiceXml = InvoiceWithLines(1_000);
+        Assert.True(invoiceXml.Length > 1_048_576);
+        Assert.Equal(1_000, LCrossIndustryInvoice.ExtractInvoiceData(invoiceXml)["lines"]!.AsArray().Count);
+        using var engine = Engine(new EngineOptions { MaxMemoryMb = 1 });
+        var error = Assert.Throws<EngineException>(() => LCrossIndustryInvoice.GeneratePdf(engine, Template(), new()
+        {
+            InvoiceXml = invoiceXml, Data = new { note = Note }, CreatedOn = CreatedOn,
+        }));
+        Assert.StartsWith("the reading of the invoice needs more memory than its cap of 1 MB", error.Message);
     }
 
     [Fact]
