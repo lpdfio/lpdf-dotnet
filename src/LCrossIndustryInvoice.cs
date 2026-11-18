@@ -24,6 +24,12 @@ namespace Lpdf;
 /// </summary>
 public static class LCrossIndustryInvoice
 {
+    /// <summary>The engine's answer to a read, as the errors about its shape name it.</summary>
+    private const string ExtractAnswer = "WASM extract_invoice_data response";
+
+    /// <summary>An entry of the answer's <c>typed</c>, as the errors about its fields name it.</summary>
+    private const string TypedEntry = ExtractAnswer + ": an entry of 'typed'";
+
     /// <summary>
     /// The engine that reads invoices for the calls that take no engine of the caller's, <c>ExtractInvoiceData</c> and
     /// <c>DefaultInvoiceMap</c>: it uses no fonts and no key, under the default time and memory limits.
@@ -118,12 +124,14 @@ public static class LCrossIndustryInvoice
     /// </summary>
     private static JsonObject Values(string extracted, InvoiceFormat? format)
     {
-        var answer = JsonNode.Parse(extracted)!.AsObject();
-        var data = answer["data"]!.AsObject();
+        var answer = JsonNode.Parse(extracted) as JsonObject
+            ?? throw new InvalidOperationException($"{ExtractAnswer} is not a JSON object.");
+        var data = Field(answer, "data", ExtractAnswer).AsObject();
         answer.Remove("data");
-        foreach (var typed in answer["typed"]!.AsArray())
+        foreach (var typed in Field(answer, "typed", ExtractAnswer).AsArray())
         {
-            var fn = typed!["type"]!.GetValue<string>() switch
+            var entry = typed as JsonObject ?? throw new InvalidOperationException($"{TypedEntry} is not a JSON object.");
+            var fn = Field(entry, "type", TypedEntry).GetValue<string>() switch
             {
                 "date" => format?.Date,
                 "amount" => format?.Amount,
@@ -131,19 +139,38 @@ public static class LCrossIndustryInvoice
                 _ => null,
             };
             if (fn is null) continue;
-            var at = typed["at"]!.AsArray();
+            var name = Field(entry, "name", TypedEntry).GetValue<string>();
+            var at = Field(entry, "at", TypedEntry).AsArray();
             JsonNode holder = data;
-            for (var i = 0; i < at.Count - 1; i++) holder = Step(holder, at[i]!)!;
-            var last = at[at.Count - 1]!;
-            var value = Step(holder, last)!.GetValue<string>();
-            var written = JsonValue.Create(fn(value, typed["name"]!.GetValue<string>()));
+            for (var i = 0; i < at.Count - 1; i++) holder = Step(holder, Place(at, i, name), name);
+            var last = Place(at, at.Count - 1, name);
+            var value = Step(holder, last, name).GetValue<string>();
+            var written = JsonValue.Create(fn(value, name));
             if (last.GetValueKind() == JsonValueKind.Number) holder.AsArray()[last.GetValue<int>()] = written;
             else holder.AsObject()[last.GetValue<string>()] = written;
         }
         return data;
     }
 
-    /// <summary>The node at <paramref name="step"/> of <paramref name="holder"/>: a key of an object or an index of an array.</summary>
-    private static JsonNode? Step(JsonNode holder, JsonNode step)
-        => step.GetValueKind() == JsonValueKind.Number ? holder.AsArray()[step.GetValue<int>()] : holder.AsObject()[step.GetValue<string>()];
+    /// <summary>The field <paramref name="name"/> of <paramref name="node"/>, a part of the engine's answer named <paramref name="what"/>.</summary>
+    private static JsonNode Field(JsonObject node, string name, string what)
+        => node[name] ?? throw new InvalidOperationException($"{what} has no '{name}' field.");
+
+    /// <summary>Step <paramref name="index"/> of <paramref name="at"/>, the place of the typed value <paramref name="name"/> in the data.</summary>
+    private static JsonNode Place(JsonArray at, int index, string name)
+        => index >= 0 && at[index] is { } step
+            ? step
+            : throw new InvalidOperationException($"{ExtractAnswer}: the 'at' field of '{name}' in 'typed' has no step {index}.");
+
+    /// <summary>
+    /// The node at <paramref name="step"/> of <paramref name="holder"/>, a key of an object or an index of an array, on
+    /// the way to the typed value <paramref name="name"/>.
+    /// </summary>
+    private static JsonNode Step(JsonNode holder, JsonNode step, string name)
+    {
+        var found = step.GetValueKind() == JsonValueKind.Number
+            ? holder.AsArray()[step.GetValue<int>()]
+            : holder.AsObject()[step.GetValue<string>()];
+        return found ?? throw new InvalidOperationException($"{ExtractAnswer}: the 'data' field has no value where 'typed' places '{name}'.");
+    }
 }
