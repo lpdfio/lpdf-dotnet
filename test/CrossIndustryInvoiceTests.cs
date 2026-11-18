@@ -224,15 +224,20 @@ public class CrossIndustryInvoiceTests
         Assert.True(JsonNode.DeepEquals(JsonNode.Parse("{\"nummer\":\"2026-0412\"}"), data));
     }
 
+    /// <summary>
+    /// The value the map reads as <c>rechnung:nummer</c>, the invoice's number, is bound on the page: the file has the
+    /// same bytes as the template with the number written in it.
+    /// </summary>
     [Fact]
     public void Fills_a_template_through_a_map_given_under_its_own_names()
     {
         using var engine = Engine();
-        var pdf = LCrossIndustryInvoice.GeneratePdf(engine, RechnungTemplate("rechnung:nummer"), new()
-        {
-            InvoiceXml = Invoice("en16931.xml"), InvoiceMap = RechnungMap, CreatedOn = CreatedOn,
-        });
-        Assert.StartsWith("%PDF-", Encoding.Latin1.GetString(pdf));
+        var options = new GeneratePdfOptions { InvoiceXml = Invoice("en16931.xml"), InvoiceMap = RechnungMap, CreatedOn = CreatedOn };
+        var template = RechnungTemplate("rechnung:nummer");
+        var bound = LCrossIndustryInvoice.GeneratePdf(engine, template, options);
+        var written = LCrossIndustryInvoice.GeneratePdf(
+            engine, template.Replace("data-value=\"rechnung:nummer\">0000", ">2026-0412"), options);
+        Assert.Equal(written, bound);
     }
 
     [Fact]
