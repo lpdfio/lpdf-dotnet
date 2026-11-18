@@ -28,6 +28,10 @@ internal sealed class WasmRunner : IDisposable
     // The deadline of a render with no limit. A store's deadline is 0 until it is set, which stops it at the first tick.
     private const ulong NoDeadline = 1UL << 62;
 
+    // What a call runs, as the error of its timeout names it: a render, or the reading of an invoice, which is no render.
+    private const string RenderWork = "The render";
+    private const string ReadingWork = "The reading of the invoice";
+
     /// <summary>
     /// How a document tree's JSON is read for the files it names: as deep as the engine reads it. A document nests 100
     /// levels at most, and each level is an object and the array of its nodes.
@@ -121,6 +125,91 @@ internal sealed class WasmRunner : IDisposable
         => InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, encryption, createdOn, null, markdownStyles, fileBytes, profileBytes);
 
     /// <summary>
+    /// <c>LCrossIndustryInvoice.GeneratePdf</c> with a template: renders <paramref name="xml"/> with the values of the
+    /// invoice, which the engine binds under the prefix of <paramref name="invoiceMap"/>, or of the default map, and
+    /// makes the file a Factur-X invoice of <paramref name="invoiceXml"/>.
+    /// </summary>
+    public byte[] RenderInvoicePdf(
+        string xml,
+        string licenseKey,
+        IReadOnlyDictionary<string, byte[]>? fontBytes,
+        IReadOnlyDictionary<string, byte[]>? imageBytes,
+        Func<string, byte[]>?                srcFallback,
+        string                               createdOn,
+        string?                              dataJson,
+        byte[]                               invoiceXml,
+        string?                              invoiceMap,
+        string                               invoiceData,
+        IReadOnlyDictionary<string, string>? markdownStyles = null,
+        IReadOnlyDictionary<string, byte[]>? fileBytes = null,
+        IReadOnlyDictionary<string, byte[]>? profileBytes = null)
+    {
+        var invoice = new JsonObject
+        {
+            ["xml"] = Convert.ToBase64String(invoiceXml),
+            ["map"] = invoiceMap,
+            ["data"] = JsonNode.Parse(invoiceData),
+        };
+        return InvokeRenderPdf("render_pdf", xml, licenseKey, fontBytes, imageBytes, srcFallback, isTree: false, null, createdOn, dataJson, markdownStyles, fileBytes, profileBytes, invoice);
+    }
+
+    /// <summary>
+    /// <c>LCrossIndustryInvoice.GeneratePdf</c> with a document built in code: renders <paramref name="json"/> and makes
+    /// the file a Factur-X invoice of <paramref name="invoiceXml"/>.
+    /// </summary>
+    public byte[] RenderInvoiceTreePdf(
+        string json,
+        string licenseKey,
+        IReadOnlyDictionary<string, byte[]>? fontBytes,
+        IReadOnlyDictionary<string, byte[]>? imageBytes,
+        Func<string, byte[]>?                srcFallback,
+        string                               createdOn,
+        byte[]                               invoiceXml,
+        IReadOnlyDictionary<string, string>? markdownStyles = null,
+        IReadOnlyDictionary<string, byte[]>? fileBytes = null,
+        IReadOnlyDictionary<string, byte[]>? profileBytes = null)
+    {
+        var invoice = new JsonObject { ["xml"] = Convert.ToBase64String(invoiceXml) };
+        return InvokeRenderPdf("render_tree_pdf", json, licenseKey, fontBytes, imageBytes, srcFallback, isTree: true, null, createdOn, null, markdownStyles, fileBytes, profileBytes, invoice);
+    }
+
+    /// <summary>
+    /// The engine's <c>extract_invoice_data</c>: the values of <paramref name="invoiceXml"/> read through
+    /// <paramref name="invoiceMap"/>, or the default map, as the JSON <c>{ "data": …, "typed": […] }</c>.
+    /// </summary>
+    public string ExtractInvoiceData(byte[] invoiceXml, string? invoiceMap)
+    {
+        var request = new JsonObject
+        {
+            ["method"] = "extract_invoice_data",
+            ["max_memory_mb"] = _maxMemoryMb,
+            ["invoice_xml"] = Convert.ToBase64String(invoiceXml),
+            ["invoice_map"] = invoiceMap,
+        };
+        var answer = RunWasm(Encoding.UTF8.GetBytes(request.ToJsonString()), ReadingWork);
+        using (var doc = JsonDocument.Parse(answer))
+        {
+            if (doc.RootElement.TryGetProperty("error", out var error))
+                throw new EngineException(error.GetString() ?? "Unknown error reading the invoice.");
+        }
+        return answer;
+    }
+
+    /// <summary>The engine's default invoice map, as XML text.</summary>
+    public string DefaultInvoiceMap()
+    {
+        var answer = RunWasm(Encoding.UTF8.GetBytes(new JsonObject { ["method"] = "default_invoice_map" }.ToJsonString()));
+        using var doc = JsonDocument.Parse(answer);
+        var root = doc.RootElement;
+        if (root.TryGetProperty("error", out var error))
+            throw new EngineException(error.GetString() ?? "Unknown default_invoice_map error.");
+        if (!root.TryGetProperty("map", out var map))
+            throw new InvalidOperationException("WASM default_invoice_map response missing 'map' field.");
+        return map.GetString()
+            ?? throw new InvalidOperationException("WASM default_invoice_map 'map' field is null.");
+    }
+
+    /// <summary>
     /// Convert a JSON kit-tree (produced by <c>LpdfKit</c>) to an lpdf XML string.
     /// </summary>
     public string KitToXml(string json)
@@ -157,7 +246,8 @@ internal sealed class WasmRunner : IDisposable
         string?                              dataJson = null,
         IReadOnlyDictionary<string, string>? markdownStyles = null,
         IReadOnlyDictionary<string, byte[]>? fileBytes = null,
-        IReadOnlyDictionary<string, byte[]>? profileBytes = null)
+        IReadOnlyDictionary<string, byte[]>? profileBytes = null,
+        JsonObject?                          invoice = null)
     {
         // An XML document is parsed once, for the src of every file it names.
         var xml    = isTree ? null : ParseXml(input);
@@ -236,6 +326,9 @@ internal sealed class WasmRunner : IDisposable
 
         if (dataJson is not null)
             requestObj["data"] = JsonNode.Parse(dataJson);
+
+        if (invoice is not null)
+            requestObj["invoice"] = invoice;
 
         return PdfOf(RunWasm(Encoding.UTF8.GetBytes(requestObj.ToJsonString())));
     }
@@ -607,7 +700,11 @@ internal sealed class WasmRunner : IDisposable
     /// </remarks>
     private static long NowUnix() => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-    private string RunWasm(byte[] requestBytes)
+    /// <summary>
+    /// The engine's answer to <paramref name="requestBytes"/>, run on a store of its own under this runner's timeout;
+    /// <paramref name="work"/> names what the request runs in the timeout's error.
+    /// </summary>
+    private string RunWasm(byte[] requestBytes, string work = RenderWork)
     {
         var inputPath  = Path.GetTempFileName();
         var outputPath = Path.GetTempFileName();
@@ -633,7 +730,7 @@ internal sealed class WasmRunner : IDisposable
         }
         catch (TrapException trap) when (trap.Type == TrapCode.Interrupt)
         {
-            throw new EngineException($"The render timed out after {Seconds(_timeout)}.", trap);
+            throw new EngineException($"{work} timed out after {Seconds(_timeout)}.", trap);
         }
         catch (TrapException trap)
         {
