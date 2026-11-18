@@ -200,7 +200,12 @@ internal sealed class WasmRunner : IDisposable
     {
         var answer = RunWasm(Encoding.UTF8.GetBytes(new JsonObject { ["method"] = "default_invoice_map" }.ToJsonString()));
         using var doc = JsonDocument.Parse(answer);
-        return doc.RootElement.GetProperty("map").GetString()
+        var root = doc.RootElement;
+        if (root.TryGetProperty("error", out var error))
+            throw new EngineException(error.GetString() ?? "Unknown default_invoice_map error.");
+        if (!root.TryGetProperty("map", out var map))
+            throw new InvalidOperationException("WASM default_invoice_map response missing 'map' field.");
+        return map.GetString()
             ?? throw new InvalidOperationException("WASM default_invoice_map 'map' field is null.");
     }
 
