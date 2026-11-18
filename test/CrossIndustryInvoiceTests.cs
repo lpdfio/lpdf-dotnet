@@ -226,10 +226,15 @@ public class CrossIndustryInvoiceTests
     }
 
     [Fact]
-    public void Extracts_the_values_core_reads_and_formats_them_by_type_and_entry_name()
+    public void Extracts_the_values_core_reads()
     {
         var expected = JsonNode.Parse(File.ReadAllText(Path.Combine(Facturx, "case-vat-rates.json")));
         Assert.True(JsonNode.DeepEquals(expected, LCrossIndustryInvoice.ExtractInvoiceData(Invoice("case-vat-rates.xml"))));
+    }
+
+    [Fact]
+    public void Formats_the_values_by_type_and_entry_name()
+    {
         var formatted = LCrossIndustryInvoice.ExtractInvoiceData(Invoice("en16931.xml"), new() { Format = Format });
         Assert.Equal("31 October 2026", S(formatted["issued"]));
         Assert.Equal("Invoice", S(formatted["typeCode"]));
