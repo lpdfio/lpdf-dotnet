@@ -26,6 +26,7 @@ public class CrossIndustryInvoiceTests
 
     private static byte[] Invoice(string name) => File.ReadAllBytes(Path.Combine(Facturx, name));
 
+    /// <summary>The template, core's <c>showcase-cross-industry-invoice</c> fixture, which binds under the default map.</summary>
     private static string Template() =>
         File.ReadAllText(Path.Combine(SnapshotHelper.Fixtures, "showcase-cross-industry-invoice.xml"));
 
@@ -40,7 +41,7 @@ public class CrossIndustryInvoiceTests
     private static PdfEngine Engine() =>
         L.Engine().LoadFont("body", File.ReadAllBytes(Path.Combine(SnapshotHelper.Root, "test", "assets", "fonts", "SourceSans3-Regular.otf")));
 
-    /// <summary>How values are written on the page, as the examples write them: the language's own formatters, and the words for the codes.</summary>
+    /// <summary>How values are written on the page: the language's own formatters, and the words for the codes.</summary>
     private static readonly InvoiceFormat Format = new()
     {
         Date = (value, _) => DateTime.Parse(value, CultureInfo.InvariantCulture).ToString("d MMMM yyyy", CultureInfo.GetCultureInfo("en-GB")),
@@ -57,7 +58,10 @@ public class CrossIndustryInvoiceTests
 
     private static string S(JsonNode? node) => node!.GetValue<string>();
 
-    /// <summary>The page of the template, built in code with the values of <c>ExtractInvoiceData</c>, as the second example builds it.</summary>
+    /// <summary>
+    /// The page of core's <c>showcase-cross-industry-invoice</c> fixture, built in code with the values of
+    /// <c>ExtractInvoiceData</c>, which must give the same bytes as the template.
+    /// </summary>
     private static PdfDocument DocumentInCode(JsonObject invoiceData)
     {
         var muted = new TextAttr { FontSize = "9pt", Color = "#5b6475" };
@@ -242,13 +246,18 @@ public class CrossIndustryInvoiceTests
     }
 
     [Fact]
-    public void Refuses_what_the_engine_refuses_with_its_error()
+    public void Refuses_to_extract_a_minimum_invoice_with_the_engines_error()
     {
         var error = Assert.Throws<EngineException>(() => LCrossIndustryInvoice.ExtractInvoiceData(Invoice("minimum.xml")));
         Assert.StartsWith("the invoice's profile is MINIMUM", error.Message);
+    }
+
+    [Fact]
+    public void Refuses_a_template_path_the_default_map_lacks_with_the_engines_error()
+    {
         using var engine = Engine();
         var typo = Template().Replace("invoice:seller.name", "invoice:sellr.name");
-        error = Assert.Throws<EngineException>(() =>
+        var error = Assert.Throws<EngineException>(() =>
             LCrossIndustryInvoice.GeneratePdf(engine, typo, new() { InvoiceXml = Invoice("en16931.xml"), CreatedOn = CreatedOn }));
         Assert.StartsWith("data-value=\"invoice:sellr.name\": 'sellr' is not in the map", error.Message);
     }
