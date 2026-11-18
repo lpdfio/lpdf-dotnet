@@ -94,7 +94,8 @@ public static class LCrossIndustryInvoice
     /// <param name="options">The map, and the format functions, or <see langword="null"/> for the default map as it reads.</param>
     /// <exception cref="EngineException">
     /// The map is not one or doesn't fit the schema, the invoice is not a Cross Industry Invoice or is MINIMUM or
-    /// BASIC WL, or lacks a value the map marks required.
+    /// BASIC WL, or lacks a value the map marks required; or the read runs past the default timeout or memory cap,
+    /// which it reads under.
     /// </exception>
     /// <exception cref="InvalidOperationException">A format function returned <see langword="null"/>.</exception>
     public static JsonObject ExtractInvoiceData(byte[] invoiceXml, ExtractInvoiceDataOptions? options = null)
