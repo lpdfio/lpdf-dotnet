@@ -17,12 +17,24 @@ public class CrossIndustryInvoiceTests
 {
     private const string CreatedOn = "2026-11-18T10:00:00Z";
     private const string Note = "Payable within 30 days, by bank transfer.";
+
+    /// <summary>A map of the caller's, under its own prefix and names: the invoice's number as <c>rechnung:nummer</c>.</summary>
+    private const string RechnungMap =
+        "<cross-industry-invoice-map prefix=\"rechnung\"><value name=\"nummer\" path=\"rsm:ExchangedDocument/ram:ID\"/></cross-industry-invoice-map>";
+
     private static readonly string Facturx = Path.Combine(SnapshotHelper.Root, "test", "assets", "files", "facturx");
 
     private static byte[] Invoice(string name) => File.ReadAllBytes(Path.Combine(Facturx, name));
 
     private static string Template() =>
         File.ReadAllText(Path.Combine(SnapshotHelper.Fixtures, "showcase-cross-industry-invoice.xml"));
+
+    /// <summary>A page that shows the value at <paramref name="path"/>, for <see cref="RechnungMap"/>.</summary>
+    private static string RechnungTemplate(string path) =>
+        "<lpdf version=\"1\"><assets><font name=\"body\" src=\"../assets/fonts/SourceSans3-Regular.otf\"/></assets>" +
+        "<document size=\"a4\" font=\"body\"><section><layout margin=\"48pt\">" +
+        $"<text data-value=\"{path}\">0000</text>" +
+        "</layout></section></document></lpdf>";
 
     /// <summary>An unlicensed engine with the template's font loaded under its name.</summary>
     private static PdfEngine Engine() =>
@@ -194,10 +206,31 @@ public class CrossIndustryInvoiceTests
     [Fact]
     public void Reads_through_a_map_given_under_its_own_names()
     {
-        const string map = "<cross-industry-invoice-map prefix=\"rechnung\"><value name=\"nummer\" path=\"rsm:ExchangedDocument/ram:ID\"/></cross-industry-invoice-map>";
         var xml = File.ReadAllText(Path.Combine(Facturx, "en16931.xml"));
-        var data = LCrossIndustryInvoice.ExtractInvoiceData(xml, new() { InvoiceMap = map });
+        var data = LCrossIndustryInvoice.ExtractInvoiceData(xml, new() { InvoiceMap = RechnungMap });
         Assert.True(JsonNode.DeepEquals(JsonNode.Parse("{\"nummer\":\"2026-0412\"}"), data));
+    }
+
+    [Fact]
+    public void Fills_a_template_through_a_map_given_under_its_own_names()
+    {
+        using var engine = Engine();
+        var pdf = LCrossIndustryInvoice.GeneratePdf(engine, RechnungTemplate("rechnung:nummer"), new()
+        {
+            InvoiceXml = Invoice("en16931.xml"), InvoiceMap = RechnungMap, CreatedOn = CreatedOn,
+        });
+        Assert.StartsWith("%PDF-", Encoding.Latin1.GetString(pdf));
+    }
+
+    [Fact]
+    public void Refuses_a_template_path_the_given_map_lacks_with_the_engines_error()
+    {
+        using var engine = Engine();
+        var error = Assert.Throws<EngineException>(() => LCrossIndustryInvoice.GeneratePdf(engine, RechnungTemplate("rechnung:nummr"), new()
+        {
+            InvoiceXml = Invoice("en16931.xml"), InvoiceMap = RechnungMap, CreatedOn = CreatedOn,
+        }));
+        Assert.Equal("data-value=\"rechnung:nummr\": 'nummr' is not in the map: the invoice map has nummer", error.Message);
     }
 
     [Fact]
