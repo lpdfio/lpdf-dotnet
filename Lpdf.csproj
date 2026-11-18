@@ -16,7 +16,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://lpdf.io</PackageProjectUrl>
     <RepositoryUrl>https://github.com/lpdfio/lpdf-dotnet</RepositoryUrl>
-    <PackageTags>pdf;wasm;xml;document;lpdf</PackageTags>
+    <PackageTags>pdf;wasm;xml;document;factur-x;zugferd;lpdf</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
