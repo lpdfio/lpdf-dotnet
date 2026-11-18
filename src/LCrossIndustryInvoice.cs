@@ -111,7 +111,10 @@ public static class LCrossIndustryInvoice
         return ExtractInvoiceData(Encoding.UTF8.GetBytes(invoiceXml), options);
     }
 
-    /// <summary>Lpdf's default invoice map, as XML text: every value EN 16931 numbers, the start of a map of your own.</summary>
+    /// <summary>
+    /// Lpdf's default invoice map, as XML text: the values EN 16931 numbers but a party's identifiers, what a line may
+    /// hold several of, and an attached file's content. The start of a map of your own.
+    /// </summary>
     public static string DefaultInvoiceMap() => Reader.Value.DefaultInvoiceMap();
 
     private static void Check(GeneratePdfOptions options)
