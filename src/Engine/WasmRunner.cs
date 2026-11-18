@@ -28,6 +28,10 @@ internal sealed class WasmRunner : IDisposable
     // The deadline of a render with no limit. A store's deadline is 0 until it is set, which stops it at the first tick.
     private const ulong NoDeadline = 1UL << 62;
 
+    // What a call runs, as the error of its timeout names it: a render, or the reading of an invoice, which is no render.
+    private const string RenderWork = "The render";
+    private const string ReadingWork = "The reading of the invoice";
+
     /// <summary>
     /// How a document tree's JSON is read for the files it names: as deep as the engine reads it. A document nests 100
     /// levels at most, and each level is an object and the array of its nodes.
@@ -182,7 +186,7 @@ internal sealed class WasmRunner : IDisposable
             ["invoice_xml"] = Convert.ToBase64String(invoiceXml),
             ["invoice_map"] = invoiceMap,
         };
-        var answer = RunWasm(Encoding.UTF8.GetBytes(request.ToJsonString()));
+        var answer = RunWasm(Encoding.UTF8.GetBytes(request.ToJsonString()), ReadingWork);
         using (var doc = JsonDocument.Parse(answer))
         {
             if (doc.RootElement.TryGetProperty("error", out var error))
@@ -691,7 +695,11 @@ internal sealed class WasmRunner : IDisposable
     /// </remarks>
     private static long NowUnix() => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
-    private string RunWasm(byte[] requestBytes)
+    /// <summary>
+    /// The engine's answer to <paramref name="requestBytes"/>, run on a store of its own under this runner's timeout;
+    /// <paramref name="work"/> names what the request runs in the timeout's error.
+    /// </summary>
+    private string RunWasm(byte[] requestBytes, string work = RenderWork)
     {
         var inputPath  = Path.GetTempFileName();
         var outputPath = Path.GetTempFileName();
@@ -717,7 +725,7 @@ internal sealed class WasmRunner : IDisposable
         }
         catch (TrapException trap) when (trap.Type == TrapCode.Interrupt)
         {
-            throw new EngineException($"The render timed out after {Seconds(_timeout)}.", trap);
+            throw new EngineException($"{work} timed out after {Seconds(_timeout)}.", trap);
         }
         catch (TrapException trap)
         {

@@ -202,7 +202,7 @@ public class CrossIndustryInvoiceTests
         using var engine = new PdfEngine(new EngineOptions { Timeout = 1 }, WasmRunner.ForModuleText(spinForever, timeout: 1));
         var error = Assert.Throws<EngineException>(() =>
             LCrossIndustryInvoice.GeneratePdf(engine, Template(), new() { InvoiceXml = Invoice("minimum.xml"), CreatedOn = CreatedOn }));
-        Assert.Equal("The render timed out after 1 second.", error.Message);
+        Assert.Equal("The reading of the invoice timed out after 1 second.", error.Message);
     }
 
     /// <summary>
