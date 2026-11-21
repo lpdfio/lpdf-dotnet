@@ -975,6 +975,48 @@ public class SchemaTests
         Assert.Equal("Times-Bold", BuiltinFont.TimesBold);
     }
 
+    [Fact]
+    public void A_value_that_starts_with_a_digit_takes_the_last_word_of_its_enumerations_name()
+    {
+        Assert.Equal(new[] { "2a", "2b", "2u", "3a", "3b", "3u" },
+            new[] { PdfALevel.Level2a, PdfALevel.Level2b, PdfALevel.Level2u, PdfALevel.Level3a, PdfALevel.Level3b, PdfALevel.Level3u });
+        Assert.Equal("1", PdfUaPart.Part1);
+        Assert.Equal("4", PdfXVersion.Version4);
+        Assert.Equal(new[] { "0", "8" }, new[] { Pdf417EcLevel.Level0, Pdf417EcLevel.Level8 });
+        Assert.Equal("gs1-128", BarcodeType.Gs1128);
+        Assert.Equal("gs1-datamatrix", BarcodeType.Gs1Datamatrix);
+    }
+
+    [Fact]
+    public void The_constants_of_the_closed_enumerations_are_the_words_the_schema_reads()
+    {
+        Assert.Equal(new[] { "a4", "a3", "a5", "letter", "legal" }, new[] { PageSize.A4, PageSize.A3, PageSize.A5, PageSize.Letter, PageSize.Legal });
+        Assert.Equal(new[] { "left", "center", "right", "justify" }, new[] { TextAlign.Left, TextAlign.Center, TextAlign.Right, TextAlign.Justify });
+        Assert.Equal(new[] { "no", "break-before", "break-after", "keep-next" }, new[] { Paginate.No, Paginate.BreakBefore, Paginate.BreakAfter, Paginate.KeepNext });
+        Assert.Equal("top-left", Anchor.TopLeft);
+        Assert.Equal("stretch", BoxAlign.Stretch);
+        Assert.Equal("between", BoxJustify.Between);
+        Assert.Equal(new[] { "start", "center", "end" }, new[] { Align.Start, Align.Center, Align.End });
+        Assert.Equal("middle", CellVAlign.Middle);
+        Assert.Equal("lower-roman", ListFormat.LowerRoman);
+        Assert.Equal("H", QrEcLevel.H);
+        Assert.Equal("print", Ocg.Print);
+        Assert.Equal("fit", StampScale.Fit);
+    }
+
+    [Fact]
+    public void A_document_built_with_the_constants_renders_as_the_XML_with_their_words()
+    {
+        var built = L.Document(new DocumentAttr { Size = PageSize.A4, Orientation = Orientation.Landscape }, [
+            L.Section(nodes: [L.Layout(null, [
+                L.Text(new TextAttr { Align = TextAlign.Center, Paginate = Paginate.KeepNext }, ["x"]),
+                L.Barcode(new BarcodeAttr { Type = BarcodeType.Qr, Data = "x", Ec = QrEcLevel.H, Height = "40pt" }),
+            ])]),
+        ]);
+        const string xml = "<lpdf version=\"1\"><document size=\"a4\" orientation=\"landscape\"><section><layout><text align=\"center\" paginate=\"keep-next\">x</text><barcode type=\"qr\" data=\"x\" ec=\"H\" height=\"40pt\"/></layout></section></document></lpdf>";
+        Assert.Equal(Render(xml), Render(built));
+    }
+
     // -- Markdown ----------------------------------------------------------------------------------
 
     private const string MarkdownBody = "# Release notes\n\nSome *emphasis*, **strong** text and `code`.\n\n- one\n- two\n\n> a quote\n";

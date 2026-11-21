@@ -3,7 +3,7 @@
 namespace Lpdf.Kit;
 
 #pragma warning disable CS1591
-/// <summary>The values of the <c>encrypt</c> attribute of the output: the cipher the PDF is encrypted with.</summary>
+/// <summary>The cipher a PDF is encrypted with: AES-256, or RC4-128 for readers that cannot open AES-256. PDF 2.0 deprecates RC4-128.</summary>
 public static class Cipher
 {
     public const string Aes256 = "aes-256";

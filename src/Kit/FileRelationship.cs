@@ -3,7 +3,7 @@
 namespace Lpdf.Kit;
 
 #pragma warning disable CS1591
-/// <summary>The values of the <c>relationship</c> attribute of a file the PDF carries: how it relates to the document.</summary>
+/// <summary>How a file the PDF carries relates to the document: source, the file the document was made from; data, the data its pages show, such as the XML of an e-invoice; alternative, the same content in another form; supplement, more than the pages show; or unspecified.</summary>
 public static class FileRelationship
 {
     public const string Source = "source";

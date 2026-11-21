@@ -3,7 +3,7 @@
 namespace Lpdf.Kit;
 
 #pragma warning disable CS1591
-/// <summary>The values of the <c>grow</c> attribute of a section: the sizes its page grows in to fit its content.</summary>
+/// <summary>The sizes a section's page grows in to fit its content: width, height, or both.</summary>
 public static class Grow
 {
     public const string Width = "width";
