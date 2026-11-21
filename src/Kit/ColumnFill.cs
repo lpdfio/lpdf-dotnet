@@ -3,7 +3,7 @@
 namespace Lpdf.Kit;
 
 #pragma warning disable CS1591
-/// <summary>The values of the <c>column-fill</c> attribute of a section: how the columns of its last page fill.</summary>
+/// <summary>How the columns of a section's last page fill: in order, as on every other page, or levelled.</summary>
 public static class ColumnFill
 {
     public const string Auto = "auto";

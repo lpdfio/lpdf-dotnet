@@ -3,7 +3,7 @@
 namespace Lpdf.Kit;
 
 #pragma warning disable CS1591
-/// <summary>The values of the <c>footnote-counter</c> attribute of a document or a section.</summary>
+/// <summary>Where the numbers of the footnotes start over: on every page, in every section, or never.</summary>
 public static class FootnoteCounter
 {
     public const string Page = "page";

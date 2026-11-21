@@ -3,7 +3,7 @@
 namespace Lpdf.Kit;
 
 #pragma warning disable CS1591
-/// <summary>The words of the <c>allow</c> attribute of the output, separated by spaces: what a reader of an encrypted PDF may do.</summary>
+/// <summary>What a reader of an encrypted PDF may do without the owner password: all of what follows, or print (at full quality), modify, copy, annotate, fill in forms, extract text for accessibility tools, and assemble (insert, delete and rotate pages).</summary>
 public static class Permission
 {
     public const string All = "all";

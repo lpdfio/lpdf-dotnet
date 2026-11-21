@@ -30,7 +30,7 @@ public sealed record StampAttr
     /// <summary>
     /// The point of the page the box is placed from, and the point of the box that goes there: <c>top-left</c>,
     /// <c>top-center</c>, <c>top-right</c>, <c>center-left</c>, <c>center</c>, <c>center-right</c>, <c>bottom-left</c>,
-    /// <c>bottom-center</c> or <c>bottom-right</c>.
+    /// <c>bottom-center</c> or <c>bottom-right</c> (<see cref="Lpdf.Canvas.Anchor"/>).
     /// </summary>
     public string? Anchor { get; init; }
 
@@ -40,16 +40,16 @@ public sealed record StampAttr
     /// <summary>The height of the box, in <c>pt</c>, <c>mm</c> or <c>in</c>.</summary>
     public required string Height { get; init; }
 
-    /// <summary>Where the image sits across the box, in the room it leaves: <c>start</c>, <c>center</c> (the default) or <c>end</c>.</summary>
+    /// <summary>Where the image sits across the box, in the room it leaves: <c>start</c>, <c>center</c> (the default) or <c>end</c> (<see cref="Lpdf.Layout.Align"/>).</summary>
     public string? Align { get; init; }
 
-    /// <summary>Where the image sits down the box, in the room it leaves: <c>start</c>, <c>center</c> (the default) or <c>end</c>.</summary>
+    /// <summary>Where the image sits down the box, in the room it leaves: <c>start</c>, <c>center</c> (the default) or <c>end</c> (<see cref="Lpdf.Layout.Align"/>).</summary>
     public string? Justify { get; init; }
 
     /// <summary>
     /// How the image is sized in the box, keeping its proportions: <c>fit</c> (the default) shrinks an image larger
     /// than the box and keeps a smaller one at its natural size, from the resolution the PNG records, or a pixel to a
-    /// point; <c>fill</c> takes the largest size that fits.
+    /// point; <c>fill</c> takes the largest size that fits (<see cref="StampScale"/>).
     /// </summary>
     public string? Scale { get; init; }
 
