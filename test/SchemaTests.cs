@@ -990,7 +990,9 @@ public class SchemaTests
     [Fact]
     public void The_constants_of_the_closed_enumerations_are_the_words_the_schema_reads()
     {
-        Assert.Equal(new[] { "a4", "a3", "a5", "letter", "legal" }, new[] { PageSize.A4, PageSize.A3, PageSize.A5, PageSize.Letter, PageSize.Legal });
+        Assert.Equal(
+            new[] { "a0", "a1", "a2", "a3", "a4", "a5", "a6", "b4", "b5", "letter", "legal", "tabloid" },
+            new[] { PageSize.A0, PageSize.A1, PageSize.A2, PageSize.A3, PageSize.A4, PageSize.A5, PageSize.A6, PageSize.B4, PageSize.B5, PageSize.Letter, PageSize.Legal, PageSize.Tabloid });
         Assert.Equal(new[] { "left", "center", "right", "justify" }, new[] { TextAlign.Left, TextAlign.Center, TextAlign.Right, TextAlign.Justify });
         Assert.Equal(new[] { "no", "break-before", "break-after", "keep-next" }, new[] { Paginate.No, Paginate.BreakBefore, Paginate.BreakAfter, Paginate.KeepNext });
         Assert.Equal("top-left", Anchor.TopLeft);
