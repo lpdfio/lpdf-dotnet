@@ -2,7 +2,7 @@
 
 # Lpdfio.Lpdf
 
-`Lpdfio.Lpdf` is the C# SDK for [Lpdf](https://lpdf.io?utm_campaign=sdk-dotnet&utm_medium=referral&utm_source=readme), the PDF engine that renders a document written in XML or built in code to the same PDF in every language.
+`Lpdfio.Lpdf` is the [Lpdf](https://lpdf.io?utm_campaign=sdk-dotnet&utm_medium=referral&utm_source=readme) C# SDK: render PDF documents from XML or from code.
 
 ## Installation
 
