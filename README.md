@@ -4,6 +4,8 @@
 
 `Lpdfio.Lpdf` is the [Lpdf](https://lpdf.io?utm_campaign=sdk-dotnet&utm_medium=referral&utm_source=readme) C# SDK: render PDF documents from XML or from code.
 
+With data binding, PDF/A, PDF/UA, PDF/X and Factur-X / ZUGFeRD.
+
 ## Installation
 
 ```bash
