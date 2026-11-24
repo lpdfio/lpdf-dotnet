@@ -18,7 +18,7 @@ namespace Lpdf;
 /// using Lpdf.Layout;
 /// using static Lpdf.L;
 ///
-/// var doc = L.Document(new DocumentAttr(Size: "a4"), [
+/// var doc = L.Document(new DocumentAttr(Size: "A4"), [
 ///     L.Section(NoAttr, [
 ///         L.Layout(NoAttr, [
 ///             L.Text(new TextAttr(Font: "heading"), ["Hello"]),

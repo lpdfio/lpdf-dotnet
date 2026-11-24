@@ -45,7 +45,7 @@ public class CrossIndustryInvoiceTests
     /// <summary>A page that shows the value at <paramref name="path"/>, for <see cref="RechnungMap"/>.</summary>
     private static string RechnungTemplate(string path) =>
         "<lpdf version=\"1\"><assets><font name=\"body\" src=\"../assets/fonts/SourceSans3-Regular.otf\"/></assets>" +
-        "<document size=\"a4\" font=\"body\"><section><layout margin=\"48pt\">" +
+        "<document size=\"A4\" font=\"body\"><section><layout margin=\"48pt\">" +
         $"<text data-value=\"{path}\">0000</text>" +
         "</layout></section></document></lpdf>";
 
@@ -93,7 +93,7 @@ public class CrossIndustryInvoiceTests
         rows.Add(L.Row(new() { Gap = "xs" }, [L.Text(total, ["Total"]), L.Text(total, [S(totals["gross"])]), L.Text(total, [S(totals["currency"])])]));
 
         return L.Document(new DocumentAttr(
-            Size: "a4", Font: "body",
+            Size: "A4", Font: "body",
             Assets: new DocumentAssets(Fonts: [new FontAttr { Name = "body", Src = "../assets/fonts/SourceSans3-Regular.otf" }]),
             Meta: new DocumentMeta(Title: "Invoice", Author: "Northwind Paper SAS", Lang: "en")),
         [
