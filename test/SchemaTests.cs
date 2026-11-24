@@ -244,8 +244,8 @@ public class SchemaTests
     [Fact]
     public void A_layer_shape_is_drawn()
     {
-        var empty = L.Document(new DocumentAttr(Size: "a4"), [L.Section(null, [L.Layer(null, [])])]);
-        var drawn = L.Document(new DocumentAttr(Size: "a4"), [
+        var empty = L.Document(new DocumentAttr(Size: "A4"), [L.Section(null, [L.Layer(null, [])])]);
+        var drawn = L.Document(new DocumentAttr(Size: "A4"), [
             L.Section(null, [
                 L.Layer(null, [L.Rect(new RectAttr { X = "50pt", Y = "50pt", Width = "200pt", Height = "100pt", Fill = "#ff0000" })]),
             ]),
@@ -348,7 +348,7 @@ public class SchemaTests
     [Fact]
     public void A_circle_is_written_with_x_and_y_and_drawn_where_its_box_is()
     {
-        var circleAt = (string x) => L.Document(new DocumentAttr(Size: "a4"), [
+        var circleAt = (string x) => L.Document(new DocumentAttr(Size: "A4"), [
             L.Section(null, [L.Layer(null, [L.Circle(new CircleAttr { X = x, Y = "20pt", R = "10pt", Fill = "#ff0000" })])]),
         ]);
 
@@ -372,7 +372,7 @@ public class SchemaTests
     [Fact]
     public void A_built_document_renders_the_same_as_its_xml()
     {
-        var built = L.Document(new DocumentAttr(Size: "a4"), [
+        var built = L.Document(new DocumentAttr(Size: "A4"), [
             L.Section(null, [
                 L.Layout(null, [
                     L.Column(new ColumnAttr { Gap = "12pt" }, [
@@ -607,7 +607,7 @@ public class SchemaTests
     [Fact]
     public void A_bulk_table_renders_from_data_as_the_table_without_bulk_and_one_built_with_L_which_has_no_data_is_rejected()
     {
-        string Xml(string bulk) => "<lpdf version=\"1\"><document size=\"a4\"><section><layout margin=\"36pt\">"
+        string Xml(string bulk) => "<lpdf version=\"1\"><document size=\"A4\"><section><layout margin=\"36pt\">"
             + $"<table cols=\"1fr 2fr\"{bulk}><thead><td><text bold=\"true\">Date</text></td><td><text bold=\"true\">Amount</text></td></thead>"
             + "<tr data-source=\"entries\"><td><text data-value=\"date\">-</text></td><td><text data-value=\"amount\">-</text></td></tr></table>"
             + "<region pin=\"bottom\"><text align=\"right\">Page {page} of {pages}</text></region></layout></section></document></lpdf>";
@@ -991,7 +991,7 @@ public class SchemaTests
     public void The_constants_of_the_closed_enumerations_are_the_words_the_schema_reads()
     {
         Assert.Equal(
-            new[] { "a0", "a1", "a2", "a3", "a4", "a5", "a6", "b4", "b5", "letter", "legal", "tabloid" },
+            new[] { "A0", "A1", "A2", "A3", "A4", "A5", "A6", "B4", "B5", "Letter", "Legal", "Tabloid" },
             new[] { PageSize.A0, PageSize.A1, PageSize.A2, PageSize.A3, PageSize.A4, PageSize.A5, PageSize.A6, PageSize.B4, PageSize.B5, PageSize.Letter, PageSize.Legal, PageSize.Tabloid });
         Assert.Equal(new[] { "left", "center", "right", "justify" }, new[] { TextAlign.Left, TextAlign.Center, TextAlign.Right, TextAlign.Justify });
         Assert.Equal(new[] { "no", "break-before", "break-after", "keep-next" }, new[] { Paginate.No, Paginate.BreakBefore, Paginate.BreakAfter, Paginate.KeepNext });
@@ -1015,7 +1015,7 @@ public class SchemaTests
                 L.Barcode(new BarcodeAttr { Type = BarcodeType.Qr, Data = "x", Ec = QrEcLevel.H, Height = "40pt" }),
             ])]),
         ]);
-        const string xml = "<lpdf version=\"1\"><document size=\"a4\" orientation=\"landscape\"><section><layout><text align=\"center\" paginate=\"keep-next\">x</text><barcode type=\"qr\" data=\"x\" ec=\"H\" height=\"40pt\"/></layout></section></document></lpdf>";
+        const string xml = "<lpdf version=\"1\"><document size=\"A4\" orientation=\"landscape\"><section><layout><text align=\"center\" paginate=\"keep-next\">x</text><barcode type=\"qr\" data=\"x\" ec=\"H\" height=\"40pt\"/></layout></section></document></lpdf>";
         Assert.Equal(Render(xml), Render(built));
     }
 

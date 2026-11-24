@@ -81,7 +81,7 @@ public class TextContentTests
     [Fact]
     public void Text_with_plain_strings_renders_to_a_pdf()
     {
-        var doc = L.Document(new DocumentAttr(Size: "a4"), [
+        var doc = L.Document(new DocumentAttr(Size: "A4"), [
             L.Section(L.NoAttr, [
                 L.Layout(L.NoAttr, [
                     L.Text(new TextAttr { FontSize = "14pt" }, ["Total: ", L.Span(new SpanAttr { Bold = true }, ["$100"])]),

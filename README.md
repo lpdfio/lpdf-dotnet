@@ -18,7 +18,7 @@ using static Lpdf.L;
 
 var engine = L.Engine();
 
-var doc = L.Document(new() { Size = "letter" }, [
+var doc = L.Document(new() { Size = "Letter" }, [
     L.Section(NoAttr, [
         L.Layout(new() { Margin = "48pt" }, [
             L.Column(new() { Gap = "24pt" }, [

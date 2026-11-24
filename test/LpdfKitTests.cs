@@ -121,8 +121,8 @@ public class LpdfKitTypesTests
     [Fact]
     public void Document_StringOptionsAppearedInAttrs()
     {
-        var doc = L.Document(attrs: new DocumentAttr(Size: "a4", Orientation: "landscape"));
-        Assert.Equal("a4",        doc.Attrs["size"]);
+        var doc = L.Document(attrs: new DocumentAttr(Size: "A4", Orientation: "landscape"));
+        Assert.Equal("A4",        doc.Attrs["size"]);
         Assert.Equal("landscape", doc.Attrs["orientation"]);
     }
 
@@ -182,10 +182,10 @@ public class LpdfKitTypesTests
     {
         var layout  = L.Layout(null, [L.Column()]);
         var section = L.Section(
-            attrs:  new SectionAttr(Size: "a4"),
+            attrs:  new SectionAttr(Size: "A4"),
             nodes:  [layout]);
         Assert.Equal("section", section.Type);
-        Assert.Equal("a4",      section.Attrs["size"]);
+        Assert.Equal("A4",      section.Attrs["size"]);
         Assert.Single(layout.Nodes);
     }
 }
