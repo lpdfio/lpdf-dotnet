@@ -294,6 +294,14 @@ public static class L
     public static BarcodeNode Barcode(BarcodeAttr attrs)
         => new(AttrsHelper.Attrs(attrs));
 
+    /// <summary>
+    /// Build a <c>chart</c> drawn from numbers, written like a table: <see cref="LChart.Series"/> are its columns,
+    /// each <see cref="LChart.Category"/> a row and each <see cref="LChart.Value"/> a cell, a value for each series in
+    /// the series' order. A chart with one series needs no series.
+    /// </summary>
+    public static ChartNode Chart(ChartAttr attrs, ChartPart[]? nodes = null)
+        => new(AttrsHelper.Attrs(attrs), (nodes ?? []).ToList());
+
     /// <summary>Build a <c>region</c> node.</summary>
     public static RegionNode Region(RegionAttr attrs, Node[]? nodes = null)
         => new(AttrsHelper.Attrs(attrs), (nodes ?? []).ToList());

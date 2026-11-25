@@ -1031,6 +1031,77 @@ public class SchemaTests
         return L.Document(nodes: [L.Section(nodes: [L.Markdown(attrs, [.. parts])])]);
     }
 
+    // -- Charts ------------------------------------------------------------------------------------
+
+    private static PdfDocument RevenueChart() => InLayout(
+        L.Chart(new ChartAttr { Type = ChartType.Bar, Height = "180pt", Prefix = "$", Legend = ChartLegend.Top, ThousandsMark = ".", DecimalMark = "," }, [
+            LChart.Series(new ChartSeriesAttr { Label = "Revenue", Color = "#1763cf" }),
+            LChart.Series(new ChartSeriesAttr { Label = "Costs" }),
+            LChart.Category(new ChartCategoryAttr { Label = "Q1" }, [LChart.Value(L.NoAttr, [120000]), LChart.Value(L.NoAttr, [95000.5])]),
+            LChart.Category(new ChartCategoryAttr { Label = "Q2" }, [LChart.Value(L.NoAttr, ["131000"]), LChart.Value(L.NoAttr)]),
+        ]));
+
+    [Fact]
+    public void A_chart_its_series_its_categories_and_their_values_are_built_with_the_schema_names()
+    {
+        var chart = L.Chart(new ChartAttr { Type = ChartType.Bar, Height = "100pt", ValueLabels = true, Direction = ChartDirection.Horizontal });
+        Assert.Equal("chart", chart.Type);
+        Assert.Equal(new Dictionary<string, object> { ["type"] = "bar", ["height"] = "100pt", ["direction"] = "horizontal", ["value-labels"] = true }, chart.Attrs);
+        Assert.Equal(new Dictionary<string, object> { ["label"] = "Revenue" }, LChart.Series(new ChartSeriesAttr { Label = "Revenue" }).Attrs);
+        var category = LChart.Category(new ChartCategoryAttr { Label = "Q1" }, [LChart.Value(L.NoAttr, [41200])]);
+        Assert.Equal("category", category.Type);
+        Assert.Equal(["41200"], category.Values[0].Text);
+        Assert.Empty(LChart.Value(L.NoAttr).Text);
+    }
+
+    [Theory]
+    [InlineData(0.25, "0.25")]
+    [InlineData(-3.5, "-3.5")]
+    [InlineData(1e21, "1000000000000000000000")]
+    [InlineData(1.5e-7, "0.00000015")]
+    [InlineData(-0.0, "0")]
+    public void A_number_of_a_value_is_written_in_full_with_no_exponent(double value, string text)
+        => Assert.Equal([text], LChart.Value(L.NoAttr, [value]).Text);
+
+    [Fact]
+    public void A_number_of_a_value_is_written_with_no_culture()
+    {
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
+            Assert.Equal(["0.25", "1234567", "0.250"], LChart.Value(L.NoAttr, [0.25, 1234567L, 0.250m]).Text);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = culture;
+        }
+    }
+
+    [Fact]
+    public void A_value_that_is_not_finite_is_refused()
+        => Assert.Throws<ArgumentOutOfRangeException>(() => LChart.Value(L.NoAttr, [double.NaN]));
+
+    [Fact]
+    public void A_chart_renders_the_same_from_the_builder_and_its_XML()
+    {
+        var xml = L.ToXml(RevenueChart());
+        Assert.Contains("<value>120000</value>", xml);
+        Assert.Contains("<value>95000.5</value>", xml);
+        Assert.Matches("<value\\s*/>", xml);
+        Assert.Equal(Render(RevenueChart()), Render(xml));
+    }
+
+    [Fact]
+    public void A_category_with_the_wrong_count_of_values_is_refused()
+    {
+        var document = InLayout(L.Chart(new ChartAttr { Type = ChartType.Bar, Height = "100pt" }, [
+            LChart.Series(), LChart.Series(), LChart.Category(new ChartCategoryAttr { Label = "Q1" }, [LChart.Value(L.NoAttr, [1])]),
+        ]));
+        var error = Assert.ThrowsAny<Exception>(() => Render(document));
+        Assert.Contains("category 'Q1' has 1 value, and the chart has 2 series", error.Message);
+    }
+
     [Fact]
     public void A_markdown_its_styles_its_content_and_their_rules_are_built_with_the_schema_names()
     {
