@@ -27,8 +27,8 @@ public static class LChart
 
     /// <summary>
     /// Build a value of a category: a number, written in full with no culture and no exponent, or a string that is
-    /// one, taken as written. No value, an empty list, draws no bar and breaks a line; a stacked area counts it as
-    /// zero. It has no attributes: pass <see cref="L.NoAttr"/>.
+    /// one, taken as written. No value, an empty list, draws no bar and breaks a line, an area or a sparkline; a
+    /// stacked area counts it as zero. It has no attributes: pass <see cref="L.NoAttr"/>.
     /// </summary>
     /// <exception cref="ArgumentException">A value is <c>default(ChartValue)</c>, which holds no number.</exception>
     public static ChartValueNode Value(NoAttributes? attrs = null, ChartValue[]? nodes = null)
