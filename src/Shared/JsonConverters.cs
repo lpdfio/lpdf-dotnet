@@ -76,9 +76,48 @@ internal sealed class NodeConverter : JsonConverter<Layout.Node>
             case BookmarkNode b:
                 WriteAttrs(writer, b.Attrs);
                 break;
+            case ChartNode chart:
+                WriteAttrs(writer, chart.Attrs);
+                WriteChartParts(writer, chart.Parts);
+                break;
         }
 
         writer.WriteEndObject();
+    }
+
+    /// <summary>The series and categories of a chart, each category with its values as strings.</summary>
+    private static void WriteChartParts(Utf8JsonWriter writer, List<ChartPart> parts)
+    {
+        writer.WriteStartArray("nodes");
+        foreach (var part in parts)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("type", part.Type);
+            switch (part)
+            {
+                case ChartSeriesNode series:
+                    WriteAttrs(writer, series.Attrs);
+                    break;
+                case ChartCategoryNode category:
+                    WriteAttrs(writer, category.Attrs);
+                    writer.WriteStartArray("nodes");
+                    foreach (var value in category.Values)
+                    {
+                        writer.WriteStartObject();
+                        writer.WriteString("type", value.Type);
+                        writer.WriteStartObject("attrs");
+                        writer.WriteEndObject();
+                        writer.WriteStartArray("nodes");
+                        foreach (var text in value.Text) writer.WriteStringValue(text);
+                        writer.WriteEndArray();
+                        writer.WriteEndObject();
+                    }
+                    writer.WriteEndArray();
+                    break;
+            }
+            writer.WriteEndObject();
+        }
+        writer.WriteEndArray();
     }
 
     internal static void WriteAttrs(Utf8JsonWriter writer, Dictionary<string, object> attrs)

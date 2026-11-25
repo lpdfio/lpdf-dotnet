@@ -7,11 +7,11 @@ namespace Lpdf;
 
 /// <summary>
 /// The type of <see cref="L.NoAttr"/>: "no attributes". It converts to the attribute type of every
-/// <see cref="L"/> builder that takes its attributes as an optional argument, so <c>L.Column(NoAttr, [...])</c>
-/// reads the same as it does in the other SDKs.
+/// <see cref="L"/>, <see cref="LMarkdown"/> and <see cref="LChart"/> builder that takes its attributes as an optional
+/// argument, so <c>L.Column(NoAttr, [...])</c> reads the same as it does in the other SDKs.
 ///
-/// <c>img</c>, <c>barcode</c>, <c>region</c> and <c>field</c> need attributes, so there is no conversion to
-/// their types: <c>L.Img(NoAttr)</c> does not compile, where it would build a node the engine rejects.
+/// <c>img</c>, <c>barcode</c>, <c>chart</c>, <c>region</c> and <c>field</c> need attributes, so there is no conversion
+/// to their types: <c>L.Img(NoAttr)</c> does not compile, where it would build a node the engine rejects.
 /// </summary>
 public sealed class NoAttributes
 {
@@ -41,6 +41,8 @@ public sealed class NoAttributes
     public static implicit operator SpanAttr?(NoAttributes _) => null;
     public static implicit operator CodeSpanAttr?(NoAttributes _) => null;
     public static implicit operator DividerAttr?(NoAttributes _) => null;
+    public static implicit operator ChartSeriesAttr?(NoAttributes _) => null;
+    public static implicit operator ChartCategoryAttr?(NoAttributes _) => null;
     public static implicit operator LayerAttr?(NoAttributes _) => null;
     public static implicit operator MarkdownAttr?(NoAttributes _) => null;
     public static implicit operator MarkdownStylesAttr?(NoAttributes _) => null;

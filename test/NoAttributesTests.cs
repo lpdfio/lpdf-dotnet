@@ -16,7 +16,7 @@ public class NoAttributesTests
             .Select(method => method.ReturnType)
             .ToHashSet();
 
-        var missing = new[] { typeof(L), typeof(LMarkdown) }
+        var missing = new[] { typeof(L), typeof(LMarkdown), typeof(LChart) }
             .SelectMany(builder => builder.GetMethods(BindingFlags.Public | BindingFlags.Static))
             .SelectMany(method => method.GetParameters())
             .Where(parameter => parameter.IsOptional && parameter.ParameterType.Name.EndsWith("Attr", StringComparison.Ordinal))
