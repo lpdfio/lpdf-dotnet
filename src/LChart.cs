@@ -30,6 +30,19 @@ public static class LChart
     /// one, taken as written. No value, an empty list, draws no bar. It has no attributes: pass
     /// <see cref="L.NoAttr"/>.
     /// </summary>
+    /// <exception cref="ArgumentException">A value is <c>default(ChartValue)</c>, which holds no number.</exception>
     public static ChartValueNode Value(NoAttributes? attrs = null, ChartValue[]? nodes = null)
-        => new((nodes ?? []).Select(value => value.Text).ToList());
+    {
+        nodes ??= [];
+        for (var i = 0; i < nodes.Length; i++)
+        {
+            if (!nodes[i].IsSet)
+            {
+                throw new ArgumentException(
+                    $"value {i + 1} of <value> is default(ChartValue), which holds no number: give a number or a string",
+                    nameof(nodes));
+            }
+        }
+        return new(nodes.Select(value => value.Text).ToList());
+    }
 }

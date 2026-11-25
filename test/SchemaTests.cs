@@ -1079,8 +1079,23 @@ public class SchemaTests
     }
 
     [Fact]
+    public void A_float_of_a_value_is_written_from_its_own_shortest_digits()
+        => Assert.Equal(["0.1", "1000000000000000000000", "0.00000015"], LChart.Value(L.NoAttr, [0.1f, 1e21f, 1.5e-7f]).Text);
+
+    [Fact]
     public void A_value_that_is_not_finite_is_refused()
-        => Assert.Throws<ArgumentOutOfRangeException>(() => LChart.Value(L.NoAttr, [double.NaN]));
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => LChart.Value(L.NoAttr, [double.NaN]));
+        Assert.Throws<ArgumentOutOfRangeException>(() => LChart.Value(L.NoAttr, [float.PositiveInfinity]));
+    }
+
+    [Fact]
+    public void A_default_value_is_refused_since_it_holds_no_number()
+    {
+        var error = Assert.Throws<ArgumentException>(() => LChart.Value(L.NoAttr, new ChartValue[2]));
+        Assert.Contains("value 1 of <value> is default(ChartValue)", error.Message);
+        Assert.Equal("", default(ChartValue).Text);
+    }
 
     [Fact]
     public void A_chart_renders_the_same_from_the_builder_and_its_XML()
@@ -1098,7 +1113,7 @@ public class SchemaTests
         var document = InLayout(L.Chart(new ChartAttr { Type = ChartType.Bar, Height = "100pt" }, [
             LChart.Series(), LChart.Series(), LChart.Category(new ChartCategoryAttr { Label = "Q1" }, [LChart.Value(L.NoAttr, [1])]),
         ]));
-        var error = Assert.ThrowsAny<Exception>(() => Render(document));
+        var error = Assert.Throws<EngineException>(() => Render(document));
         Assert.Contains("category 'Q1' has 1 value, and the chart has 2 series", error.Message);
     }
 
