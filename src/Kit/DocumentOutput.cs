@@ -21,12 +21,12 @@ namespace Lpdf.Kit;
 /// carry attachments of any kind. The render needs <see cref="Lpdf.Engine.RenderOptions.CreatedOn"/>, and every text a
 /// font of the assets. Level a tags the file as <paramref name="PdfUa"/> does, without PDF/UA's checks: add
 /// <paramref name="PdfUa"/> for a file a screen reader can use. What PDF/A cannot hold is an error that says what to
-/// change: a built-in font, a CMYK color, a form field, a barcode's digits, <paramref name="Encrypt"/>, attachments in
-/// part 2, and in level a a lang that is not a language tag and a character of Unicode's private use area. With
-/// <c>"3a"</c>, <c>"3b"</c> or <c>"3u"</c>, an attachment named <c>factur-x.xml</c>, or <c>xrechnung.xml</c> for the
-/// XRECHNUNG profile, makes the file a Factur-X or ZUGFeRD e-invoice: the engine reads the profile from BT-24 of that
-/// XML and names the invoice in the file's metadata. The XML is attached as given, and its content is not checked. It
-/// is <c>pdfa</c> in the XML.
+/// change: a built-in font, a CMYK color, a push button, a form field in a built-in font, a barcode's digits,
+/// <paramref name="Encrypt"/>, attachments in part 2, and in level a a lang that is not a language tag and a character
+/// of Unicode's private use area. With <c>"3a"</c>, <c>"3b"</c> or <c>"3u"</c>, an attachment named
+/// <c>factur-x.xml</c>, or <c>xrechnung.xml</c> for the XRECHNUNG profile, makes the file a Factur-X or ZUGFeRD
+/// e-invoice: the engine reads the profile from BT-24 of that XML and names the invoice in the file's metadata. The
+/// XML is attached as given, and its content is not checked. It is <c>pdfa</c> in the XML.
 /// </param>
 /// <param name="PdfUa">
 /// Writes the PDF as PDF/UA-1, a tagged PDF a screen reader can read: <c>"1"</c>. It combines with
