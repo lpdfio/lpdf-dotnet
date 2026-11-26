@@ -3,7 +3,7 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>A series of a chart: one value in each category, in the order of the series. Left out, the chart has one series. data-source repeats it for each item of a list, so the data can set how many series there are. A chart holds 100 series at most, counted after the data is bound. A sparkline has one series and takes none.</summary>
+/// <summary>A series of a chart: one value in each category, in the order of the series. Left out, the chart has one series. data-source repeats it for each item of a list, so the data can set how many series there are. A chart holds 100 series at most, counted after the data is bound. A pie, a donut and a sparkline have one series and take none.</summary>
 public sealed record ChartSeriesAttr
 {
     /// <summary>The series' entry in the legend.</summary>

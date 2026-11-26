@@ -3,10 +3,10 @@
 namespace Lpdf.Layout;
 
 #pragma warning disable CS1591
-/// <summary>A chart drawn from numbers, written like a table: series are its columns, each category a row and each value a cell, a value for each series in the series' order. A chart with one series needs no series. It takes its box in the flow as an image does, never splits across pages, and moves whole to the next page when it doesn't fit. The engine draws its axis, steps, gridlines, labels and legend by fixed rules: the value axis of bars and areas starts at zero, and a line's fits its values, from a round step under the lowest to one over the highest; the axis runs in round steps, each 1, 2 or 5 times a power of ten, written in full; a negative value takes the axis below zero, where a zero line is drawn; a label wider than its room wraps at spaces onto three lines at most, and what still doesn't fit ends in an ellipsis, so a chart always renders. A line or an area writes every 2nd, 3rd or 5th label where they don't all fit, and every point keeps its place. A missing value breaks a line, an area and a sparkline, and counts as zero in a stacked area. A sparkline draws no axis, labels or legend. A chart is a leaf, with no padding, background or border: a column around it gives them, and a text above it is its title.</summary>
+/// <summary>A chart drawn from numbers, written like a table: series are its columns, each category a row and each value a cell, a value for each series in the series' order. A chart with one series needs no series. It takes its box in the flow as an image does, never splits across pages, and moves whole to the next page when it doesn't fit. The engine draws its axis, steps, gridlines, labels and legend by fixed rules: the value axis of bars and areas starts at zero, and a line's fits its values, from a round step under the lowest to one over the highest; the axis runs in round steps, each 1, 2 or 5 times a power of ten, written in full; a negative value takes the axis below zero, where a zero line is drawn; a label wider than its room wraps at spaces onto three lines at most, and what still doesn't fit ends in an ellipsis, so a chart always renders. A line or an area writes every 2nd, 3rd or 5th label where they don't all fit, and every point keeps its place. A missing value breaks a line, an area and a sparkline, and counts as zero in a stacked area. A sparkline draws no axis, labels or legend. A pie or a donut draws no axis either: a slice for each category, clockwise from the top, as wide as its share of the whole, in the largest circle the plot holds, and a legend at the right that lists each slice's label, color and share; a donut has a hole, with a text of the author's in it, and a negative value, or values that add up to zero, are refused. A chart is a leaf, with no padding, background or border: a column around it gives them, and a text above it is its title.</summary>
 public sealed record ChartAttr
 {
-    /// <summary>The kind of chart. bar draws a bar for each value, side by side within a category, or stacked with stacked="true". line draws a line through the values of each series, on an axis that fits them. area draws a line filled down to zero, or with stacked="true" each series filled down to the one under it. sparkline draws one small line through the whole box, with no axis, labels or legend, for a table cell.</summary>
+    /// <summary>The kind of chart. bar draws a bar for each value, side by side within a category, or stacked with stacked="true". line draws a line through the values of each series, on an axis that fits them. area draws a line filled down to zero, or with stacked="true" each series filled down to the one under it. pie draws a slice for each category, as wide as its share of the whole, with no axis. donut is a pie with a hole, which hole sizes and hole-text writes in. sparkline draws one small line through the whole box, with no axis, labels or legend, for a table cell.</summary>
     public required string Type { get; init; }
 
     /// <summary>Height of the whole chart, a length or a name from the height row of the tokens. The axis, the labels and the legend take room inside it and the width, and the plot gets the rest. The width is fill unless it is set.</summary>
@@ -27,7 +27,7 @@ public sealed record ChartAttr
     /// <summary>Written after every number of the chart: % writes 12%, and " ms" writes 12 ms. With values in thousands, suffix="k" writes $412k.</summary>
     public string? Suffix { get; init; }
 
-    /// <summary>The decimals of the value labels, 0 to 6. Left out, a value is written with the decimals it has. The steps of the axis take the decimals their size needs.</summary>
+    /// <summary>The decimals of the value labels, 0 to 6, and of the shares in the legend of a pie or a donut, which are whole percents unless it says otherwise. Left out, a value is written with the decimals it has. The steps of the axis take the decimals their size needs.</summary>
     public int? Decimals { get; init; }
 
     /// <summary>A number the value axis reaches down to at least, which takes it below zero: min="-50". It only widens the axis: a value below it still fits. On a line, whose axis fits its values, min="0" brings the axis down to zero. A sparkline reaches it too, though it draws no axis.</summary>
@@ -51,7 +51,7 @@ public sealed record ChartAttr
     /// <summary>The space between categories. Default a quarter of the room of a category. The bars take the room the two gaps leave.</summary>
     public string? CategoryGap { get; init; }
 
-    /// <summary>Where the legend goes, which lists each series with its label and its color: bottom, top, right, or none. Default bottom with two series or more, and none with one.</summary>
+    /// <summary>Where the legend goes, which lists each series with its label and its color, or each slice of a pie or a donut with its label, its color and its share of the whole, 22%: bottom, top, right, or none. Default bottom with two series or more, and none with one; right for a pie or a donut.</summary>
     public string? Legend { get; init; }
 
     /// <summary>Writes each value at the end of its bar or over its point. A point lower than the points beside it has its value under it, where its line doesn't run. The total of a stack goes at the end of the stack or over its top. Default false. A sparkline writes none.</summary>
@@ -59,6 +59,12 @@ public sealed record ChartAttr
 
     /// <summary>The width of every line of a line, an area or a sparkline chart, a length such as 2pt: 1.5pt by default, and 1pt for a sparkline. 0 draws no line, so an area is its fill alone. Every line takes the same width: which line is the current one and which the comparison is told by the series' color.</summary>
     public string? StrokeWidth { get; init; }
+
+    /// <summary>The hole of a donut as a share of its size, from 0.1 to 0.9: 0.8 is a thin ring and 0.5 a thick one. Default 0.6. Donuts only: refused on any other kind.</summary>
+    public double? Hole { get; init; }
+
+    /// <summary>A text in the middle of a donut's hole, as it should read: a total, $11,100, or a share, 72%. The engine adds nothing up. Too wide for the hole, it wraps at spaces, and what still doesn't fit ends in an ellipsis. Donuts only: refused on any other kind.</summary>
+    public string? HoleText { get; init; }
     public string? Font { get; init; }
     public string? FontSize { get; init; }
 
